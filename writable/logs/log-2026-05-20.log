@@ -1,0 +1,449 @@
+DEBUG - 2026-05-20 02:39:29 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:39:35 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2026-05-20 02:39:35 --> Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:39:35 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+[Method: POST, Route: auth/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 2 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 3 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 4 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 5 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 6 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:39:35 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 4 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 5 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 6 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 7 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 8 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 9 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+10 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+11 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+12 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+13 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+14 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+15 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:39:35 --> [Caused by] mysqli_sql_exception: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:35\', \'2026-05-20 02:39:35\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+DEBUG - 2026-05-20 02:39:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2026-05-20 02:39:40 --> Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:39:40 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+[Method: POST, Route: auth/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 2 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 3 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 4 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 5 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 6 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:39:40 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 4 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 5 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 6 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 7 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 8 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 9 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+10 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+11 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+12 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+13 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+14 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+15 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:39:40 --> [Caused by] mysqli_sql_exception: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:39:40\', \'2026-05-20 02:39:40\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+DEBUG - 2026-05-20 02:45:03 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2026-05-20 02:45:04 --> Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:04 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+[Method: POST, Route: auth/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 2 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 3 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 4 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 5 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 6 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:04 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 4 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 5 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 6 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 7 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 8 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 9 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+10 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+11 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+12 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+13 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+14 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+15 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:04 --> [Caused by] mysqli_sql_exception: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:04\', \'2026-05-20 02:45:04\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:04 --> ErrorException: Uncaught Error: Undefined constant "BASEPATH" in C:\Users\verge\Downloads\github\bchims\app\Views\errors\html\error_exception.php:19
+Stack trace:
+#0 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\BaseExceptionHandler.php(270): include()
+#1 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\BaseExceptionHandler.php(273): CodeIgniter\Debug\BaseExceptionHandler->CodeIgniter\Debug\{closure}()
+#2 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\ExceptionHandler.php(126): CodeIgniter\Debug\BaseExceptionHandler->render(Object(CodeIgniter\Database\Exceptions\DatabaseException), 500, 'C:\\Users\\verge\\...')
+#3 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\Exceptions.php(151): CodeIgniter\Debug\ExceptionHandler->handle(Object(CodeIgniter\Database\Exceptions\DatabaseException), Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), 500, 8)
+#4 [internal function]: CodeIgniter\Debug\Exceptions->exceptionHandler(Object(CodeIgniter\Database\Exceptions\DatabaseException))
+#5 {main}
+  thrown
+【Previous Exception】
+CodeIgniter\Database\Exceptions\DatabaseException
+Unknown column 'updated_at' in 'field list'
+#0 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `au...', Array, false)
+#1 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+#2 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\BaseModel.php(899): CodeIgniter\Model->doInsert(Array)
+#3 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Model.php(668): CodeIgniter\BaseModel->insert(Array, true)
+#4 C:\Users\verge\Downloads\github\bchims\app\Models\AuditModel.php(48): CodeIgniter\Model->insert(Array)
+#5 C:\Users\verge\Downloads\github\bchims\app\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successful...')
+#6 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\Auth->login()
+#7 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+#8 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\Users\verge\Downloads\github\bchims\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\verge\\...')
+#13 {main}
+[Method: POST, Route: auth/login]
+in APPPATH\Views\errors\html\error_exception.php on line 19.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+DEBUG - 2026-05-20 02:45:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:45:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:45:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2026-05-20 02:45:10 --> Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:10 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+[Method: POST, Route: auth/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 2 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 3 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 4 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 5 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 6 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:10 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 4 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 5 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 6 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 7 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 8 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+ 9 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+10 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+11 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+12 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+13 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+14 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+15 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:10 --> [Caused by] mysqli_sql_exception: Unknown column 'updated_at' in 'field list'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (\'1\', \'admin\', \'LOGIN\', \'Auth\', \'User successfully logged in.\', \'127.0.0.1\', \'2026-05-20 02:45:10\', \'2026-05-20 02:45:10\')')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `audit_logs` (`user_id`, `username`, `action`, `module`, `description`, `ip_address`, `created_at`, `updated_at`) VALUES (:user_id:, :username:, :action:, :module:, :description:, :ip_address:, :created_at:, :updated_at:)', [...], false)
+ 5 SYSTEMPATH\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+ 6 SYSTEMPATH\BaseModel.php(899): CodeIgniter\Model->doInsert([...])
+ 7 SYSTEMPATH\Model.php(668): CodeIgniter\BaseModel->insert([...], true)
+ 8 APPPATH\Models\AuditModel.php(48): CodeIgniter\Model->insert([...])
+ 9 APPPATH\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.')
+10 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Auth->login()
+11 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+12 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+13 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+14 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+15 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+16 SYSTEMPATH\rewrite.php(44): require_once('C:\\Users\\verge\\Downloads\\github\\bchims\\public\\index.php')
+CRITICAL - 2026-05-20 02:45:10 --> ErrorException: Uncaught Error: Undefined constant "BASEPATH" in C:\Users\verge\Downloads\github\bchims\app\Views\errors\html\error_exception.php:19
+Stack trace:
+#0 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\BaseExceptionHandler.php(270): include()
+#1 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\BaseExceptionHandler.php(273): CodeIgniter\Debug\BaseExceptionHandler->CodeIgniter\Debug\{closure}()
+#2 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\ExceptionHandler.php(126): CodeIgniter\Debug\BaseExceptionHandler->render(Object(CodeIgniter\Database\Exceptions\DatabaseException), 500, 'C:\\Users\\verge\\...')
+#3 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\Exceptions.php(151): CodeIgniter\Debug\ExceptionHandler->handle(Object(CodeIgniter\Database\Exceptions\DatabaseException), Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), 500, 8)
+#4 [internal function]: CodeIgniter\Debug\Exceptions->exceptionHandler(Object(CodeIgniter\Database\Exceptions\DatabaseException))
+#5 {main}
+  thrown
+【Previous Exception】
+CodeIgniter\Database\Exceptions\DatabaseException
+Unknown column 'updated_at' in 'field list'
+#0 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `au...', Array, false)
+#1 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Model.php(355): CodeIgniter\Database\BaseBuilder->insert()
+#2 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\BaseModel.php(899): CodeIgniter\Model->doInsert(Array)
+#3 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Model.php(668): CodeIgniter\BaseModel->insert(Array, true)
+#4 C:\Users\verge\Downloads\github\bchims\app\Models\AuditModel.php(48): CodeIgniter\Model->insert(Array)
+#5 C:\Users\verge\Downloads\github\bchims\app\Controllers\Auth.php(59): App\Models\AuditModel->log_activity('LOGIN', 'Auth', 'User successful...')
+#6 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\Auth->login()
+#7 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+#8 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\Users\verge\Downloads\github\bchims\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\verge\\...')
+#13 {main}
+[Method: POST, Route: auth/login]
+in APPPATH\Views\errors\html\error_exception.php on line 19.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+CRITICAL - 2026-05-20 02:50:08 --> ErrorException: Uncaught ErrorException: Undefined variable $heading in C:\Users\verge\Downloads\github\bchims\app\Views\errors\cli\error_404.php:5
+Stack trace:
+#0 C:\Users\verge\Downloads\github\bchims\app\Views\errors\cli\error_404.php(5): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined varia...', 'C:\\Users\\verge\\...', 5)
+#1 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\BaseExceptionHandler.php(270): include('C:\\Users\\verge\\...')
+#2 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\BaseExceptionHandler.php(273): CodeIgniter\Debug\BaseExceptionHandler->CodeIgniter\Debug\{closure}()
+#3 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\ExceptionHandler.php(126): CodeIgniter\Debug\BaseExceptionHandler->render(Object(CodeIgniter\Exceptions\PageNotFoundException), 404, 'C:\\Users\\verge\\...')
+#4 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Debug\Exceptions.php(151): CodeIgniter\Debug\ExceptionHandler->handle(Object(CodeIgniter\Exceptions\PageNotFoundException), Object(CodeIgniter\HTTP\CLIRequest), Object(CodeIgniter\HTTP\Response), 404, 1)
+#5 [internal function]: CodeIgniter\Debug\Exceptions->exceptionHandler(Object(CodeIgniter\Exceptions\PageNotFoundException))
+#6 {main}
+  thrown
+【Previous Exception】
+CodeIgniter\Exceptions\PageNotFoundException
+Can't find a route for 'CLI: /'.
+#0 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(1001): CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Can't find a ro...')
+#1 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\CodeIgniter.php(346): CodeIgniter\CodeIgniter->display404errors(Object(CodeIgniter\Exceptions\PageNotFoundException))
+#2 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#3 C:\Users\verge\Downloads\github\bchims\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#4 C:\Users\verge\Downloads\github\bchims\test_audit.php(12): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#5 {main}
+[Method: CLI, Route: /]
+in APPPATH\Views\errors\cli\error_404.php on line 5.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+DEBUG - 2026-05-20 04:58:17 --> Session: Initialization under CLI aborted.
+DEBUG - 2026-05-20 02:59:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:23 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 02:59:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:00:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:00:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:00:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:00:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:01:12 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:03:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:03:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:03:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:03:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:03:59 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:04:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:04:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:04:03 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:04:08 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:06:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:06:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:06:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:07:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:09:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:10:23 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:10:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:10:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:10:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:10:49 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:10:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:11:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:11:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:12:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:12:23 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:12:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:12:27 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:12:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 05:14:38 --> Session: Initialization under CLI aborted.
+DEBUG - 2026-05-20 03:14:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:16:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:16:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:16:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:16:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:16:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 03:16:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 05:17:56 --> Session: Initialization under CLI aborted.
+DEBUG - 2026-05-20 11:18:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:41 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:41 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:18:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:41 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:49 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:19:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:20:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:20:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:20:11 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:23 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:27 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:27 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:32 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:32 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:30:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:31:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-05-20 11:31:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
