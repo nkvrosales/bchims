@@ -1,0 +1,43 @@
+#--------------------------------------------------------------------
+# CodeIgniter 4 Default gitignore
+#--------------------------------------------------------------------
+
+# Environment Files
+.env
+env
+
+# Composer dependencies (should be installed via composer install)
+vendor/
+
+# Temporary Files and Writable Folder Contents
+writable/cache/*
+!writable/cache/index.html
+writable/logs/*
+!writable/logs/index.html
+writable/session/*
+!writable/session/index.html
+writable/uploads/*
+!writable/uploads/index.html
+writable/debugbar/*
+!writable/debugbar/index.html
+writable/**/*.db
+writable/**/*.sqlite
+php_errors.log
+
+# Operating System Specific Junk Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+*~
+.directory
+.Trash-*
