@@ -127,7 +127,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="text-secondary small d-inline-block text-truncate" style="max-width: 480px;" title="<?php echo htmlspecialchars($log['description']); ?>">
+                                <span class="text-secondary small d-block" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
                                     <?php echo htmlspecialchars($log['description']); ?>
                                 </span>
                             </td>

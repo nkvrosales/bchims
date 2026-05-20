@@ -557,20 +557,55 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
-/* DataTables Styling Overrides */
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 0.5rem !important;
+/* DataTables Styling Overrides (Premium Modern Bootstrap 5 Pagination Theme) */
+.pagination {
+    gap: 0.35rem; /* modern button gap */
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-    background: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 0.5rem !important;
+.pagination .page-item .page-link {
+    color: var(--text-secondary);
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px !important; /* modern rounded buttons */
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
 }
+
+.pagination .page-item.active .page-link {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%) !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px var(--primary-glow) !important;
+    font-weight: 600;
+}
+
+.pagination .page-item:not(.active):not(.disabled) .page-link:hover {
+    color: var(--primary-hover) !important;
+    background-color: #f0fdf4 !important; /* subtle emerald theme tint */
+    border-color: #a7f3d0 !important;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: var(--text-muted) !important;
+    background-color: #f8fafc !important;
+    border-color: var(--border-color) !important;
+    opacity: 0.6;
+}
+
+/* Align and style table info details label */
+.dataTables_info {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary) !important;
+}
+
 
 .dt-buttons .btn {
     border-radius: 0.5rem !important;

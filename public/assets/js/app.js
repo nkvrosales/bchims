@@ -172,7 +172,8 @@ $(document).ready(function() {
     const $auditTable = $('#auditLogsTable');
     if ($auditTable.length) {
         const table = $auditTable.DataTable({
-            dom: 'Brtip', // Hide default top elements, customized below
+            dom: "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
             pageLength: 10,
             ordering: true,
             order: [[0, 'asc']], // Order by # index increment column
@@ -191,6 +192,18 @@ $(document).ready(function() {
                     className: 'btn btn-outline-secondary btn-sm',
                     exportOptions: {
                         columns: [0, 1, 2, 3, 4]
+                    },
+                    action: function (e, dt, node, config) {
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, node, config);
+                        $.ajax({
+                            url: BASE_URL + 'dashboard/log_action',
+                            method: 'POST',
+                            data: {
+                                action: 'EXPORT_CSV',
+                                module: 'Audit Trail',
+                                description: 'Exported audit trail history logs to CSV.'
+                            }
+                        });
                     }
                 },
                 {
@@ -199,6 +212,18 @@ $(document).ready(function() {
                     className: 'btn btn-outline-secondary btn-sm',
                     exportOptions: {
                         columns: [0, 1, 2, 3, 4]
+                    },
+                    action: function (e, dt, node, config) {
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, node, config);
+                        $.ajax({
+                            url: BASE_URL + 'dashboard/log_action',
+                            method: 'POST',
+                            data: {
+                                action: 'PRINT_HISTORY',
+                                module: 'Audit Trail',
+                                description: 'Printed audit trail history logs.'
+                            }
+                        });
                     }
                 }
             ]

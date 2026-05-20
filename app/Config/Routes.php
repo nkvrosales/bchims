@@ -16,6 +16,7 @@ $routes->group('auth', function($routes) {
 
 $routes->get('dashboard', 'Dashboard::index');
 $routes->get('dashboard/audit_trail', 'Dashboard::audit_trail');
+$routes->post('dashboard/log_action', 'Dashboard::log_action');
 
 $routes->group('inventory', function($routes) {
     $routes->get('/', 'Inventory::index');

@@ -20,6 +20,10 @@
     
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css'); ?>">
+
+    <script>
+        const BASE_URL = '<?php echo base_url(); ?>';
+    </script>
 </head>
 <body>
 
@@ -73,7 +77,7 @@
                         ?>
                     </div>
                     <div class="flex-grow-1 overflow-hidden">
-                        <h6 class="text-dark mb-0 text-truncate fs-7 fw-semibold" style="font-size:0.875rem;"><?php echo $name; ?></h6>
+                        <h6 class="text-dark mb-0 fs-7 fw-semibold" style="font-size:0.875rem; line-height: 1.2; word-break: break-word; white-space: normal;"><?php echo $name; ?></h6>
                         <small class="text-muted text-capitalize text-truncate d-block fs-8" style="font-size:0.75rem;"><?php echo session()->get('role'); ?></small>
                     </div>
                     <a href="<?php echo base_url('logout'); ?>" class="text-danger fs-5 ms-auto p-1" title="Log Out" id="sidebarLogout">

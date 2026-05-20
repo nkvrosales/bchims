@@ -78,4 +78,30 @@ class Dashboard extends BaseController
              . view('dashboard/audit_trail', $data)
              . view('templates/footer');
     }
+
+    /**
+     * Log client-side actions (Export CSV or Print History) to the Audit Trail via AJAX.
+     */
+    public function log_action()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Direct access not allowed']);
+        }
+
+        if (!session()->get('logged_in')) {
+            return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $action = $this->request->getPost('action');
+        $module = $this->request->getPost('module') ?? 'Audit Trail';
+        $description = $this->request->getPost('description');
+
+        if (empty($action) || empty($description)) {
+            return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'Missing parameters']);
+        }
+
+        $this->auditModel->log_activity($action, $module, $description);
+
+        return $this->response->setJSON(['status' => 'success']);
+    }
 }
