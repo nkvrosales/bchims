@@ -101,12 +101,9 @@
                                 <?php echo date('Y-m-d H:i:s', strtotime($log['created_at'])); ?>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="user-avatar-circle" style="width: 24px; height: 24px; font-size: 0.65rem; background: #e2e8f0; color: #475569;">
-                                        <?php echo strtoupper(substr($log['username'], 0, 2)); ?>
-                                    </div>
-                                    <span class="fw-semibold" style="font-size: 0.85rem;"><?php echo htmlspecialchars($log['username']); ?></span>
-                                </div>
+                                <span class="fw-semibold" style="font-size: 0.85rem;">
+                                    <?php echo htmlspecialchars($log['username']); ?>
+                                </span>
                             </td>
                             <td>
                                 <?php 

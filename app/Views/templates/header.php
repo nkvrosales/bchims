@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($title) ? $title . ' - Hospital IMS' : 'Hospital Inventory Management System'; ?></title>
+    <title><?php echo isset($title) ? $title . '' : 'Hospital Inventory Management System'; ?></title>
     
     <!-- Meta Descriptions for SEO -->
     <meta name="description" content="Core administrative dashboard and user activities audit logs portal for the Hospital Inventory Management System (IMS).">
@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css'); ?>">
@@ -54,7 +55,7 @@
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard'); ?>" 
                        class="sidebar-link <?php echo (isset($title) && $title === 'Dashboard') ? 'active' : ''; ?>" id="navDashboard">
-                        <i class="fa-solid fa-chart-pie"></i>
+                        <i class="bi bi-grid"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
@@ -63,7 +64,7 @@
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('users'); ?>" 
                        class="sidebar-link <?php echo (isset($title) && ($title === 'User Management' || $title === 'Add User' || $title === 'Edit User')) ? 'active' : ''; ?>" id="navUsers">
-                        <i class="fa-solid fa-users-gear"></i>
+                        <i class="bi bi-people"></i>
                         <span>User Management</span>
                     </a>
                 </li>
@@ -71,7 +72,7 @@
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard/audit_trail'); ?>" 
                        class="sidebar-link <?php echo (isset($title) && ($title === 'Audit Trail' || $title === 'Audit Trail Log')) ? 'active' : ''; ?>" id="navAuditTrail">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <i class="bi bi-bar-chart"></i>
                         <span>Audit Trail</span>
                     </a>
                 </li>

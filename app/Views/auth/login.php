@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - Hospital IMS</title>
+    <title>Sign In - BCHIMS</title>
     
     <!-- Meta tags -->
     <meta name="description" content="Secure administrative login for Biñan City Hospital Inventory Management System.">

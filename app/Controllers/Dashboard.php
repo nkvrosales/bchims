@@ -125,41 +125,49 @@ class Dashboard extends BaseController
         $data['user'] = $user;
 
         $rules = [
+            'username'   => 'required|alpha_numeric_punct|min_length[4]|max_length[30]',
             'last_name'  => 'required|max_length[50]',
             'first_name' => 'required|max_length[50]',
             'password'   => 'permit_empty|min_length[4]|max_length[50]',
         ];
 
         if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
+            $username = $this->request->getPost('username');
             $update_data = [
+                'username'   => $username,
                 'last_name'  => $this->request->getPost('last_name'),
                 'first_name' => $this->request->getPost('first_name'),
             ];
 
-            $password = $this->request->getPost('password');
-            if (!empty($password)) {
-                $update_data['password'] = $password;
-            }
-
-            if ($userModel->update_user($userId, $update_data)) {
-                // Update active session name fields
-                $combined_name = "{$update_data['first_name']} {$update_data['last_name']}";
-                session()->set('last_name', $update_data['last_name']);
-                session()->set('first_name', $update_data['first_name']);
-                session()->set('full_name', $combined_name);
-
-                // Log activity
-                $auditDesc = "Updated own profile details.";
-                if (!empty($password)) {
-                    $auditDesc .= " Changed name and password.";
-                } else {
-                    $auditDesc .= " Changed name.";
-                }
-                $this->auditModel->log_activity('UPDATE_PROFILE', 'Auth', $auditDesc);
-
-                session()->setFlashdata('success', 'Profile details updated successfully!');
-                return redirect()->to('dashboard/profile');
+            if ($username !== $user['username'] && $userModel->get_user_by_username($username)) {
+                $data['error'] = 'That username is already taken. Please choose another one.';
             } else {
+                $password = $this->request->getPost('password');
+                if (!empty($password)) {
+                    $update_data['password'] = $password;
+                }
+
+                if ($userModel->update_user($userId, $update_data)) {
+                    // Update active session name fields
+                    $combined_name = "{$update_data['first_name']} {$update_data['last_name']}";
+                    session()->set('last_name', $update_data['last_name']);
+                    session()->set('first_name', $update_data['first_name']);
+                    session()->set('full_name', $combined_name);
+                    session()->set('username', $username);
+
+                    // Log activity
+                    $auditDesc = "Updated own profile details.";
+                    if (!empty($password)) {
+                        $auditDesc .= " Changed name and password.";
+                    } else {
+                        $auditDesc .= " Changed name.";
+                    }
+                    $this->auditModel->log_activity('UPDATE_PROFILE', 'Auth', $auditDesc);
+
+                    session()->setFlashdata('success', 'Profile details updated successfully!');
+                    return redirect()->to('dashboard/profile');
+                }
+
                 $data['error'] = 'An error occurred while updating your profile. Please try again.';
             }
         }

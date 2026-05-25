@@ -47,22 +47,25 @@
             <div class="card-header-styled mb-4">
                 <h5 class="card-title-styled">
                     <i class="fa-solid fa-user-gear text-primary"></i>
-                    <span>Profile Specifications</span>
+                    <span>Profile</span>
                 </h5>
             </div>
 
             <form method="POST" action="<?php echo base_url('dashboard/profile'); ?>" class="row g-3">
                 
-                <!-- 1. Username (Disabled) -->
+                <!-- 1. First Name -->
                 <div class="col-12 col-sm-6">
-                    <label for="username" class="form-label small fw-semibold text-secondary">Username</label>
+                    <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
                     <input type="text" 
-                           class="form-control input-custom bg-light" 
-                           id="username" 
-                           value="@<?php echo htmlspecialchars($user['username']); ?>"
-                           disabled>
-                    <div class="form-text small text-muted">Usernames are fixed and cannot be changed.</div>
+                           class="form-control input-custom" 
+                           id="first_name" 
+                           name="first_name" 
+                           placeholder="e.g. Juan"
+                           value="<?php echo set_value('first_name', $user['first_name']); ?>"
+                           required>
                 </div>
+
+
 
                 <!-- 2. Last Name -->
                 <div class="col-12 col-sm-6">
@@ -76,19 +79,21 @@
                            required>
                 </div>
 
-                <!-- 3. First Name -->
+               
+                <!-- 3. Username -->
                 <div class="col-12 col-sm-6">
-                    <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
+                    <label for="username" class="form-label small fw-semibold text-secondary">Username <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
-                           id="first_name" 
-                           name="first_name" 
-                           placeholder="e.g. Juan"
-                           value="<?php echo set_value('first_name', $user['first_name']); ?>"
+                           id="username" 
+                           name="username"
+                           placeholder="e.g. juan.delacruz"
+                           value="<?php echo set_value('username', $user['username']); ?>"
                            required>
                 </div>
 
-                <!-- 3. New Password -->
+
+                <!-- 4. New Password -->
                 <div class="col-12 col-sm-6">
                     <label for="password" class="form-label small fw-semibold text-secondary">New Password</label>
                     <input type="password" 
@@ -96,10 +101,9 @@
                            id="password" 
                            name="password" 
                            placeholder="Leave blank to keep current">
-                    <div class="form-text small text-muted">Enter a new secure password ONLY if you wish to change it.</div>
                 </div>
 
-                <!-- 4. Account Privileges info (Disabled badges) -->
+                <!-- 5. Account Privileges info (Disabled badges) -->
                 <div class="col-12 col-sm-6">
                     <label class="form-label small fw-semibold text-secondary d-block">Account Role & Department</label>
                     <div class="d-flex flex-wrap gap-2 mt-1">

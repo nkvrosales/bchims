@@ -58,7 +58,7 @@ class Auth extends BaseController
                 $session->set($session_data);
 
                 // Write audit trail log
-                $this->auditModel->log_activity('LOGIN', 'Auth', 'User successfully logged in.');
+                $this->auditModel->log_activity('LOGIN', 'Auth', 'User logged in.');
 
                 // Redirect to dashboard
                 return redirect()->to('dashboard');

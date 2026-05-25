@@ -90,10 +90,7 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="user-avatar-circle" style="width: 26px; height: 26px; font-size: 0.7rem; background: #e2e8f0; color: #475569;">
-                                                <?php echo strtoupper(substr($log['username'], 0, 2)); ?>
-                                            </div>
-                                            <span class="fw-medium" style="font-size:0.875rem;"><?php echo $log['username']; ?></span>
+                                                    <span class="fw-medium" style="font-size:0.875rem;"><?php echo $log['username']; ?></span>
                                         </div>
                                     </td>
                                     <td>

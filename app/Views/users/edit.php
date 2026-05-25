@@ -54,23 +54,24 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
             <div class="card-header-styled mb-4">
                 <h5 class="card-title-styled">
                     <i class="fa-solid fa-user-pen text-primary"></i>
-                    <span>Account Specifications (@<?php echo htmlspecialchars($user['username']); ?>)</span>
+                    <span>Profile Information</span>
                 </h5>
             </div>
 
             <form method="POST" action="<?php echo base_url('users/edit/' . $user['id']); ?>" class="row g-3">
-                <!-- 1. Username -->
+                <!-- 3. First Name -->
                 <div class="col-12 col-sm-6">
-                    <label for="username" class="form-label small fw-semibold text-secondary">Username <span class="text-danger">*</span></label>
+                    <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
-                           id="username" 
-                           name="username" 
-                           placeholder="e.g. staff_juan"
-                           value="<?php echo set_value('username', $user['username']); ?>"
+                           id="first_name" 
+                           name="first_name" 
+                           placeholder="e.g. Juan"
+                           value="<?php echo set_value('first_name', $user['first_name']); ?>"
                            required>
-                    <div class="form-text small text-muted">Use alphanumeric characters, underscores, and dashes only.</div>
                 </div>
+
+        
 
                 <!-- 2. Last Name -->
                 <div class="col-12 col-sm-6">
@@ -84,19 +85,19 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
                            required>
                 </div>
 
-                <!-- 3. First Name -->
+                <!-- 4. Username -->
                 <div class="col-12 col-sm-6">
-                    <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
+                    <label for="username" class="form-label small fw-semibold text-secondary">Username <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
-                           id="first_name" 
-                           name="first_name" 
-                           placeholder="e.g. Juan"
-                           value="<?php echo set_value('first_name', $user['first_name']); ?>"
+                           id="username" 
+                           name="username" 
+                           placeholder="e.g. staff_juan"
+                           value="<?php echo set_value('username', $user['username']); ?>"
                            required>
                 </div>
 
-                <!-- 3. Password (Optional) -->
+                <!-- 5. Password -->
                 <div class="col-12 col-sm-6">
                     <label for="password" class="form-label small fw-semibold text-secondary">New Password</label>
                     <input type="password" 
@@ -104,10 +105,10 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
                            id="password" 
                            name="password" 
                            placeholder="Leave blank to keep current">
-                    <div class="form-text small text-muted">Enter a new secure password ONLY if you wish to change it.</div>
+                    
                 </div>
 
-                <!-- 4. Role -->
+                <!-- 6. Role -->
                 <div class="col-12 col-sm-6">
                     <label for="role" class="form-label small fw-semibold text-secondary">Role <span class="text-danger">*</span></label>
                     <?php if ($is_self): ?>
@@ -123,7 +124,7 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
                     <?php endif; ?>
                 </div>
 
-                <!-- 5. Department -->
+                <!-- 7. Department -->
                 <div class="col-12 col-sm-6">
                     <label for="department_id" class="form-label small fw-semibold text-secondary">Department</label>
                     <select class="form-select input-custom" id="department_id" name="department_id">
@@ -136,10 +137,9 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </select>
-                    <div class="form-text small text-muted">Assign department access for medical staff profiles.</div>
                 </div>
 
-                <!-- 6. Status -->
+                <!-- 8. Status -->
                 <div class="col-12 col-sm-6">
                     <label for="is_active" class="form-label small fw-semibold text-secondary">Status <span class="text-danger">*</span></label>
                     <?php if ($is_self): ?>
