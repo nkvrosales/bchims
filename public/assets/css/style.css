@@ -68,7 +68,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Elegant Light Slate Background (Login Page) */
 .login-bg {
     min-height: 100vh;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+    background: url('../images/bchbg.jpg') no-repeat center center / cover !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -82,66 +82,64 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .login-card {
-    background: #ffffff !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
-    padding: 40px !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(16px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 20px -8px rgba(0, 0, 0, 0.15) !important;
+    padding: 50px 44px !important;
     width: 100% !important;
-    max-width: 400px !important;
+    max-width: 500px !important;
     z-index: 1;
     overflow: hidden;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
 }
 
-.login-card:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-}
-
-.brand-title {
-    font-family: var(--font-heading);
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #0f172a !important;
-    background: none !important;
-    -webkit-background-clip: unset !important;
-    -webkit-text-fill-color: initial !important;
+.brand-title-serif {
+    font-family: 'Georgia', 'Times New Roman', serif !important;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #7e0000 !important;
+    letter-spacing: 0px;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(126, 0, 0, 0.08);
 }
 
 /* Custom form control styling for login inputs */
 .login-card .form-control {
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
     padding: 10px 12px !important;
     font-size: 14px !important;
-    transition: var(--transition);
+    transition: all 0.2s ease;
 }
 
 .login-card .form-control:focus {
-    border-color: #00c896 !important;
-    box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.1) !important;
+    border-color: #10b981 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
 }
 
 .login-card .input-group-text {
-    border: 1px solid #e2e8f0 !important;
-    color: #94a3b8 !important;
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    background-color: rgba(248, 250, 252, 0.8) !important;
+    color: #64748b !important;
 }
 
 .btn-primary {
-    background: #00c896 !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
     border: none !important;
     font-weight: 600 !important;
     padding: 0.75rem 1.5rem !important;
     border-radius: 8px !important;
     color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
     transition: all 0.2s ease;
 }
 
 .btn-primary:hover, .btn-primary:focus {
-    background: #00a87d !important;
-    box-shadow: 0 4px 12px rgba(0, 200, 150, 0.2) !important;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
     color: #ffffff !important;
 }
 
@@ -192,6 +190,7 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-brand span {
     background: linear-gradient(135deg, #059669 0%, #34d399 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -301,24 +300,178 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 99;
 }
 
-.navbar-page-title {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--text-primary) !important;
-    letter-spacing: -0.01em;
-}
 
 .navbar-datetime {
     font-family: var(--font-body);
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--text-secondary); /* Elegant slate text */
+    color: var(--text-secondary);
 }
 
 .navbar-datetime i {
-    color: var(--text-muted); /* Muted slate icons */
+    color: var(--text-muted);
     font-size: 0.95rem;
+}
+
+/* Premium User Profile Button */
+.navbar-user-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.85rem;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(148, 163, 184, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.navbar-user-profile-btn:hover,
+.navbar-user-profile-btn:focus {
+    background: #f8fafc;
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+    transform: translateY(-1px);
+}
+
+.navbar-user-profile-btn:active {
+    transform: translateY(0);
+}
+
+/* Hide default Bootstrap arrow */
+.navbar-user-profile-btn::after {
+    display: none !important;
+}
+
+/* User Avatar inside Button */
+.navbar-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+
+/* User Info Stack */
+.navbar-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.navbar-user-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.navbar-user-username {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.1;
+}
+
+.navbar-user-chevron {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+
+.dropdown.show .navbar-user-chevron,
+.dropdown-toggle.show .navbar-user-chevron {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.navbar-user-dropdown-menu {
+    min-width: 210px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0.85rem !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.04) !important;
+    padding: 0.4rem !important;
+    margin-top: 0.6rem !important;
+    background-color: #ffffff !important;
+}
+
+/* User info block at top of dropdown */
+.navbar-dropdown-user-info {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem 0.85rem 0.5rem !important;
+    gap: 0.15rem;
+}
+
+.navbar-dropdown-name {
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    line-height: 1.2;
+}
+
+.navbar-dropdown-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: capitalize;
+    display: block;
+    line-height: 1.1;
+}
+
+/* Profile Settings item */
+.navbar-dropdown-profile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    padding: 0.55rem 0.85rem !important;
+    border-radius: 0.5rem !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease !important;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.navbar-dropdown-profile:hover {
+    background-color: rgba(16, 185, 129, 0.08) !important;
+    color: var(--primary) !important;
+}
+
+/* Log Out item */
+.navbar-dropdown-logout {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    padding: 0.55rem 0.85rem !important;
+    border-radius: 0.5rem !important;
+    color: var(--danger) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease !important;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.navbar-dropdown-logout:hover {
+    background-color: rgba(239, 68, 68, 0.07) !important;
+    color: var(--danger) !important;
 }
 
 .navbar-action-btn {

@@ -8,7 +8,6 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">Edit User Account</h1>
-            <p class="text-secondary mb-0">Modify details and privileges for the account</p>
         </div>
         <div>
             <a href="<?php echo base_url('users'); ?>" class="btn btn-outline-secondary d-flex align-items-center gap-2">
@@ -73,15 +72,27 @@ $is_self = ((int)$user['id'] === (int)$current_admin_id);
                     <div class="form-text small text-muted">Use alphanumeric characters, underscores, and dashes only.</div>
                 </div>
 
-                <!-- 2. Full Name -->
+                <!-- 2. Last Name -->
                 <div class="col-12 col-sm-6">
-                    <label for="full_name" class="form-label small fw-semibold text-secondary">Full Name <span class="text-danger">*</span></label>
+                    <label for="last_name" class="form-label small fw-semibold text-secondary">Last Name <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
-                           id="full_name" 
-                           name="full_name" 
-                           placeholder="e.g. Juan Dela Cruz"
-                           value="<?php echo set_value('full_name', $user['full_name']); ?>"
+                           id="last_name" 
+                           name="last_name" 
+                           placeholder="e.g. Dela Cruz"
+                           value="<?php echo set_value('last_name', $user['last_name']); ?>"
+                           required>
+                </div>
+
+                <!-- 3. First Name -->
+                <div class="col-12 col-sm-6">
+                    <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           class="form-control input-custom" 
+                           id="first_name" 
+                           name="first_name" 
+                           placeholder="e.g. Juan"
+                           value="<?php echo set_value('first_name', $user['first_name']); ?>"
                            required>
                 </div>
 

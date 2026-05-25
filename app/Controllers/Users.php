@@ -60,7 +60,8 @@ class Users extends BaseController
 
         $rules = [
             'username'      => 'required|alpha_dash|max_length[50]|is_unique[users.username]',
-            'full_name'     => 'required|max_length[100]',
+            'last_name'     => 'required|max_length[50]',
+            'first_name'    => 'required|max_length[50]',
             'password'      => 'required|min_length[4]|max_length[50]',
             'role'          => 'required|in_list[admin,staff]',
             'department_id' => 'permit_empty|numeric',
@@ -71,7 +72,8 @@ class Users extends BaseController
             $dept_id = $this->request->getPost('department_id');
             $insert_data = array(
                 'username'      => strtolower($this->request->getPost('username')),
-                'full_name'     => $this->request->getPost('full_name'),
+                'last_name'     => $this->request->getPost('last_name'),
+                'first_name'    => $this->request->getPost('first_name'),
                 'password'      => $this->request->getPost('password'),
                 'role'          => $this->request->getPost('role'),
                 'department_id' => !empty($dept_id) ? (int)$dept_id : NULL,
@@ -87,10 +89,11 @@ class Users extends BaseController
                     }
                 }
 
+                $display_name = "{$insert_data['last_name']}, {$insert_data['first_name']}";
                 $this->auditModel->log_activity(
                     'CREATE_USER',
                     'Users',
-                    "Created new user account: {$insert_data['username']} ({$insert_data['full_name']}) with role {$insert_data['role']}, department {$dept_log}, and status " . ($insert_data['is_active'] ? 'Active' : 'Inactive') . "."
+                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$insert_data['role']}, department {$dept_log}, and status " . ($insert_data['is_active'] ? 'Active' : 'Inactive') . "."
                 );
 
                 session()->setFlashdata('success', 'User account successfully created!');
@@ -128,7 +131,8 @@ class Users extends BaseController
 
         $rules = [
             'username'      => "required|alpha_dash|max_length[50]|is_unique[users.username,id,{$id}]",
-            'full_name'     => 'required|max_length[100]',
+            'last_name'     => 'required|max_length[50]',
+            'first_name'    => 'required|max_length[50]',
             'password'      => 'permit_empty|min_length[4]|max_length[50]',
             'role'          => 'required|in_list[admin,staff]',
             'department_id' => 'permit_empty|numeric',
@@ -141,7 +145,8 @@ class Users extends BaseController
 
             $update_data = array(
                 'username'      => strtolower($this->request->getPost('username')),
-                'full_name'     => $this->request->getPost('full_name'),
+                'last_name'     => $this->request->getPost('last_name'),
+                'first_name'    => $this->request->getPost('first_name'),
                 'role'          => $this->request->getPost('role'),
                 'department_id' => !empty($dept_id) ? (int)$dept_id : NULL,
                 'is_active'     => (int)$this->request->getPost('is_active')
@@ -162,8 +167,10 @@ class Users extends BaseController
                 if ($user['username'] !== $update_data['username']) {
                     $changes[] = "Username ('{$user['username']}' -> '{$update_data['username']}')";
                 }
-                if ($user['full_name'] !== $update_data['full_name']) {
-                    $changes[] = "Name ('{$user['full_name']}' -> '{$update_data['full_name']}')";
+                if ($user['last_name'] !== $update_data['last_name'] || $user['first_name'] !== $update_data['first_name']) {
+                    $old_name = "{$user['last_name']}, {$user['first_name']}";
+                    $new_name = "{$update_data['last_name']}, {$update_data['first_name']}";
+                    $changes[] = "Name ('{$old_name}' -> '{$new_name}')";
                 }
                 if ($user['role'] !== $update_data['role']) {
                     $changes[] = "Role ('{$user['role']}' -> '{$update_data['role']}')";
@@ -240,7 +247,7 @@ class Users extends BaseController
             $this->auditModel->log_activity(
                 'DELETE_USER',
                 'Users',
-                "Deleted user account: {$user['username']} ({$user['full_name']}) with role {$user['role']}."
+                "Deleted user account: {$user['username']} ({$user['last_name']}, {$user['first_name']}) with role {$user['role']}."
             );
 
             session()->setFlashdata('success', 'User account successfully deleted!');

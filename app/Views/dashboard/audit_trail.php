@@ -1,8 +1,7 @@
 <!-- Page Title Section -->
 <div class="page-title-section fade-in-up">
     <div>
-        <h1 class="page-title mb-1">Audit Trail Log</h1>
-        <p class="text-secondary mb-0">Track and review administrative operations and security event records</p>
+        <h1 class="page-title mb-1">Audit Trail</h1>
     </div>
 </div>
 

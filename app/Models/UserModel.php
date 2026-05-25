@@ -14,7 +14,7 @@ class UserModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['username', 'password', 'full_name', 'role', 'department_id', 'is_active'];
+    protected $allowedFields = ['username', 'password', 'last_name', 'first_name', 'role', 'department_id', 'is_active'];
 
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
@@ -25,7 +25,7 @@ class UserModel extends Model
      */
     public function verify_user($username, $password)
     {
-        $user = $this->select('users.*, departments.name AS department_name, departments.code AS department_code')
+        $user = $this->select("users.*, CONCAT(users.first_name, ' ', users.last_name) AS full_name, departments.name AS department_name, departments.code AS department_code")
                      ->join('departments', 'departments.id = users.department_id', 'left')
                      ->where('users.username', $username)
                      ->where('users.is_active', 1)
@@ -45,9 +45,10 @@ class UserModel extends Model
      */
     public function get_users()
     {
-        return $this->select('users.id, users.username, users.full_name, users.role, users.is_active, users.created_at, users.department_id, departments.name AS department_name, departments.code AS department_code')
+        return $this->select("users.id, users.username, users.last_name, users.first_name, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.role, users.is_active, users.created_at, users.department_id, departments.name AS department_name, departments.code AS department_code")
                     ->join('departments', 'departments.id = users.department_id', 'left')
-                    ->orderBy('users.full_name', 'ASC')
+                    ->orderBy('users.last_name', 'ASC')
+                    ->orderBy('users.first_name', 'ASC')
                     ->findAll();
     }
 
@@ -56,7 +57,7 @@ class UserModel extends Model
      */
     public function get_user_by_id($id)
     {
-        return $this->select('users.*, departments.name AS department_name, departments.code AS department_code')
+        return $this->select("users.*, CONCAT(users.first_name, ' ', users.last_name) AS full_name, departments.name AS department_name, departments.code AS department_code")
                     ->join('departments', 'departments.id = users.department_id', 'left')
                     ->where('users.id', $id)
                     ->first();

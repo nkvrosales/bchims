@@ -34,10 +34,19 @@
     <div class="app-wrapper">
         <!-- 1. LEFT SIDEBAR PANEL -->
         <aside class="sidebar" id="sidebarPanel">
-            <div class="sidebar-header">
-                <a href="<?php echo base_url('dashboard'); ?>" class="sidebar-brand d-flex align-items-center gap-2 py-3 px-3">
-                    <img src="<?php echo base_url('assets/images/logo-placeholder.png'); ?>" alt="Biñan City Hospital Logo" style="height: 32px; width: 32px; border-radius: 50%; object-fit: cover;">
-                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--text-dark);">Biñan City Hospital</span>
+            <div class="sidebar-header" style="padding: 0 10px;">
+                <a href="<?php echo base_url('dashboard'); ?>" class="sidebar-brand d-flex align-items-center justify-content-between w-100" style="gap: 4px; text-decoration: none; padding: 0;">
+                    <!-- Left Logo: City of Biñan -->
+                    <img src="<?php echo base_url('assets/images/bclogo.png'); ?>" alt="City of Biñan Logo" style="height: 35px; width: 35px; object-fit: contain; flex-shrink: 0;">
+                    
+                    <!-- Center Brand Text -->
+                    <div class="text-center flex-grow-1" style="min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div class="brand-title-serif" style="font-size: 0.72rem; font-weight: 800; color: #7e0000 !important; letter-spacing: -0.1px; line-height: 1.15; white-space: normal; word-break: keep-all;">BIÑAN CITY HOSPITAL</div>
+                        <div style="font-family: var(--font-body); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.44rem; color: #64748b; margin-top: 1px; white-space: nowrap;">Inventory Management System</div>
+                    </div>
+                    
+                    <!-- Right Logo: Biñan City Hospital -->
+                    <img src="<?php echo base_url('assets/images/bchlogo.png'); ?>" alt="Biñan City Hospital Logo" style="height: 35px; width: 35px; object-fit: contain; flex-shrink: 0;">
                 </a>
             </div>
             
@@ -68,45 +77,66 @@
                 </li>
             </ul>
             
-            <div class="sidebar-footer">
-                <div class="user-profile-widget">
-                    <div class="user-avatar-square">
-                        <?php 
-                            $name = session()->get('full_name');
-                            echo !empty($name) ? strtoupper(substr($name, 0, 1)) : 'U';
-                        ?>
-                    </div>
-                    <div class="flex-grow-1 overflow-hidden">
-                        <h6 class="text-dark mb-0 fs-7 fw-semibold" style="font-size:0.875rem; line-height: 1.2; word-break: break-word; white-space: normal;"><?php echo $name; ?></h6>
-                        <small class="text-muted text-capitalize text-truncate d-block fs-8" style="font-size:0.75rem;"><?php echo session()->get('role'); ?></small>
-                    </div>
-                    <a href="<?php echo base_url('logout'); ?>" class="text-danger fs-5 ms-auto p-1" title="Log Out" id="sidebarLogout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </a>
-                </div>
-            </div>
         </aside>
 
         <!-- 2. RIGHT MAIN CONTENT PANEL -->
         <div class="main-panel" id="mainContentPanel">
             <!-- Top Header Navbar -->
             <header class="top-navbar">
+                <!-- Left: Mobile toggle + Date & Clock -->
                 <div class="d-flex align-items-center gap-3">
                     <button class="navbar-action-btn d-lg-none" id="sidebarToggleMobile" aria-label="Toggle Sidebar">
                         <i class="fa-solid fa-bars-staggered"></i>
                     </button>
-                    <h4 class="navbar-page-title mb-0"><?php echo isset($title) ? htmlspecialchars($title) : 'Dashboard'; ?></h4>
+                    <div class="d-flex align-items-center gap-4 navbar-datetime">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-regular fa-calendar text-muted"></i>
+                            <span id="liveClockDate"><?php echo date('l, F d, Y'); ?></span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-regular fa-clock text-muted"></i>
+                            <span id="liveClockTime"><?php echo date('h:i:s A'); ?></span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="d-flex align-items-center gap-4 navbar-datetime">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fa-regular fa-calendar text-muted"></i>
-                        <span id="liveClockDate"><?php echo date('l, F d, Y'); ?></span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fa-regular fa-clock text-muted"></i>
-                        <span id="liveClockTime"><?php echo date('h:i:s A'); ?></span>
-                    </div>
+
+                <!-- Right: User Dropdown -->
+                <?php 
+                    $fullName = session()->get('full_name'); 
+                    $username = session()->get('username');
+                    $avatarLetter = !empty($fullName) ? strtoupper(substr($fullName, 0, 1)) : 'U';
+                ?>
+                <div class="dropdown">
+                    <button class="navbar-user-profile-btn dropdown-toggle" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="navbar-user-avatar">
+                            <?php echo $avatarLetter; ?>
+                        </div>
+                        <div class="navbar-user-info text-start d-none d-sm-flex">
+                            <span class="navbar-user-name"><?php echo htmlspecialchars($fullName); ?></span>
+                            <span class="navbar-user-username">@<?php echo htmlspecialchars($username); ?></span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down navbar-user-chevron ms-1"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end navbar-user-dropdown-menu" aria-labelledby="userDropdownMenu">
+                        <li class="navbar-dropdown-user-info">
+                            <span class="navbar-dropdown-name"><?php echo htmlspecialchars($fullName); ?></span>
+                            <span class="navbar-dropdown-role"><?php echo ucfirst(session()->get('role')); ?></span>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item navbar-dropdown-profile" href="<?php echo base_url('dashboard/profile'); ?>" id="headerProfile">
+                                <i class="fa-solid fa-user-gear"></i>
+                                <span>Profile Settings</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item navbar-dropdown-logout" href="<?php echo base_url('logout'); ?>" id="headerLogout">
+                                <i class="fa-solid fa-power-off"></i>
+                                <span>Log Out</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </header>
             

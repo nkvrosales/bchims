@@ -19,12 +19,22 @@
 
 <div class="login-card fade-in-up">
     <!-- Brand and Logo Header -->
-    <div class="text-center mb-4">
-        <div class="mb-3 d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm overflow-hidden" style="width: 80px; height: 80px; border: 2px solid #e2e8f0;">
-            <img src="<?php echo base_url('assets/images/logo-placeholder.png'); ?>" alt="Biñan City Hospital Logo" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <!-- Left: bclogo -->
+            <div style="width: 80px; height: 80px; flex-shrink: 0;">
+                <img src="<?php echo base_url('assets/images/bclogo.png'); ?>" alt="City of Biñan Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <!-- Center: title + subtitle -->
+            <div class="text-center flex-grow-1">
+                <h2 class="brand-title-serif mb-1">BIÑAN CITY HOSPITAL</h2>
+                <p class="mb-0" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.65rem; color: #64748b;">Inventory Management System</p>
+            </div>
+            <!-- Right: bchlogo -->
+            <div style="width: 80px; height: 80px; flex-shrink: 0;">
+                <img src="<?php echo base_url('assets/images/bchlogo.png'); ?>" alt="Biñan City Hospital Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
         </div>
-        <h2 class="brand-title mb-1 font-heading">Biñan City Hospital</h2>
-        <p class="text-secondary small mb-0 font-body">Inventory Management System</p>
     </div>
 
     <!-- Error Flash Alerts -->
@@ -83,11 +93,6 @@
         </button>
 
     <?php echo form_close(); ?>
-
-    <!-- Footer Notice -->
-    <div class="text-center mt-4" style="font-size: 12px; color: var(--text-muted);">
-        <i class="fa-solid fa-shield-halved me-1"></i> Secure Hospital Portal
-    </div>
 </div>
 
 <!-- Scripts -->

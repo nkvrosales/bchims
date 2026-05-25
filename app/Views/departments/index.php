@@ -3,7 +3,6 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">Departments Directory</h1>
-            <p class="text-secondary mb-0">Monitor, register, and configure hospital departments and specialized medical units</p>
         </div>
         <div>
             <a href="<?php echo base_url('departments/create'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="btnAddNewDept">

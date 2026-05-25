@@ -3,7 +3,6 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">User Management</h1>
-            <p class="text-secondary mb-0">Create, monitor, and manage administrator and staff user accounts</p>
         </div>
         <div>
             <a href="<?php echo base_url('users/create'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="btnAddNewUser">
@@ -48,7 +47,7 @@
             <thead>
                 <tr>
                     <th style="width: 15%">Username</th>
-                    <th style="width: 20%">Full Name</th>
+                    <th style="width: 20%">Name</th>
                     <th style="width: 15%">Role</th>
                     <th style="width: 20%">Department</th>
                     <th style="width: 10%">Status</th>
@@ -70,19 +69,7 @@
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="user-avatar-circle" style="width: 28px; height: 28px; font-size: 0.75rem; background: #e0f2fe; color: #0369a1;">
-                                        <?php 
-                                            $words = explode(' ', $u['full_name']);
-                                            $initials = strtoupper(substr($words[0], 0, 1));
-                                            if (count($words) > 1) {
-                                                $initials .= strtoupper(substr($words[1], 0, 1));
-                                            }
-                                            echo $initials;
-                                        ?>
-                                    </div>
-                                    <span class="fw-semibold text-dark"><?php echo htmlspecialchars($u['full_name']); ?></span>
-                                </div>
+                                <span class="fw-semibold text-dark"><?php echo htmlspecialchars($u['full_name']); ?></span>
                             </td>
                             <td>
                                 <?php if ($u['role'] === 'admin'): ?>

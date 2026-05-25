@@ -3,7 +3,6 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">Inventory Management</h1>
-            <p class="text-secondary mb-0">Monitor, search, filter, and manage medical and hospital items</p>
         </div>
         <div>
             <a href="<?php echo base_url('inventory/create'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiAddItemBtn">

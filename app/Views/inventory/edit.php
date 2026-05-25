@@ -3,7 +3,6 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">Edit Inventory Item</h1>
-            <p class="text-secondary mb-0">Update specifications and levels for inventory stock</p>
         </div>
         <div>
             <a href="<?php echo base_url('inventory'); ?>" class="btn btn-outline-secondary d-flex align-items-center gap-2">

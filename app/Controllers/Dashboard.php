@@ -58,7 +58,7 @@ class Dashboard extends BaseController
 
         $db = \Config\Database::connect();
 
-        $data['title'] = 'Audit Trail Log';
+        $data['title'] = 'Audit Trail';
 
         $filters = array(
             'start_date' => $this->request->getGet('start_date'),
@@ -104,4 +104,69 @@ class Dashboard extends BaseController
 
         return $this->response->setJSON(['status' => 'success']);
     }
+
+    /**
+     * User profile settings page.
+     */
+    public function profile()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $userModel = new UserModel();
+        $userId = session()->get('user_id');
+        $user = $userModel->get_user_by_id($userId);
+
+        if (empty($user)) {
+            session()->setFlashdata('error', 'User not found.');
+            return redirect()->to('dashboard');
+        }
+
+        $data['title'] = 'Profile Settings';
+        $data['user'] = $user;
+
+        $rules = [
+            'last_name'  => 'required|max_length[50]',
+            'first_name' => 'required|max_length[50]',
+            'password'   => 'permit_empty|min_length[4]|max_length[50]',
+        ];
+
+        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
+            $update_data = [
+                'last_name'  => $this->request->getPost('last_name'),
+                'first_name' => $this->request->getPost('first_name'),
+            ];
+
+            $password = $this->request->getPost('password');
+            if (!empty($password)) {
+                $update_data['password'] = $password;
+            }
+
+            if ($userModel->update_user($userId, $update_data)) {
+                // Update active session name fields
+                $combined_name = "{$update_data['first_name']} {$update_data['last_name']}";
+                session()->set('last_name', $update_data['last_name']);
+                session()->set('first_name', $update_data['first_name']);
+                session()->set('full_name', $combined_name);
+
+                // Log activity
+                $auditDesc = "Updated own profile details.";
+                if (!empty($password)) {
+                    $auditDesc .= " Changed name and password.";
+                } else {
+                    $auditDesc .= " Changed name.";
+                }
+                $this->auditModel->log_activity('UPDATE_PROFILE', 'Auth', $auditDesc);
+
+                session()->setFlashdata('success', 'Profile details updated successfully!');
+                return redirect()->to('dashboard/profile');
+            } else {
+                $data['error'] = 'An error occurred while updating your profile. Please try again.';
+            }
+        }
+
+        return view('templates/header', $data)
+             . view('dashboard/profile', $data)
+             . view('templates/footer');
+    }
 }
+
