@@ -54,19 +54,7 @@
                     <div class="form-text small text-muted">Use alphanumeric characters, underscores, and dashes only.</div>
                 </div>
 
-                <!-- 2. Last Name -->
-                <div class="col-12 col-sm-6">
-                    <label for="last_name" class="form-label small fw-semibold text-secondary">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" 
-                           class="form-control input-custom" 
-                           id="last_name" 
-                           name="last_name" 
-                           placeholder="e.g. Dela Cruz"
-                           value="<?php echo set_value('last_name'); ?>"
-                           required>
-                </div>
-
-                <!-- 3. First Name -->
+                <!-- 2. First Name -->
                 <div class="col-12 col-sm-6">
                     <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
                     <input type="text" 
@@ -75,6 +63,18 @@
                            name="first_name" 
                            placeholder="e.g. Juan"
                            value="<?php echo set_value('first_name'); ?>"
+                           required>
+                </div>
+
+                <!-- 3. Last Name -->
+                <div class="col-12 col-sm-6">
+                    <label for="last_name" class="form-label small fw-semibold text-secondary">Last Name <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           class="form-control input-custom" 
+                           id="last_name" 
+                           name="last_name" 
+                           placeholder="e.g. Dela Cruz"
+                           value="<?php echo set_value('last_name'); ?>"
                            required>
                 </div>
 

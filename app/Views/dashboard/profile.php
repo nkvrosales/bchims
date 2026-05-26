@@ -103,32 +103,43 @@
                            placeholder="Leave blank to keep current">
                 </div>
 
-                <!-- 5. Account Privileges info (Disabled badges) -->
+                <?php $isAdmin = (session()->get('role') === 'admin'); ?>
+                <!-- 5. Role -->
                 <div class="col-12 col-sm-6">
-                    <label class="form-label small fw-semibold text-secondary d-block">Account Role & Department</label>
-                    <div class="d-flex flex-wrap gap-2 mt-1">
-                        <!-- Role Badge -->
-                        <?php if ($user['role'] === 'admin'): ?>
-                            <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle rounded-2 px-2.5 py-1.5 fs-7" style="background-color: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
-                                <i class="fa-solid fa-user-shield me-1"></i>Administrator
-                            </span>
-                        <?php else: ?>
-                            <span class="badge bg-teal-subtle text-teal border border-teal-subtle rounded-2 px-2.5 py-1.5 fs-7" style="background-color: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4;">
-                                <i class="fa-solid fa-user me-1"></i>Staff
-                            </span>
-                        <?php endif; ?>
+                    <label for="role_display" class="form-label small fw-semibold text-secondary">Role <span class="text-danger">*</span></label>
+                    <select class="form-select input-custom bg-light" id="role_display" disabled style="cursor: not-allowed;">
+                        <option value="<?php echo htmlspecialchars($user['role']); ?>" selected>
+                            <?php echo ($user['role'] === 'admin') ? 'Administrator' : 'Staff'; ?>
+                        </option>
+                    </select>
+                    <input type="hidden" name="role" value="<?php echo htmlspecialchars($user['role']); ?>">
+                </div>
 
-                        <!-- Department Badge -->
-                        <?php if (!empty($user['department_code'])): ?>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2.5 py-1.5 fs-7">
-                                <i class="fa-solid fa-hospital me-1"></i><?php echo htmlspecialchars($user['department_code']); ?> (<?php echo htmlspecialchars($user['department_name']); ?>)
-                            </span>
-                        <?php else: ?>
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-2 px-2.5 py-1.5 fs-7">
-                                <i class="fa-solid fa-user-gear me-1"></i>No assigned department
-                            </span>
-                        <?php endif; ?>
-                    </div>
+                <!-- 6. Department -->
+                <div class="col-12 col-sm-6">
+                    <label for="department_id" class="form-label small fw-semibold text-secondary">Department</label>
+                    <?php if ($isAdmin): ?>
+                        <select class="form-select input-custom" id="department_id" name="department_id">
+                            <option value="">None / Administration (Admin)</option>
+                            <?php if (!empty($departments)): ?>
+                                <?php foreach ($departments as $d): ?>
+                                    <option value="<?php echo $d['id']; ?>" <?php echo ($user['department_id'] == $d['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($d['name']); ?> (<?php echo htmlspecialchars($d['code']); ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    <?php else: ?>
+                        <select class="form-select input-custom bg-light" id="department_id" disabled style="cursor: not-allowed;">
+                            <option value="" selected>
+                                <?php if (!empty($user['department_code'])): ?>
+                                    <?php echo htmlspecialchars($user['department_name']); ?> (<?php echo htmlspecialchars($user['department_code']); ?>)
+                                <?php else: ?>
+                                    None / Administration (Admin)
+                                <?php endif; ?>
+                            </option>
+                        </select>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Submission Actions -->
@@ -137,7 +148,7 @@
                         <i class="fa-solid fa-save"></i>
                         <span>Save Changes</span>
                     </button>
-                    <a href="<?php echo base_url('dashboard'); ?>" class="btn btn-outline-secondary px-4 py-2 hover-lift">
+                    <a href="<?php echo base_url('dashboard'); ?>" class="btn btn-outline-secondary d-flex align-items-center hover-lift">
                         Cancel
                     </a>
                 </div>

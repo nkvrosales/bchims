@@ -42,6 +42,7 @@ class Users extends BaseController
 
         $data['title'] = 'User Management';
         $data['users'] = $this->userModel->get_users();
+        $data['departments'] = $this->departmentModel->get_departments();
 
         return view('templates/header', $data)
              . view('users/index', $data)
@@ -55,8 +56,10 @@ class Users extends BaseController
     {
         if ($res = $this->checkAdmin()) return $res;
 
-        $data['title'] = 'Add User';
-        $data['departments'] = $this->departmentModel->get_departments();
+        // GET requests: redirect to users list (modal is embedded on index page)
+        if (strcasecmp($this->request->getMethod(), 'get') === 0) {
+            return redirect()->to('users');
+        }
 
         $rules = [
             'username'      => 'required|alpha_dash|max_length[50]|is_unique[users.username]',
@@ -68,7 +71,7 @@ class Users extends BaseController
             'is_active'     => 'required|in_list[0,1]',
         ];
 
-        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
+        if ($this->validate($rules)) {
             $dept_id = $this->request->getPost('department_id');
             $insert_data = array(
                 'username'      => strtolower($this->request->getPost('username')),
@@ -99,17 +102,21 @@ class Users extends BaseController
                 session()->setFlashdata('success', 'User account successfully created!');
                 return redirect()->to('users');
             } else {
-                $data['error'] = 'An error occurred while creating the account. Please try again.';
+                // DB insert error
+                session()->setFlashdata('create_modal_open', true);
+                session()->setFlashdata('create_validation_errors', '<li>An error occurred while creating the account. Please try again.</li>');
+                return redirect()->to('users')->withInput();
             }
+        } else {
+            // Validation failed — re-open modal with errors
+            session()->setFlashdata('create_modal_open', true);
+            session()->setFlashdata('create_validation_errors', $this->validator->listErrors());
+            return redirect()->to('users')->withInput();
         }
-
-        return view('templates/header', $data)
-             . view('users/create', $data)
-             . view('templates/footer');
     }
 
     /**
-     * Edit/Update user account details
+     * Edit/Update user account details via modal redirect
      */
     public function edit($id = NULL)
     {
@@ -125,9 +132,11 @@ class Users extends BaseController
             return redirect()->to('users');
         }
 
-        $data['title'] = 'Edit User';
-        $data['user'] = $user;
-        $data['departments'] = $this->departmentModel->get_departments();
+        // If not post request, redirect to users and trigger opening the edit modal
+        if (strcasecmp($this->request->getMethod(), 'post') !== 0) {
+            session()->setFlashdata('edit_modal_open_id', $id);
+            return redirect()->to('users');
+        }
 
         $rules = [
             'username'      => "required|alpha_dash|max_length[50]|is_unique[users.username,id,{$id}]",
@@ -139,7 +148,7 @@ class Users extends BaseController
             'is_active'     => 'required|in_list[0,1]',
         ];
 
-        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
+        if ($this->validate($rules)) {
             $current_admin_id = session()->get('user_id');
             $dept_id = $this->request->getPost('department_id');
 
@@ -211,13 +220,16 @@ class Users extends BaseController
                 session()->setFlashdata('success', 'User details successfully updated!');
                 return redirect()->to('users');
             } else {
-                $data['error'] = 'An error occurred while updating the account. Please try again.';
+                session()->setFlashdata('edit_modal_open_id', $id);
+                session()->setFlashdata('edit_validation_errors', '<li>An error occurred while updating the account. Please try again.</li>');
+                return redirect()->to('users')->withInput();
             }
+        } else {
+            // Validation failed — redirect back to users & open the modal with errors
+            session()->setFlashdata('edit_modal_open_id', $id);
+            session()->setFlashdata('edit_validation_errors', $this->validator->listErrors());
+            return redirect()->to('users')->withInput();
         }
-
-        return view('templates/header', $data)
-             . view('users/edit', $data)
-             . view('templates/footer');
     }
 
     /**

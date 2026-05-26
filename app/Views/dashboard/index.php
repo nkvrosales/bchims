@@ -51,7 +51,7 @@
     <div class="col-12 col-md-6">
         <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('dashboard/audit_trail'); ?>'" style="cursor:pointer;">
             <div class="kpi-icon-wrapper kpi-icon-warning">
-                <i class="fa-solid fa-clock-rotate-left"></i>
+                <i class="bi bi-clipboard-data"></i>
             </div>
             <div class="kpi-label">System Operations Logs</div>
             <h3 class="kpi-value"><?php echo $total_logs; ?></h3>

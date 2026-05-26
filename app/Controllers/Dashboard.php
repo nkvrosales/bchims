@@ -113,6 +113,8 @@ class Dashboard extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         $userModel = new UserModel();
+        $departmentModel = new \App\Models\DepartmentModel();
+
         $userId = session()->get('user_id');
         $user = $userModel->get_user_by_id($userId);
 
@@ -123,6 +125,9 @@ class Dashboard extends BaseController
 
         $data['title'] = 'Profile Settings';
         $data['user'] = $user;
+        $data['departments'] = $departmentModel->get_departments();
+
+        $isAdmin = (session()->get('role') === 'admin');
 
         $rules = [
             'username'   => 'required|alpha_numeric_punct|min_length[4]|max_length[30]',
@@ -131,6 +136,11 @@ class Dashboard extends BaseController
             'password'   => 'permit_empty|min_length[4]|max_length[50]',
         ];
 
+        if ($isAdmin) {
+            $rules['role'] = 'required|in_list[admin,staff]';
+            $rules['department_id'] = 'permit_empty|numeric';
+        }
+
         if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
             $username = $this->request->getPost('username');
             $update_data = [
@@ -138,6 +148,12 @@ class Dashboard extends BaseController
                 'last_name'  => $this->request->getPost('last_name'),
                 'first_name' => $this->request->getPost('first_name'),
             ];
+
+            if ($isAdmin) {
+                $update_data['role'] = $this->request->getPost('role');
+                $dept_id = $this->request->getPost('department_id');
+                $update_data['department_id'] = !empty($dept_id) ? (int)$dept_id : NULL;
+            }
 
             if ($username !== $user['username'] && $userModel->get_user_by_username($username)) {
                 $data['error'] = 'That username is already taken. Please choose another one.';
@@ -154,6 +170,9 @@ class Dashboard extends BaseController
                     session()->set('first_name', $update_data['first_name']);
                     session()->set('full_name', $combined_name);
                     session()->set('username', $username);
+                    if ($isAdmin) {
+                        session()->set('role', $update_data['role']);
+                    }
 
                     // Log activity
                     $auditDesc = "Updated own profile details.";

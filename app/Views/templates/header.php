@@ -22,6 +22,8 @@
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css'); ?>">
 
+    <link rel="icon" href="<?php echo base_url('bchlogo.ico'); ?>" type="image/x-icon">
+
     <script>
         const BASE_URL = '<?php echo base_url(); ?>';
     </script>
@@ -71,8 +73,8 @@
                 <?php endif; ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard/audit_trail'); ?>" 
-                       class="sidebar-link <?php echo (isset($title) && ($title === 'Audit Trail' || $title === 'Audit Trail Log')) ? 'active' : ''; ?>" id="navAuditTrail">
-                        <i class="bi bi-bar-chart"></i>
+                       class="sidebar-link <?php echo (isset($title) && ($title === 'Audit Trail' || $title === 'Audit Trail')) ? 'active' : ''; ?>" id="navAuditTrail">
+                        <i class="bi bi-clipboard-data"></i>
                         <span>Audit Trail</span>
                     </a>
                 </li>

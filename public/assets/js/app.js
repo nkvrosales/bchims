@@ -232,4 +232,44 @@ $(document).ready(function() {
         // Inject DataTable action export buttons cleanly inside our premium card-header-styled drawer container
         table.buttons().container().appendTo('#tableActionsContainer');
     }
+
+    // =========================================================================
+    // 5. JQUERY DATATABLES: USER DATABASE SEARCH & SORT
+    // =========================================================================
+    const $usersTable = $('#usersTable');
+    if ($usersTable.length) {
+        $usersTable.DataTable({
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                search: "",
+                searchPlaceholder: "Search users...",
+                lengthMenu: "Show _MENU_ users",
+                info: 'Showing _START_ to _END_ of _TOTAL_ users',
+                infoEmpty: 'Showing 0 to 0 of 0 users',
+                infoFiltered: '(filtered from _MAX_ total users)',
+                zeroRecords: 'No matching user records found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 6 } // Disable sorting on Actions column (index 6)
+            ],
+            initComplete: function () {
+                // Add placeholder and clean up the search wrapper
+                var $searchInput = $('#usersTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search users...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                // Remove the stray label margin
+                $('#usersTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#usersTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
+        });
+    }
 });

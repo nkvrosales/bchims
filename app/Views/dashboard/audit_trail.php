@@ -58,11 +58,11 @@
 
         <!-- 5. Form Submission Buttons -->
         <div class="col-12 col-md-3 col-xl-4 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2" id="btnFilterSubmit">
+            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" id="btnFilterSubmit" style="padding: 0.5rem 1.4rem !important; font-size: 0.9rem !important; font-weight: 500 !important; border-radius: 8px !important; border: 1.5px solid transparent !important; height: 50px;">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <span>Filter</span>
             </button>
-            <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2" id="btnFilterReset">
+            <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2" id="btnFilterReset" style="height: 50px;">
                 <i class="fa-solid fa-rotate-left"></i>
                 <span>Reset</span>
             </a>
