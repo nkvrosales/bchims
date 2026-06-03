@@ -126,6 +126,25 @@ h1, h2, h3, h4, h5, h6 {
     color: #64748b !important;
 }
 
+/* Fix: reset btn-outline-secondary overrides inside login input-groups */
+.login-card .input-group .btn-outline-secondary {
+    border-radius: 0 0.375rem 0.375rem 0 !important;
+    padding: 0.5rem 0.85rem !important;
+    border: 1px solid rgba(148, 163, 184, 0.6) !important;
+    border-left: 1px solid #cbd5e1 !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    color: #94a3b8 !important;
+    font-size: 0.95rem !important;
+    box-shadow: none !important;
+}
+
+.login-card .input-group .btn-outline-secondary:hover {
+    background-color: rgba(248, 250, 252, 0.9) !important;
+    color: #64748b !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
+    border-left: 1px solid #cbd5e1 !important;
+}
+
 .btn-primary {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
     border: none !important;
