@@ -46,7 +46,7 @@ class UserModel extends Model
      */
     public function get_users()
     {
-        return $this->select("users.user_id AS id, users.username, users.last_name, users.first_name, CONCAT(users.first_name, ' ', users.last_name) AS full_name, roles.role_name AS role, users.account_status, users.created_at, users.department_id, departments.department_name AS department_name, departments.department_name AS department_code, (users.account_status = 'Active') AS is_active")
+        return $this->select("users.user_id AS id, users.username, users.last_name, users.first_name, CONCAT(users.first_name, ' ', users.last_name) AS full_name, roles.role_name AS role, users.account_status, users.created_at, users.department_id, departments.department_name AS department_name, departments.department_name AS department_code, (users.account_status = 'Active') AS is_active, (SELECT MAX(action_date) FROM audit_logs WHERE audit_logs.user_id = users.user_id AND audit_logs.action_type = 'LOGIN') AS last_login")
                     ->join('departments', 'departments.department_id = users.department_id', 'left')
                     ->join('roles', 'roles.role_id = users.role_id', 'inner')
                     ->orderBy('users.last_name', 'ASC')

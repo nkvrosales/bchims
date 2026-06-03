@@ -23,70 +23,6 @@
     </div>
 </div>
 
-<!-- Search & Filtering Drawer Card -->
-<div class="filter-card fade-in-up" style="animation-delay: 0.1s;">
-    <h5 class="font-heading mb-3" style="font-size: 1rem;">
-        <span>Filter Logs</span>
-    </h5>
-    
-    <form method="GET" action="<?php echo base_url('dashboard/audit_trail'); ?>" class="row g-3" id="auditFilterForm">
-        <!-- 1. Start Date -->
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-            <label for="start_date" class="form-label small fw-semibold text-secondary">Start Date</label>
-            <input type="date" 
-                   class="form-control input-custom" 
-                   id="start_date" 
-                   name="start_date" 
-                   value="<?php echo isset($filters['start_date']) ? htmlspecialchars($filters['start_date']) : ''; ?>">
-        </div>
-
-        <!-- 2. End Date -->
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-            <label for="end_date" class="form-label small fw-semibold text-secondary">End Date</label>
-            <input type="date" 
-                   class="form-control input-custom" 
-                   id="end_date" 
-                   name="end_date" 
-                   value="<?php echo isset($filters['end_date']) ? htmlspecialchars($filters['end_date']) : ''; ?>">
-        </div>
-
-        <!-- 3. Username -->
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-            <label for="username" class="form-label small fw-semibold text-secondary">User/Account</label>
-            <input type="text" 
-                   class="form-control input-custom" 
-                   id="username" 
-                   name="username" 
-                   placeholder="Search username"
-                   value="<?php echo isset($filters['username']) ? htmlspecialchars($filters['username']) : ''; ?>">
-        </div>
-
-        <!-- 4. Action Type Select -->
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-            <label for="action" class="form-label small fw-semibold text-secondary">Action</label>
-            <select class="form-select input-custom" id="action" name="action">
-                <option value="">-- All Actions --</option>
-                <?php foreach ($unique_actions as $act): ?>
-                    <option value="<?php echo $act; ?>" <?php echo (isset($filters['action']) && $filters['action'] === $act) ? 'selected' : ''; ?>>
-                        <?php echo $act; ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <!-- 5. Form Submission Buttons -->
-        <div class="col-12 col-md-3 col-xl-4 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" id="btnFilterSubmit" style="padding: 0.5rem 1.4rem !important; font-size: 0.9rem !important; font-weight: 500 !important; border-radius: 8px !important; border: 1.5px solid transparent !important; height: 50px;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Filter</span>
-            </button>
-            <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2" id="btnFilterReset" style="height: 50px;">
-                <i class="fa-solid fa-rotate-left"></i>
-                <span>Reset</span>
-            </a>
-        </div>
-    </form>
-</div>
 
 <!-- Log Data Table Area -->
 <div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
@@ -104,7 +40,7 @@
             <thead>
                 <tr>
                     <th style="width: 5%">#</th>
-                    <th style="width: 15%">Timestamp</th>
+                    <th style="width: 18%">Date/Time</th>
                     <th style="width: 12%">User</th>
                     <th style="width: 12%">Action</th>
                     <th>Description</th>
@@ -116,8 +52,10 @@
                     <?php foreach ($logs as $log): ?>
                         <tr class="audit-log-row" data-log-id="<?php echo $log['log_id']; ?>">
                             <td><span class="text-muted small"><?php echo $count++; ?></span></td>
-                            <td class="font-monospace" style="font-size: 0.85rem;">
-                                <?php echo date('Y-m-d H:i:s', strtotime($log['created_at'])); ?>
+                            <td>
+                                <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                                    <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
+                                </span>
                             </td>
                             <td>
                                 <span class="fw-semibold" style="font-size: 0.85rem;">

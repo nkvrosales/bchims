@@ -20,33 +20,6 @@
     </div>
 </div>
 
-<!-- Search & Filtering Drawer Card -->
-<div class="filter-card fade-in-up" style="animation-delay: 0.05s;">
-    <h5 class="font-heading mb-3" style="font-size: 1rem;">
-        <span>Search</span>
-    </h5>
-    <form method="GET" action="<?php echo base_url('supply_requests'); ?>" class="row g-3" id="supplyRequestFilterForm">
-        <div class="col-12 col-md-9">
-            <label for="search" class="form-label small fw-semibold text-secondary">Search Request</label>
-            <input type="text"
-                   class="form-control input-custom"
-                   id="search"
-                   name="search"
-                   placeholder="Search"
-                   value="<?php echo isset($search) ? htmlspecialchars($search) : ''; ?>">
-        </div>
-        <div class="col-12 col-md-3 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" style="height: 50px;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Search</span>
-            </button>
-            <a href="<?php echo base_url('supply_requests'); ?>" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2" style="height: 50px;">
-                <i class="fa-solid fa-rotate-left"></i>
-                <span>Reset</span>
-            </a>
-        </div>
-    </form>
-</div>
 
 <!-- Flash Messages -->
 <?php if (session()->getFlashdata('success')): ?>

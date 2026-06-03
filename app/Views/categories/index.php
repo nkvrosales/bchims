@@ -47,7 +47,7 @@
     </div>
 
     <div class="table-responsive-custom">
-        <table class="table table-custom table-hover w-100">
+        <table class="table table-custom table-hover w-100" id="categoriesTable">
             <thead>
                 <tr>
                     <th style="width: 20%">Code</th>
@@ -108,7 +108,7 @@
             <!-- Modal Header -->
             <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                 <div class="d-flex align-items-center gap-3">
-                    <i class="fa-solid fa-circle-plus" style="color: #10b981; font-size: 1.2rem;"></i>
+                    <i class="fa-solid fa-plus" style="color: #000000ff; font-size: 1rem;"></i>
                     <h5 class="modal-title fw-bold mb-0" id="createCategoryModalLabel"
                         style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                         Add New Category

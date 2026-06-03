@@ -172,18 +172,31 @@ $(document).ready(function() {
     const $auditTable = $('#auditLogsTable');
     if ($auditTable.length) {
         const table = $auditTable.DataTable({
-            dom: "<'row'<'col-sm-12'tr>>" +
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
                  "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
             pageLength: 10,
             ordering: true,
+            searching: true,
             order: [[0, 'asc']], // Order by # index increment column
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
+                search: "",
+                searchPlaceholder: "Search logs...",
+                lengthMenu: "Show _MENU_ logs",
                 info: 'Showing _START_ to _END_ of _TOTAL_ operations logs',
-                infoFiltered: '(filtered from _MAX_ total entries)'
+                infoFiltered: '(filtered from _MAX_ total entries)',
+                zeroRecords: 'No matching log records found'
+            },
+            initComplete: function () {
+                var $searchInput = $('#auditLogsTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search logs...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $('#auditLogsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#auditLogsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             },
             buttons: [
                 {
@@ -274,56 +287,154 @@ $(document).ready(function() {
     }
 
     // =========================================================================
-    // 6. JQUERY DATATABLES: SUPPLY REQUESTS SORTING
+    // 6. JQUERY DATATABLES: SUPPLY REQUESTS SORTING & SEARCH
     // =========================================================================
     const $supplyRequestsTable = $('#supplyRequestsTable');
     if ($supplyRequestsTable.length) {
         $supplyRequestsTable.DataTable({
-            dom: "<'row'<'col-sm-12'tr>>" +
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
                  "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
             pageLength: 10,
             ordering: true,
-            searching: false,
+            searching: true,
             order: [[1, 'desc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
+                search: "",
+                searchPlaceholder: "Search requests...",
+                lengthMenu: "Show _MENU_ requests",
                 info: 'Showing _START_ to _END_ of _TOTAL_ supply requests',
                 infoEmpty: 'Showing 0 to 0 of 0 supply requests',
                 zeroRecords: 'No supply requests found'
             },
             columnDefs: [
                 { orderable: false, targets: 7 }
-            ]
+            ],
+            initComplete: function () {
+                var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search requests...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $('#supplyRequestsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#supplyRequestsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
         });
     }
 
     // =========================================================================
-    // 7. JQUERY DATATABLES: INVENTORY SORTING
+    // 7. JQUERY DATATABLES: INVENTORY SORTING & SEARCH
     // =========================================================================
     const $inventoryTable = $('#inventoryTable');
     if ($inventoryTable.length) {
         $inventoryTable.DataTable({
-            dom: "<'row'<'col-sm-12'tr>>" +
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
                  "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
             pageLength: 10,
             ordering: true,
-            searching: false,
+            searching: true,
             order: [[1, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
+                search: "",
+                searchPlaceholder: "Search inventory...",
+                lengthMenu: "Show _MENU_ items",
                 info: 'Showing _START_ to _END_ of _TOTAL_ inventory items',
                 infoEmpty: 'Showing 0 to 0 of 0 inventory items',
                 zeroRecords: 'No inventory items found'
             },
             columnDefs: [
                 { orderable: false, targets: 5 }
-            ]
+            ],
+            initComplete: function () {
+                var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search inventory...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $('#inventoryTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#inventoryTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
+        });
+    }
+
+    // =========================================================================
+    // 8. JQUERY DATATABLES: CATEGORIES SORTING & SEARCH
+    // =========================================================================
+    const $categoriesTable = $('#categoriesTable');
+    if ($categoriesTable.length) {
+        $categoriesTable.DataTable({
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            order: [[0, 'asc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                search: "",
+                searchPlaceholder: "Search categories...",
+                lengthMenu: "Show _MENU_ categories",
+                info: 'Showing _START_ to _END_ of _TOTAL_ categories',
+                infoEmpty: 'Showing 0 to 0 of 0 categories',
+                zeroRecords: 'No categories found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 2 }
+            ],
+            initComplete: function () {
+                var $searchInput = $('#categoriesTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search categories...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $('#categoriesTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#categoriesTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
+        });
+    }
+
+    // =========================================================================
+    // 9. JQUERY DATATABLES: DEPARTMENTS SORTING & SEARCH
+    // =========================================================================
+    const $departmentsTable = $('#departmentsTable');
+    if ($departmentsTable.length) {
+        $departmentsTable.DataTable({
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            order: [[1, 'asc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                search: "",
+                searchPlaceholder: "Search departments...",
+                lengthMenu: "Show _MENU_ departments",
+                info: 'Showing _START_ to _END_ of _TOTAL_ departments',
+                infoEmpty: 'Showing 0 to 0 of 0 departments',
+                zeroRecords: 'No departments found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 3 }
+            ],
+            initComplete: function () {
+                var $searchInput = $('#departmentsTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search departments...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $('#departmentsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#departmentsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
         });
     }
 });

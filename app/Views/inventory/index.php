@@ -44,48 +44,6 @@
     </div>
 <?php endif; ?>
 
-<!-- Search & Filtering Drawer Card -->
-<div class="filter-card fade-in-up" style="animation-delay: 0.1s;">
-    <h5 class="font-heading mb-3" style="font-size: 1rem;">
-        <span>Search &amp; Filter</span>
-    </h5>
-    
-    <form method="GET" action="<?php echo base_url('inventory'); ?>" class="row g-3" id="inventoryFilterForm">
-        <!-- 1. Search Query -->
-        <div class="col-12 col-md-6">
-            <label for="search" class="form-label small fw-semibold text-secondary">Search Item</label>
-            <input type="text" 
-                   class="form-control input-custom" 
-                   id="search" 
-                   name="search" 
-                   placeholder="Search"
-                   value="<?php echo isset($search) ? htmlspecialchars($search) : ''; ?>">
-        </div>
-
-        <!-- 3. Stock Status -->
-        <div class="col-12 col-sm-6 col-md-3">
-            <label for="stock_status" class="form-label small fw-semibold text-secondary">Stock Status</label>
-            <select class="form-select input-custom" id="stock_status" name="stock_status">
-                <option value="">Status</option>
-                <option value="in_stock" <?php echo (isset($stock_status) && $stock_status === 'in_stock') ? 'selected' : ''; ?>>In Stock</option>
-                <option value="low_stock" <?php echo (isset($stock_status) && $stock_status === 'low_stock') ? 'selected' : ''; ?>>Low Stock</option>
-                <option value="out_of_stock" <?php echo (isset($stock_status) && $stock_status === 'out_of_stock') ? 'selected' : ''; ?>>Out of Stock</option>
-            </select>
-        </div>
-
-        <!-- 4. Form Submission Buttons -->
-        <div class="col-12 col-md-3 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" id="btnFilterSubmit" style="padding: 0.5rem 1.4rem !important; font-size: 0.9rem !important; font-weight: 500 !important; border-radius: 8px !important; border: 1.5px solid transparent !important; height: 50px;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Filter</span>
-            </button>
-            <a href="<?php echo base_url('inventory'); ?>" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2" id="btnFilterReset" style="height: 50px;">
-                <i class="fa-solid fa-rotate-left"></i>
-                <span>Reset</span>
-            </a>
-        </div>
-    </form>
-</div>
 
 <!-- Inventory Items Table Area -->
 <div class="standard-card fade-in-up" style="animation-delay: 0.2s;">

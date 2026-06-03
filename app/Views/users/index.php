@@ -52,12 +52,12 @@
         <table class="table table-custom table-hover w-100" id="usersTable">
             <thead>
                 <tr>
-                    <th style="width: 13%">Username</th>
-                    <th style="width: 26%">Name</th>
+                    <th style="width: 15%">Username</th>
+                    <th style="width: 25%">Name</th>
                     <th style="width: 12%">Role</th>
                     <th style="width: 20%">Department</th>
                     <th style="width: 10%">Status</th>
-                    <th style="width: 11%">Created At</th>
+                    <th style="width: 15%">Last Login</th>
                     <th style="width: 8%" class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -102,17 +102,15 @@
 
                         <!-- Department -->
                         <td>
-                            <?php if (!empty($u['department_code'])): ?>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2 py-1 small text-uppercase">
-                                    <?php echo htmlspecialchars(strtoupper($u['department_code'])); ?>
-                                </span>
-                            <?php elseif ($u['role'] === 'admin'): ?>
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-2 px-2 py-1 small text-uppercase">
-                                    ADMINISTRATOR
-                                </span>
-                            <?php else: ?>
-                                <span class="text-muted small">None</span>
-                            <?php endif; ?>
+                            <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                                <?php if (!empty($u['department_code'])): ?>
+                                    <?php echo htmlspecialchars($u['department_code']); ?>
+                                <?php elseif ($u['role'] === 'admin'): ?>
+                                    Administrator
+                                <?php else: ?>
+                                    <span class="text-muted fw-normal">None</span>
+                                <?php endif; ?>
+                            </span>
                         </td>
 
                         <!-- Status with dot indicator -->
@@ -130,9 +128,11 @@
                             <?php endif; ?>
                         </td>
 
-                        <!-- Created At -->
-                        <td class="small text-secondary">
-                            <?php echo date('M d, Y', strtotime($u['created_at'])); ?>
+                        <!-- Last Login -->
+                        <td>
+                            <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                                <?php echo !empty($u['last_login']) ? date('M j, Y g:i A', strtotime($u['last_login'])) : '—'; ?>
+                            </span>
                         </td>
 
                         <!-- Actions -->
