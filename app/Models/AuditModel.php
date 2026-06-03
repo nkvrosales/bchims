@@ -7,42 +7,45 @@ use CodeIgniter\Model;
 class AuditModel extends Model
 {
     protected $table      = 'audit_logs';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'log_id';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['user_id', 'username', 'action', 'module', 'description', 'ip_address'];
+    protected $allowedFields = ['user_id', 'action_type', 'table_name', 'record_id', 'action_description'];
 
     protected $useTimestamps = true;
-    protected $createdField  = 'created_at';
+    protected $createdField  = 'action_date';
     protected $updatedField  = '';
 
     /**
      * Log a user activity in the database.
      */
-    public function log_activity($action, $module, $description)
+    public function log_activity($action, $module, $description, $record_id = NULL)
     {
         $session = \Config\Services::session();
-        $request = \Config\Services::request();
 
         $user_id = $session->get('user_id');
-        $username = $session->get('username');
 
         if (empty($user_id)) {
             $user_id = NULL;
-            $username = !empty($username) ? $username : 'Guest';
+        } else {
+            // Verify if the user_id exists in the users table to prevent FK constraint failures
+            $db = \Config\Database::connect();
+            $userExists = $db->table('users')->where('user_id', $user_id)->countAllResults();
+            if ($userExists === 0) {
+                $user_id = NULL;
+            }
         }
 
         $data = array(
-            'user_id'     => $user_id,
-            'username'    => $username,
-            'action'      => strtoupper($action),
-            'module'      => ucfirst($module),
-            'description' => $description,
-            'ip_address'  => $request->getIPAddress()
+            'user_id'            => $user_id,
+            'action_type'        => strtoupper($action),
+            'table_name'         => ucfirst($module),
+            'record_id'          => $record_id,
+            'action_description' => $description
         );
 
         return $this->insert($data);
@@ -53,28 +56,33 @@ class AuditModel extends Model
      */
     public function get_audit_logs($filters = array())
     {
-        $builder = $this;
+        $builder = $this->select("audit_logs.*, audit_logs.action_type AS action, audit_logs.action_description AS description, audit_logs.action_date AS created_at, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.username AS username")
+                        ->join('users', 'users.user_id = audit_logs.user_id', 'left');
+
+        if (session()->get('role') !== 'admin') {
+            $builder = $builder->where('audit_logs.user_id', session()->get('user_id'));
+        }
 
         if (!empty($filters['start_date'])) {
-            $builder = $builder->where('DATE(created_at) >=', $filters['start_date']);
+            $builder = $builder->where('DATE(action_date) >=', $filters['start_date']);
         }
         if (!empty($filters['end_date'])) {
-            $builder = $builder->where('DATE(created_at) <=', $filters['end_date']);
+            $builder = $builder->where('DATE(action_date) <=', $filters['end_date']);
         }
 
         if (!empty($filters['username'])) {
-            $builder = $builder->like('username', $filters['username']);
+            $builder = $builder->like('users.username', $filters['username']);
         }
 
         if (!empty($filters['action'])) {
-            $builder = $builder->where('action', strtoupper($filters['action']));
+            $builder = $builder->where('action_type', strtoupper($filters['action']));
         }
 
         if (!empty($filters['module'])) {
-            $builder = $builder->where('module', ucfirst($filters['module']));
+            $builder = $builder->where('table_name', ucfirst($filters['module']));
         }
 
-        return $builder->orderBy('created_at', 'DESC')->findAll();
+        return $builder->orderBy('action_date', 'DESC')->findAll();
     }
 
     /**
@@ -82,6 +90,53 @@ class AuditModel extends Model
      */
     public function get_recent_logs($limit = 5)
     {
-        return $this->orderBy('created_at', 'DESC')->findAll($limit);
+        $builder = $this->select("audit_logs.*, audit_logs.action_type AS action, audit_logs.action_description AS description, audit_logs.action_date AS created_at, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.username AS username")
+                        ->join('users', 'users.user_id = audit_logs.user_id', 'left');
+                        
+        if (session()->get('role') !== 'admin') {
+            $builder = $builder->where('audit_logs.user_id', session()->get('user_id'));
+        }
+        return $builder->orderBy('action_date', 'DESC')->findAll($limit);
+    }
+
+    /**
+     * Get audit logs up to a specific date.
+     */
+    public function get_logs_before_date($date)
+    {
+        return $this->select("audit_logs.*, audit_logs.action_type AS action, audit_logs.action_description AS description, audit_logs.action_date AS created_at, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.username AS username")
+                    ->join('users', 'users.user_id = audit_logs.user_id', 'left')
+                    ->where('DATE(action_date) <=', $date)
+                    ->orderBy('action_date', 'ASC')
+                    ->findAll();
+    }
+
+    /**
+     * Delete audit logs up to a specific date.
+     */
+    public function delete_logs_before_date($date)
+    {
+        return $this->where('DATE(action_date) <=', $date)->delete();
+    }
+
+    /**
+     * Get specific audit logs by an array of log IDs.
+     */
+    public function get_logs_by_ids(array $ids)
+    {
+        return $this->select("audit_logs.*, audit_logs.action_type AS action, audit_logs.action_description AS description, audit_logs.action_date AS created_at, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.username AS username")
+                    ->join('users', 'users.user_id = audit_logs.user_id', 'left')
+                    ->whereIn('log_id', $ids)
+                    ->orderBy('action_date', 'ASC')
+                    ->findAll();
+    }
+
+    /**
+     * Delete specific audit logs by an array of log IDs.
+     */
+    public function delete_logs_by_ids(array $ids)
+    {
+        return $this->whereIn('log_id', $ids)->delete();
     }
 }
+

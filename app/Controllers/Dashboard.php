@@ -27,6 +27,15 @@ class Dashboard extends BaseController
         if (!session()->get('logged_in')) {
             return redirect()->to('auth/login');
         }
+
+        // Verify the user actually exists to handle reseeded/stale sessions gracefully
+        $userModel = new UserModel();
+        $user = $userModel->get_user_by_id(session()->get('user_id'));
+        if (empty($user)) {
+            session()->destroy();
+            return redirect()->to('auth/login');
+        }
+
         return null;
     }
 
@@ -71,12 +80,152 @@ class Dashboard extends BaseController
         $data['filters'] = $filters;
         $data['logs'] = $this->auditModel->get_audit_logs($filters);
 
-        $query_actions = $db->table('audit_logs')->select('action')->distinct()->get();
-        $data['unique_actions'] = array_column($query_actions->getResultArray(), 'action');
+        $query_actions = $db->table('audit_logs')->select('action_type')->distinct()->get();
+        $data['unique_actions'] = array_column($query_actions->getResultArray(), 'action_type');
+
+        $data['archives'] = [];
+        if (session()->get('role') === 'admin') {
+            $archivePath = WRITEPATH . 'uploads/archives/';
+            if (is_dir($archivePath)) {
+                $files = array_diff(scandir($archivePath), array('.', '..'));
+                arsort($files);
+                foreach ($files as $file) {
+                    if (pathinfo($file, PATHINFO_EXTENSION) === 'csv') {
+                        $filePath = $archivePath . $file;
+                        $data['archives'][] = [
+                            'filename' => $file,
+                            'size'     => filesize($filePath),
+                            'date'     => date('Y-m-d H:i:s', filemtime($filePath))
+                        ];
+                    }
+                }
+            }
+        }
 
         return view('templates/header', $data)
              . view('dashboard/audit_trail', $data)
              . view('templates/footer');
+     }
+
+    /**
+     * Archive and purge audit logs (by date range or by specific selected IDs).
+     */
+    public function archive_logs()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (session()->get('role') !== 'admin') {
+            session()->setFlashdata('error', 'You do not have permission to archive audit logs.');
+            return redirect()->to('dashboard/audit_trail');
+        }
+
+        $archiveMode = $this->request->getPost('archive_mode') ?? 'by_date';
+        $logsToArchive = [];
+
+        if ($archiveMode === 'by_selection') {
+            // --- Mode: Archive specific selected rows ---
+            $rawIds = $this->request->getPost('log_ids');
+            if (empty($rawIds) || !is_array($rawIds)) {
+                session()->setFlashdata('error', 'No log entries were selected. Please select at least one row to archive.');
+                return redirect()->to('dashboard/audit_trail');
+            }
+            // Sanitise: ensure all IDs are positive integers
+            $ids = array_filter(array_map('intval', $rawIds), fn($id) => $id > 0);
+            if (empty($ids)) {
+                session()->setFlashdata('error', 'Invalid log entry selection.');
+                return redirect()->to('dashboard/audit_trail');
+            }
+            $logsToArchive = $this->auditModel->get_logs_by_ids($ids);
+        } else {
+            // --- Mode: Archive by date cutoff ---
+            $archiveDate = $this->request->getPost('archive_date');
+            if (empty($archiveDate)) {
+                session()->setFlashdata('error', 'Please select a valid date for archiving.');
+                return redirect()->to('dashboard/audit_trail');
+            }
+            $logsToArchive = $this->auditModel->get_logs_before_date($archiveDate);
+        }
+
+        $count = count($logsToArchive);
+        if ($count === 0) {
+            session()->setFlashdata('warning', 'No audit logs matched the archive criteria.');
+            return redirect()->to('dashboard/audit_trail');
+        }
+
+        // Ensure backup directory exists
+        $archiveDir = WRITEPATH . 'uploads/archives/';
+        if (!is_dir($archiveDir)) {
+            mkdir($archiveDir, 0777, true);
+        }
+
+        // Generate unique filename
+        $filename = 'audit_logs_archive_' . date('Ymd_His') . '.csv';
+        $filepath = $archiveDir . $filename;
+
+        // Write CSV (with UTF-8 BOM for Excel compatibility)
+        $fp = fopen($filepath, 'w');
+        fprintf($fp, chr(0xEF).chr(0xBB).chr(0xBF));
+        fputcsv($fp, ['Log ID', 'Timestamp', 'User ID', 'Username', 'Full Name', 'Action Type', 'Module/Table', 'Record ID', 'Description']);
+        foreach ($logsToArchive as $log) {
+            fputcsv($fp, [
+                $log['log_id'],
+                $log['created_at'],
+                $log['user_id'],
+                $log['username'],
+                $log['full_name'],
+                $log['action'],
+                $log['table_name'],
+                $log['record_id'],
+                $log['description']
+            ]);
+        }
+        fclose($fp);
+
+        // Purge from database
+        if ($archiveMode === 'by_selection') {
+            $ids = array_column($logsToArchive, 'log_id');
+            $this->auditModel->delete_logs_by_ids($ids);
+            $modeLabel = "selected entries";
+        } else {
+            $archiveDate = $this->request->getPost('archive_date');
+            $this->auditModel->delete_logs_before_date($archiveDate);
+            $modeLabel = "entries on or before {$archiveDate}";
+        }
+
+        // Log the archive action itself
+        $this->auditModel->log_activity(
+            'ARCHIVE_LOGS',
+            'Audit Trail',
+            "Archived and purged {$count} audit log {$modeLabel}. Backup saved as: {$filename}."
+        );
+
+        session()->setFlashdata('success', "Successfully archived and purged {$count} audit log(s). Backup file '{$filename}' has been saved on the server.");
+        return redirect()->to('dashboard/audit_trail');
+    }
+
+    /**
+     * Download a previously archived logs CSV file.
+     */
+    public function download_archive($filename)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (session()->get('role') !== 'admin') {
+            session()->setFlashdata('error', 'You do not have permission to download log archives.');
+            return redirect()->to('dashboard/audit_trail');
+        }
+
+        // Prevent path traversal
+        $filename = basename($filename);
+        $filepath = WRITEPATH . 'uploads/archives/' . $filename;
+
+        if (!file_exists($filepath)) {
+            session()->setFlashdata('error', 'The requested archive file does not exist.');
+            return redirect()->to('dashboard/audit_trail');
+        }
+
+        // Trigger file download
+        return $this->response->download($filepath, null)->setFileName($filename);
     }
 
     /**
@@ -150,7 +299,8 @@ class Dashboard extends BaseController
             ];
 
             if ($isAdmin) {
-                $update_data['role'] = $this->request->getPost('role');
+                $role = $this->request->getPost('role');
+                $update_data['role_id'] = ($role === 'admin') ? 1 : 2;
                 $dept_id = $this->request->getPost('department_id');
                 $update_data['department_id'] = !empty($dept_id) ? (int)$dept_id : NULL;
             }
@@ -171,7 +321,7 @@ class Dashboard extends BaseController
                     session()->set('full_name', $combined_name);
                     session()->set('username', $username);
                     if ($isAdmin) {
-                        session()->set('role', $update_data['role']);
+                        session()->set('role', $role);
                     }
 
                     // Log activity
@@ -195,5 +345,26 @@ class Dashboard extends BaseController
              . view('dashboard/profile', $data)
              . view('templates/footer');
     }
+
+    /**
+     * System settings page.
+     */
+    public function settings()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        // Settings are only accessible by administrator
+        if (session()->get('role') !== 'admin') {
+            session()->setFlashdata('error', 'You do not have permission to access the System Settings page.');
+            return redirect()->to('dashboard');
+        }
+
+        $data['title'] = 'System Settings';
+
+        return view('templates/header', $data)
+             . view('dashboard/settings', $data)
+             . view('templates/footer');
+    }
 }
+
 

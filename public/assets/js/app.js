@@ -272,4 +272,58 @@ $(document).ready(function() {
             }
         });
     }
+
+    // =========================================================================
+    // 6. JQUERY DATATABLES: SUPPLY REQUESTS SORTING
+    // =========================================================================
+    const $supplyRequestsTable = $('#supplyRequestsTable');
+    if ($supplyRequestsTable.length) {
+        $supplyRequestsTable.DataTable({
+            dom: "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: false,
+            order: [[1, 'desc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                info: 'Showing _START_ to _END_ of _TOTAL_ supply requests',
+                infoEmpty: 'Showing 0 to 0 of 0 supply requests',
+                zeroRecords: 'No supply requests found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 7 }
+            ]
+        });
+    }
+
+    // =========================================================================
+    // 7. JQUERY DATATABLES: INVENTORY SORTING
+    // =========================================================================
+    const $inventoryTable = $('#inventoryTable');
+    if ($inventoryTable.length) {
+        $inventoryTable.DataTable({
+            dom: "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: false,
+            order: [[1, 'asc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                info: 'Showing _START_ to _END_ of _TOTAL_ inventory items',
+                infoEmpty: 'Showing 0 to 0 of 0 inventory items',
+                zeroRecords: 'No inventory items found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 5 }
+            ]
+        });
+    }
 });

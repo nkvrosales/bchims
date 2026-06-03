@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($title) ? $title . '' : 'Hospital Inventory Management System'; ?></title>
-    
+
     <!-- Meta Descriptions for SEO -->
     <meta name="description" content="Core administrative dashboard and user activities audit logs portal for the Hospital Inventory Management System (IMS).">
     
@@ -54,6 +54,10 @@
             </div>
             
             <ul class="sidebar-menu">
+
+                <!-- MAIN Section -->
+                <li class="sidebar-section-label">MAIN</li>
+
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard'); ?>" 
                        class="sidebar-link <?php echo (isset($title) && $title === 'Dashboard') ? 'active' : ''; ?>" id="navDashboard">
@@ -65,19 +69,66 @@
                 <?php if (session()->get('role') === 'admin'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('users'); ?>" 
-                       class="sidebar-link <?php echo (isset($title) && ($title === 'User Management' || $title === 'Add User' || $title === 'Edit User')) ? 'active' : ''; ?>" id="navUsers">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['User Management', 'Add User', 'Edit User'])) ? 'active' : ''; ?>" id="navUsers">
                         <i class="bi bi-people"></i>
-                        <span>User Management</span>
+                        <span>Users</span>
                     </a>
                 </li>
                 <?php endif; ?>
+
                 <li class="sidebar-item">
-                    <a href="<?php echo base_url('dashboard/audit_trail'); ?>" 
-                       class="sidebar-link <?php echo (isset($title) && ($title === 'Audit Trail' || $title === 'Audit Trail')) ? 'active' : ''; ?>" id="navAuditTrail">
+                    <a href="<?php echo base_url('inventory'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Inventory', 'Add Item', 'Edit Item'])) ? 'active' : ''; ?>" id="navInventory">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Inventory</span>
+                    </a>
+                </li>
+
+                <?php if (session()->get('role') === 'admin'): ?>
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('categories'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Categories', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories">
+                        <i class="bi bi-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('departments'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Departments') ? 'active' : ''; ?>" id="navDepartments">
+                        <i class="bi bi-building"></i>
+                        <span>Departments</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('supply_requests'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Supply Requests</span>
+                    </a>
+                </li>
+
+                <!-- SYSTEM Section -->
+                <li class="sidebar-section-label">SYSTEM</li>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('dashboard/audit_trail'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Audit Trail') ? 'active' : ''; ?>" id="navAuditTrail">
                         <i class="bi bi-clipboard-data"></i>
                         <span>Audit Trail</span>
                     </a>
                 </li>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('dashboard/profile'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Profile Settings') ? 'active' : ''; ?>" id="navSettings">
+                        <i class="bi bi-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+
             </ul>
             
         </aside>
@@ -86,21 +137,11 @@
         <div class="main-panel" id="mainContentPanel">
             <!-- Top Header Navbar -->
             <header class="top-navbar">
-                <!-- Left: Mobile toggle + Date & Clock -->
+                <!-- Left: Mobile toggle -->
                 <div class="d-flex align-items-center gap-3">
                     <button class="navbar-action-btn d-lg-none" id="sidebarToggleMobile" aria-label="Toggle Sidebar">
                         <i class="fa-solid fa-bars-staggered"></i>
                     </button>
-                    <div class="d-flex align-items-center gap-4 navbar-datetime">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fa-regular fa-calendar text-muted"></i>
-                            <span id="liveClockDate"><?php echo date('l, F d, Y'); ?></span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fa-regular fa-clock text-muted"></i>
-                            <span id="liveClockTime"><?php echo date('h:i:s A'); ?></span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Right: User Dropdown -->

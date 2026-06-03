@@ -47,7 +47,7 @@ class Auth extends BaseController
             if ($user) {
                 // Successful verification, initialize session
                 $session_data = [
-                    'user_id'    => $user['id'],
+                    'user_id'    => $user['user_id'],
                     'username'   => $user['username'],
                     'last_name'  => $user['last_name'],
                     'first_name' => $user['first_name'],

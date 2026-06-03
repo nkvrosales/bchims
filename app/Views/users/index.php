@@ -103,13 +103,15 @@
                         <!-- Department -->
                         <td>
                             <?php if (!empty($u['department_code'])): ?>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2 py-1 small">
-                                    <?php echo htmlspecialchars($u['department_code']); ?>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2 py-1 small text-uppercase">
+                                    <?php echo htmlspecialchars(strtoupper($u['department_code'])); ?>
+                                </span>
+                            <?php elseif ($u['role'] === 'admin'): ?>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-2 px-2 py-1 small text-uppercase">
+                                    ADMINISTRATOR
                                 </span>
                             <?php else: ?>
-                                <span class="text-muted small">
-                                    None / Admin
-                                </span>
+                                <span class="text-muted small">None</span>
                             <?php endif; ?>
                         </td>
 
@@ -167,13 +169,6 @@
                         </td>
                     </tr>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            <i class="fa-regular fa-folder-open d-block fs-2 mb-2 text-secondary"></i>
-                            <span class="fw-medium">No user records found.</span>
-                        </td>
-                    </tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -290,7 +285,7 @@
                                 Role <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom" id="modal_role" name="role" required>
-                                <option value="">-- Select Role --</option>
+                                <option value="">Select Role</option>
                                 <option value="admin" <?php echo old('role') === 'admin' ? 'selected' : ''; ?>>Administrator</option>
                                 <option value="staff" <?php echo old('role') === 'staff' ? 'selected' : ''; ?>>Staff</option>
                             </select>
@@ -300,12 +295,12 @@
                         <div class="col-12 col-sm-6">
                             <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department</label>
                             <select class="form-select input-custom" id="modal_department_id" name="department_id">
-                                <option value="">None / Administration (Admin)</option>
+                                <option value="">Administrator</option>
                                 <?php if (!empty($departments)): ?>
                                     <?php foreach ($departments as $d): ?>
                                         <option value="<?php echo $d['id']; ?>"
                                             <?php echo old('department_id') == $d['id'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($d['name']); ?> (<?php echo htmlspecialchars($d['code']); ?>)
+                                            <?php echo htmlspecialchars($d['name']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -345,21 +340,10 @@
                         Cancel
                     </button>
                     <button type="submit"
-                            style="
-                                background: #22c55e;
-                                color: #fff;
-                                border: none;
-                                border-radius: 8px;
-                                padding: 0.5rem 1.5rem;
-                                font-size: 0.9rem;
-                                font-weight: 600;
-                                cursor: pointer;
-                                box-shadow: 0 2px 8px rgba(34,197,94,0.3);
-                                transition: background 0.15s, box-shadow 0.15s;
-                            "
-                            onmouseover="this.style.background='#16a34a';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.4)'"
-                            onmouseout="this.style.background='#22c55e';this.style.boxShadow='0 2px 8px rgba(34,197,94,0.3)'">
-                        Save Account
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
+                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                        Add User
                     </button>
                 </div>
             </form>
@@ -515,12 +499,12 @@
                                 <div class="col-12 col-sm-6">
                                     <label for="modal_edit_department_id_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">Department</label>
                                     <select class="form-select input-custom" id="modal_edit_department_id_<?php echo $u['id']; ?>" name="department_id">
-                                        <option value="">None / Administration (Admin)</option>
+                                        <option value="">Administrator</option>
                                         <?php if (!empty($departments)): ?>
                                             <?php foreach ($departments as $d): ?>
                                                 <option value="<?php echo $d['id']; ?>"
                                                     <?php echo ($val_dept_id == $d['id']) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($d['name']); ?> (<?php echo htmlspecialchars($d['code']); ?>)
+                                                    <?php echo htmlspecialchars($d['name']); ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         <?php endif; ?>
@@ -568,20 +552,9 @@
                                 Cancel
                             </button>
                             <button type="submit"
-                                    style="
-                                        background: #22c55e;
-                                        color: #fff;
-                                        border: none;
-                                        border-radius: 8px;
-                                        padding: 0.5rem 1.5rem;
-                                        font-size: 0.9rem;
-                                        font-weight: 600;
-                                        cursor: pointer;
-                                        box-shadow: 0 2px 8px rgba(34,197,94,0.3);
-                                        transition: background 0.15s, box-shadow 0.15s;
-                                    "
-                                    onmouseover="this.style.background='#16a34a';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.4)'"
-                                    onmouseout="this.style.background='#22c55e';this.style.boxShadow='0 2px 8px rgba(34,197,94,0.3)'">
+                                    style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
+                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
                                 Save Account
                             </button>
                         </div>

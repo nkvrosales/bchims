@@ -1,5 +1,23 @@
-<!-- Page Title Section -->
-<div class="page-title-section fade-in-up">
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i><?php echo session()->getFlashdata('success'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('warning')): ?>
+    <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i><?php echo session()->getFlashdata('warning'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i><?php echo session()->getFlashdata('error'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
+<div class="page-title-section fade-in-up d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="page-title mb-1">Audit Trail</h1>
     </div>
@@ -74,28 +92,29 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
+            <i class="bi bi-clock-history text-primary"></i>
             <span>Log Database History</span>
         </h5>
         <!-- Container for DataTable Buttons Injection -->
         <div id="tableActionsContainer" class="d-flex align-items-center gap-2"></div>
     </div>
 
-    <div class="table-responsive-custom">
+    <div class="table-responsive-custom" id="auditTableWrapper">
         <table class="table table-custom table-hover w-100" id="auditLogsTable">
             <thead>
                 <tr>
-                    <th style="width: 8%">#</th>
-                    <th style="width: 22%">Timestamp</th>
-                    <th style="width: 18%">User</th>
-                    <th style="width: 18%">Action</th>
-                    <th style="width: 34%">Description</th>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 15%">Timestamp</th>
+                    <th style="width: 12%">User</th>
+                    <th style="width: 12%">Action</th>
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (!empty($logs)): ?>
                     <?php $count = 1; ?>
                     <?php foreach ($logs as $log): ?>
-                        <tr>
+                        <tr class="audit-log-row" data-log-id="<?php echo $log['log_id']; ?>">
                             <td><span class="text-muted small"><?php echo $count++; ?></span></td>
                             <td class="font-monospace" style="font-size: 0.85rem;">
                                 <?php echo date('Y-m-d H:i:s', strtotime($log['created_at'])); ?>

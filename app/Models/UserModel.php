@@ -7,14 +7,14 @@ use CodeIgniter\Model;
 class UserModel extends Model
 {
     protected $table      = 'users';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'user_id';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['username', 'password', 'last_name', 'first_name', 'role', 'department_id', 'is_active'];
+    protected $allowedFields = ['first_name', 'last_name', 'username', 'email', 'password', 'role_id', 'department_id', 'account_status'];
 
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
@@ -25,10 +25,11 @@ class UserModel extends Model
      */
     public function verify_user($username, $password)
     {
-        $user = $this->select("users.*, CONCAT(users.first_name, ' ', users.last_name) AS full_name, departments.name AS department_name, departments.code AS department_code")
-                     ->join('departments', 'departments.id = users.department_id', 'left')
+        $user = $this->select("users.*, CONCAT(users.first_name, ' ', users.last_name) AS full_name, departments.department_name AS department_name, roles.role_name AS role")
+                     ->join('departments', 'departments.department_id = users.department_id', 'left')
+                     ->join('roles', 'roles.role_id = users.role_id', 'inner')
                      ->where('users.username', $username)
-                     ->where('users.is_active', 1)
+                     ->where('users.account_status', 'Active')
                      ->first();
 
         if ($user) {
@@ -45,8 +46,9 @@ class UserModel extends Model
      */
     public function get_users()
     {
-        return $this->select("users.id, users.username, users.last_name, users.first_name, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.role, users.is_active, users.created_at, users.department_id, departments.name AS department_name, departments.code AS department_code")
-                    ->join('departments', 'departments.id = users.department_id', 'left')
+        return $this->select("users.user_id AS id, users.username, users.last_name, users.first_name, CONCAT(users.first_name, ' ', users.last_name) AS full_name, roles.role_name AS role, users.account_status, users.created_at, users.department_id, departments.department_name AS department_name, departments.department_name AS department_code, (users.account_status = 'Active') AS is_active")
+                    ->join('departments', 'departments.department_id = users.department_id', 'left')
+                    ->join('roles', 'roles.role_id = users.role_id', 'inner')
                     ->orderBy('users.last_name', 'ASC')
                     ->orderBy('users.first_name', 'ASC')
                     ->findAll();
@@ -57,9 +59,10 @@ class UserModel extends Model
      */
     public function get_user_by_id($id)
     {
-        return $this->select("users.*, CONCAT(users.first_name, ' ', users.last_name) AS full_name, departments.name AS department_name, departments.code AS department_code")
-                    ->join('departments', 'departments.id = users.department_id', 'left')
-                    ->where('users.id', $id)
+        return $this->select("users.*, users.user_id AS id, CONCAT(users.first_name, ' ', users.last_name) AS full_name, departments.department_name AS department_name, departments.department_name AS department_code, roles.role_name AS role_name, roles.role_name AS role, (users.account_status = 'Active') AS is_active")
+                    ->join('departments', 'departments.department_id = users.department_id', 'left')
+                    ->join('roles', 'roles.role_id = users.role_id', 'inner')
+                    ->where('users.user_id', $id)
                     ->first();
     }
 

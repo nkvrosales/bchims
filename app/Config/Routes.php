@@ -17,6 +17,8 @@ $routes->group('auth', function($routes) {
 $routes->get('dashboard', 'Dashboard::index');
 $routes->get('dashboard/audit_trail', 'Dashboard::audit_trail');
 $routes->post('dashboard/log_action', 'Dashboard::log_action');
+$routes->post('dashboard/archive_logs', 'Dashboard::archive_logs');
+$routes->get('dashboard/download_archive/(:any)', 'Dashboard::download_archive/$1');
 $routes->get('dashboard/profile', 'Dashboard::profile');
 $routes->post('dashboard/profile', 'Dashboard::profile');
 
@@ -46,3 +48,23 @@ $routes->group('users', function($routes) {
     $routes->post('edit/(:num)', 'Users::edit/$1');
     $routes->get('delete/(:num)', 'Users::delete/$1');
 });
+
+$routes->group('categories', function($routes) {
+    $routes->get('/', 'Categories::index');
+    $routes->get('create', 'Categories::create');
+    $routes->post('create', 'Categories::create');
+    $routes->get('edit/(:num)', 'Categories::edit/$1');
+    $routes->post('edit/(:num)', 'Categories::edit/$1');
+    $routes->get('delete/(:num)', 'Categories::delete/$1');
+});
+
+$routes->group('supply_requests', function($routes) {
+    $routes->get('/', 'SupplyRequests::index');
+    $routes->post('create', 'SupplyRequests::create');
+    $routes->post('serve/(:num)', 'SupplyRequests::serve/$1');
+    $routes->post('partial/(:num)', 'SupplyRequests::partial/$1');
+    $routes->post('complete_partial/(:num)', 'SupplyRequests::complete_partial/$1');
+    $routes->post('reject/(:num)', 'SupplyRequests::reject/$1');
+});
+
+$routes->get('settings', 'Dashboard::settings');

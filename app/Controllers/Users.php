@@ -26,6 +26,14 @@ class Users extends BaseController
         if (!session()->get('logged_in')) {
             return redirect()->to('auth/login');
         }
+
+        // Verify the user actually exists to handle reseeded/stale sessions gracefully
+        $user = $this->userModel->get_user_by_id(session()->get('user_id'));
+        if (empty($user)) {
+            session()->destroy();
+            return redirect()->to('auth/login');
+        }
+
         if (session()->get('role') !== 'admin') {
             session()->setFlashdata('error', 'Access Denied: Administrative privileges required.');
             return redirect()->to('dashboard');
@@ -73,14 +81,16 @@ class Users extends BaseController
 
         if ($this->validate($rules)) {
             $dept_id = $this->request->getPost('department_id');
+            $role = $this->request->getPost('role');
+            $is_active = (int)$this->request->getPost('is_active');
             $insert_data = array(
-                'username'      => strtolower($this->request->getPost('username')),
-                'last_name'     => $this->request->getPost('last_name'),
-                'first_name'    => $this->request->getPost('first_name'),
-                'password'      => $this->request->getPost('password'),
-                'role'          => $this->request->getPost('role'),
-                'department_id' => !empty($dept_id) ? (int)$dept_id : NULL,
-                'is_active'     => (int)$this->request->getPost('is_active')
+                'username'       => strtolower($this->request->getPost('username')),
+                'last_name'      => $this->request->getPost('last_name'),
+                'first_name'     => $this->request->getPost('first_name'),
+                'password'       => $this->request->getPost('password'),
+                'role_id'        => ($role === 'admin') ? 1 : 2,
+                'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
+                'account_status' => ($is_active === 1) ? 'Active' : 'Inactive'
             );
 
             if ($this->userModel->insert_user($insert_data)) {
@@ -88,7 +98,7 @@ class Users extends BaseController
                 if (!empty($insert_data['department_id'])) {
                     $dept_obj = $this->departmentModel->find($insert_data['department_id']);
                     if ($dept_obj) {
-                        $dept_log = $dept_obj['code'];
+                        $dept_log = $dept_obj['name'] ?? $dept_obj['department_name'] ?? 'Unknown';
                     }
                 }
 
@@ -96,7 +106,7 @@ class Users extends BaseController
                 $this->auditModel->log_activity(
                     'CREATE_USER',
                     'Users',
-                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$insert_data['role']}, department {$dept_log}, and status " . ($insert_data['is_active'] ? 'Active' : 'Inactive') . "."
+                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$role}, department {$dept_log}, and status {$insert_data['account_status']}."
                 );
 
                 session()->setFlashdata('success', 'User account successfully created!');
@@ -139,7 +149,7 @@ class Users extends BaseController
         }
 
         $rules = [
-            'username'      => "required|alpha_dash|max_length[50]|is_unique[users.username,id,{$id}]",
+            'username'      => "required|alpha_dash|max_length[50]|is_unique[users.username,user_id,{$id}]",
             'last_name'     => 'required|max_length[50]',
             'first_name'    => 'required|max_length[50]',
             'password'      => 'permit_empty|min_length[4]|max_length[50]',
@@ -151,24 +161,26 @@ class Users extends BaseController
         if ($this->validate($rules)) {
             $current_admin_id = session()->get('user_id');
             $dept_id = $this->request->getPost('department_id');
+            $role = $this->request->getPost('role');
+            $is_active = (int)$this->request->getPost('is_active');
+
+            if ((int)$id === (int)$current_admin_id) {
+                $role = 'admin';
+                $is_active = 1;
+            }
 
             $update_data = array(
-                'username'      => strtolower($this->request->getPost('username')),
-                'last_name'     => $this->request->getPost('last_name'),
-                'first_name'    => $this->request->getPost('first_name'),
-                'role'          => $this->request->getPost('role'),
-                'department_id' => !empty($dept_id) ? (int)$dept_id : NULL,
-                'is_active'     => (int)$this->request->getPost('is_active')
+                'username'       => strtolower($this->request->getPost('username')),
+                'last_name'      => $this->request->getPost('last_name'),
+                'first_name'     => $this->request->getPost('first_name'),
+                'role_id'        => ($role === 'admin') ? 1 : 2,
+                'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
+                'account_status' => ($is_active === 1) ? 'Active' : 'Inactive'
             );
 
             $password = $this->request->getPost('password');
             if (!empty($password)) {
                 $update_data['password'] = $password;
-            }
-
-            if ((int)$id === (int)$current_admin_id) {
-                $update_data['role'] = 'admin';
-                $update_data['is_active'] = 1;
             }
 
             if ($this->userModel->update_user($id, $update_data)) {
@@ -181,28 +193,28 @@ class Users extends BaseController
                     $new_name = "{$update_data['last_name']}, {$update_data['first_name']}";
                     $changes[] = "Name ('{$old_name}' -> '{$new_name}')";
                 }
-                if ($user['role'] !== $update_data['role']) {
-                    $changes[] = "Role ('{$user['role']}' -> '{$update_data['role']}')";
+                if ($user['role'] !== $role) {
+                    $changes[] = "Role ('{$user['role']}' -> '{$role}')";
                 }
                 if ((int)$user['department_id'] !== (int)$update_data['department_id']) {
                     $old_dept = 'None';
                     if (!empty($user['department_id'])) {
                         $old_dept_obj = $this->departmentModel->find($user['department_id']);
                         if ($old_dept_obj) {
-                            $old_dept = $old_dept_obj['code'];
+                            $old_dept = $old_dept_obj['name'] ?? $old_dept_obj['department_name'] ?? 'Unknown';
                         }
                     }
                     $new_dept = 'None';
                     if (!empty($update_data['department_id'])) {
                         $new_dept_obj = $this->departmentModel->find($update_data['department_id']);
                         if ($new_dept_obj) {
-                            $new_dept = $new_dept_obj['code'];
+                            $new_dept = $new_dept_obj['name'] ?? $new_dept_obj['department_name'] ?? 'Unknown';
                         }
                     }
                     $changes[] = "Department ('{$old_dept}' -> '{$new_dept}')";
                 }
-                if ((int)$user['is_active'] !== (int)$update_data['is_active']) {
-                    $changes[] = "Status (" . ($user['is_active'] ? 'Active' : 'Inactive') . " -> " . ($update_data['is_active'] ? 'Active' : 'Inactive') . ")";
+                if ((int)$user['is_active'] !== $is_active) {
+                    $changes[] = "Status (" . ($user['is_active'] ? 'Active' : 'Inactive') . " -> " . ($is_active ? 'Active' : 'Inactive') . ")";
                 }
                 if (!empty($password)) {
                     $changes[] = "Password (Changed)";

@@ -120,11 +120,11 @@
                     <label for="department_id" class="form-label small fw-semibold text-secondary">Department</label>
                     <?php if ($isAdmin): ?>
                         <select class="form-select input-custom" id="department_id" name="department_id">
-                            <option value="">None / Administration (Admin)</option>
+                            <option value="">Administrator</option>
                             <?php if (!empty($departments)): ?>
                                 <?php foreach ($departments as $d): ?>
                                     <option value="<?php echo $d['id']; ?>" <?php echo ($user['department_id'] == $d['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($d['name']); ?> (<?php echo htmlspecialchars($d['code']); ?>)
+                                        <?php echo htmlspecialchars($d['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -133,9 +133,9 @@
                         <select class="form-select input-custom bg-light" id="department_id" disabled style="cursor: not-allowed;">
                             <option value="" selected>
                                 <?php if (!empty($user['department_code'])): ?>
-                                    <?php echo htmlspecialchars($user['department_name']); ?> (<?php echo htmlspecialchars($user['department_code']); ?>)
+                                    <?php echo htmlspecialchars($user['department_name']); ?>
                                 <?php else: ?>
-                                    None / Administration (Admin)
+                                    Administrator
                                 <?php endif; ?>
                             </option>
                         </select>

@@ -23,11 +23,20 @@ class Departments extends BaseController
         if (!session()->get('logged_in')) {
             return redirect()->to('auth/login');
         }
+
+        // Verify the user actually exists to handle reseeded/stale sessions gracefully
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->get_user_by_id(session()->get('user_id'));
+        if (empty($user)) {
+            session()->destroy();
+            return redirect()->to('auth/login');
+        }
+
         return null;
     }
 
     /**
-     * Display all departments listing
+     * Display all departments listing (with embedded create/edit/delete modals)
      */
     public function index()
     {
@@ -42,48 +51,49 @@ class Departments extends BaseController
     }
 
     /**
-     * Create a new hospital department
+     * Create a new hospital department (modal-based, POST only)
      */
     public function create()
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $data['title'] = 'Add Department';
+        // GET requests: redirect to departments index (create is a modal on index)
+        if (strcasecmp($this->request->getMethod(), 'get') === 0) {
+            return redirect()->to('departments');
+        }
 
         $rules = [
-            'code'        => 'required|alpha_dash|max_length[50]|is_unique[departments.code]',
-            'name'        => 'required|max_length[100]|is_unique[departments.name]',
-            'description' => 'max_length[500]',
+            'name' => 'required|max_length[100]|is_unique[departments.department_name]',
         ];
 
-        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
-            $insert_data = array(
-                'code'        => strtoupper($this->request->getPost('code')),
-                'name'        => $this->request->getPost('name'),
-                'description' => $this->request->getPost('description')
-            );
+        if ($this->validate($rules)) {
+            $name = $this->request->getPost('name');
+            $insert_data = ['name' => $name];
 
-            if ($this->departmentModel->insert($insert_data)) {
+            if ($this->departmentModel->insert_department($insert_data)) {
                 $this->auditModel->log_activity(
                     'CREATE_DEPT',
                     'Departments',
-                    "Created new hospital department: {$insert_data['name']} (Code: {$insert_data['code']})."
+                    "Created new hospital department: {$name}."
                 );
 
                 session()->setFlashdata('success', 'Department successfully created!');
                 return redirect()->to('departments');
             } else {
-                $data['error'] = 'An error occurred while creating the department. Please try again.';
+                session()->setFlashdata('create_modal_open', true);
+                session()->setFlashdata('create_validation_errors', '<li>An error occurred while creating the department. Please try again.</li>');
+                return redirect()->to('departments')->withInput();
             }
+        } else {
+            // Validation failed — re-open modal with errors
+            session()->setFlashdata('create_modal_open', true);
+            session()->setFlashdata('create_validation_errors', $this->validator->listErrors());
+            return redirect()->to('departments')->withInput();
         }
-
-        return view('templates/header', $data)
-             . view('departments/create', $data)
-             . view('templates/footer');
     }
 
     /**
-     * Edit/Update an existing department details
+     * Edit/Update an existing department (modal-based)
      */
     public function edit($id = NULL)
     {
@@ -99,53 +109,44 @@ class Departments extends BaseController
             return redirect()->to('departments');
         }
 
-        $data['title'] = 'Edit Department';
-        $data['dept'] = $dept;
+        // GET requests: redirect to departments and open this dept's edit modal
+        if (strcasecmp($this->request->getMethod(), 'get') === 0) {
+            session()->setFlashdata('edit_modal_open_id', $id);
+            return redirect()->to('departments');
+        }
 
         $rules = [
-            'code'        => "required|alpha_dash|max_length[50]|is_unique[departments.code,id,{$id}]",
-            'name'        => "required|max_length[100]|is_unique[departments.name,id,{$id}]",
-            'description' => 'max_length[500]',
+            'name' => "required|max_length[100]|is_unique[departments.department_name,department_id,{$id}]",
         ];
 
-        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
-            $update_data = array(
-                'code'        => strtoupper($this->request->getPost('code')),
-                'name'        => $this->request->getPost('name'),
-                'description' => $this->request->getPost('description')
-            );
+        if ($this->validate($rules)) {
+            $name     = $this->request->getPost('name');
+            $old_name = $dept['name'];
+            $update_data = ['name' => $name];
 
-            if ($this->departmentModel->update($id, $update_data)) {
-                $changes = array();
-                if ($dept['code'] !== $update_data['code']) {
-                    $changes[] = "Code ('{$dept['code']}' -> '{$update_data['code']}')";
-                }
-                if ($dept['name'] !== $update_data['name']) {
-                    $changes[] = "Name ('{$dept['name']}' -> '{$update_data['name']}')";
-                }
-                if ($dept['description'] !== $update_data['description']) {
-                    $changes[] = "Description changed";
-                }
-
-                $audit_desc = "Updated department: {$update_data['name']}.";
-                if (!empty($changes)) {
-                    $audit_desc .= " Changes: " . implode(', ', $changes);
+            if ($this->departmentModel->update_department($id, $update_data)) {
+                $audit_desc = "Updated hospital department: '{$old_name}'";
+                if ($old_name !== $name) {
+                    $audit_desc .= " → '{$name}'.";
                 } else {
-                    $audit_desc .= " No values were changed.";
+                    $audit_desc .= ". No values were changed.";
                 }
 
                 $this->auditModel->log_activity('UPDATE_DEPT', 'Departments', $audit_desc);
 
-                session()->setFlashdata('success', 'Department details successfully updated!');
+                session()->setFlashdata('success', 'Department successfully updated!');
                 return redirect()->to('departments');
             } else {
-                $data['error'] = 'An error occurred while updating the department. Please try again.';
+                session()->setFlashdata('edit_modal_open_id', $id);
+                session()->setFlashdata('edit_validation_errors', '<li>An error occurred while updating the department. Please try again.</li>');
+                return redirect()->to('departments')->withInput();
             }
+        } else {
+            // Validation failed — redirect back & open the correct edit modal with errors
+            session()->setFlashdata('edit_modal_open_id', $id);
+            session()->setFlashdata('edit_validation_errors', $this->validator->listErrors());
+            return redirect()->to('departments')->withInput();
         }
-
-        return view('templates/header', $data)
-             . view('departments/edit', $data)
-             . view('templates/footer');
     }
 
     /**
@@ -165,11 +166,11 @@ class Departments extends BaseController
             return redirect()->to('departments');
         }
 
-        if ($this->departmentModel->delete($id)) {
+        if ($this->departmentModel->delete_department($id)) {
             $this->auditModel->log_activity(
                 'DELETE_DEPT',
                 'Departments',
-                "Deleted hospital department: {$dept['name']} (Code: {$dept['code']})."
+                "Deleted hospital department: {$dept['name']}."
             );
 
             session()->setFlashdata('success', 'Department successfully deleted!');
