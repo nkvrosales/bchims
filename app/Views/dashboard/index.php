@@ -52,8 +52,8 @@
 
     <!-- Supply Requests -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('supply_requests'); ?>'" style="cursor:pointer; border-left: 4px solid #3b82f6; transition: all 0.2s ease;">
-            <div class="kpi-label text-secondary fw-semibold" style="font-size: 0.85rem; color: #475569 !important;"><i  style="color: #3b82f6;"></i>Supply Requests</div>
+        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('supply_requests'); ?>'" style="cursor:pointer; border-left: 4px solid var(--primary); transition: all 0.2s ease;">
+            <div class="kpi-label text-secondary fw-semibold" style="font-size: 0.85rem; color: #475569 !important;"><i  style="color: var(--primary);"></i>Supply Requests</div>
             <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_requests; ?></h3>
         </div>
     </div>
