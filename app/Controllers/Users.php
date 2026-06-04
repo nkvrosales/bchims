@@ -71,10 +71,11 @@ class Users extends BaseController
 
         $rules = [
             'username'      => 'required|alpha_dash|max_length[50]|is_unique[user.username]',
+            'email'         => 'permit_empty|valid_email|max_length[150]|is_unique[user.email]',
             'last_name'     => 'required|max_length[50]',
             'first_name'    => 'required|max_length[50]',
             'password'      => 'required|min_length[4]|max_length[50]',
-            'role'          => 'required|in_list[admin,staff]',
+            'role'          => 'required|in_list[dev,admin,encoder,viewer]',
             'department_id' => 'permit_empty|numeric',
             'is_active'     => 'required|in_list[0,1]',
         ];
@@ -83,13 +84,19 @@ class Users extends BaseController
             $dept_id = $this->request->getPost('department_id');
             $role = $this->request->getPost('role');
             $is_active = (int)$this->request->getPost('is_active');
+            
+            $role_map = ['dev' => 0, 'admin' => 1, 'encoder' => 2, 'viewer' => 3];
+            $role_id = isset($role_map[$role]) ? $role_map[$role] : 2;
+
+            $email_val = $this->request->getPost('email');
+
             $insert_data = array(
                 'username'       => strtolower($this->request->getPost('username')),
-                'email'          => strtolower($this->request->getPost('username')) . '@bchims.local',
+                'email'          => !empty($email_val) ? strtolower($email_val) : NULL,
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
                 'password'       => $this->request->getPost('password'),
-                'role_id'        => ($role === 'admin') ? 1 : 2,
+                'role_id'        => $role_id,
                 'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
                 'account_status' => ($is_active === 1) ? 'Active' : 'Inactive'
             );
@@ -151,10 +158,11 @@ class Users extends BaseController
 
         $rules = [
             'username'      => "required|alpha_dash|max_length[50]|is_unique[user.username,user_id,{$id}]",
+            'email'         => "permit_empty|valid_email|max_length[150]|is_unique[user.email,user_id,{$id}]",
             'last_name'     => 'required|max_length[50]',
             'first_name'    => 'required|max_length[50]',
             'password'      => 'permit_empty|min_length[4]|max_length[50]',
-            'role'          => 'required|in_list[admin,staff]',
+            'role'          => 'required|in_list[dev,admin,encoder,viewer]',
             'department_id' => 'permit_empty|numeric',
             'is_active'     => 'required|in_list[0,1]',
         ];
@@ -170,12 +178,17 @@ class Users extends BaseController
                 $is_active = 1;
             }
 
+            $role_map = ['dev' => 0, 'admin' => 1, 'encoder' => 2, 'viewer' => 3];
+            $role_id = isset($role_map[$role]) ? $role_map[$role] : 2;
+
+            $email_val = $this->request->getPost('email');
+
             $update_data = array(
                 'username'       => strtolower($this->request->getPost('username')),
-                'email'          => strtolower($this->request->getPost('username')) . '@bchims.local',
+                'email'          => !empty($email_val) ? strtolower($email_val) : NULL,
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
-                'role_id'        => ($role === 'admin') ? 1 : 2,
+                'role_id'        => $role_id,
                 'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
                 'account_status' => ($is_active === 1) ? 'Active' : 'Inactive'
             );

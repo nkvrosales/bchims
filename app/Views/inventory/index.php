@@ -80,7 +80,12 @@
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_code'] ?? 'N/A'); ?></span>
                             </td>
                             <td>
-                                <span class="fw-bold fs-6 text-dark"><?php echo (int)$item['quantity']; ?></span>
+                                <span class="fw-bold fs-6 text-dark">
+                                    <?php echo (int)$item['quantity']; ?>
+                                    <?php if (!empty($item['unit'])): ?>
+                                        <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
+                                    <?php endif; ?>
+                                </span>
                             </td>
                             <td>
                                 <?php
@@ -192,7 +197,12 @@
                             </div>
                             <div class="col-12 col-sm-6">
                                 <div class="small fw-semibold text-secondary mb-1">Quantity</div>
-                                <div class="fw-semibold text-dark"><?php echo $viewStockQty; ?></div>
+                                <div class="fw-semibold text-dark">
+                                    <?php echo $viewStockQty; ?>
+                                    <?php if (!empty($item['unit'])): ?>
+                                        <span class="text-muted fw-normal">(<?php echo htmlspecialchars($item['unit']); ?>)</span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             <div class="col-12 col-sm-6">
                                 <div class="small fw-semibold text-secondary mb-1">Stock Status</div>
@@ -340,6 +350,15 @@
                                            min="0"
                                            value="<?php echo htmlspecialchars($editQuantity); ?>"
                                            required>
+                                </div>
+
+                                <div class="col-12 col-sm-6">
+                                    <label for="edit_unit_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">Unit</label>
+                                    <input type="text"
+                                           class="form-control input-custom"
+                                           id="edit_unit_<?php echo $item['id']; ?>"
+                                           name="unit"
+                                           value="<?php echo htmlspecialchars($item['unit'] ?? ''); ?>">
                                 </div>
 
                                 <div class="col-12 col-sm-6">
@@ -562,6 +581,15 @@
                                    min="0"
                                    value="<?php echo old('quantity', '0'); ?>"
                                    required>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="modal_unit" class="form-label small fw-semibold text-secondary">Unit</label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="modal_unit"
+                                   name="unit"
+                                   value="<?php echo old('unit'); ?>">
                         </div>
 
 

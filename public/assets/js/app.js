@@ -426,7 +426,7 @@ $(document).ready(function() {
                 zeroRecords: 'No departments found'
             },
             columnDefs: [
-                { orderable: false, targets: 3 }
+                { orderable: false, targets: 2 }
             ],
             initComplete: function () {
                 var $searchInput = $('#departmentsTable_wrapper .dataTables_filter input');

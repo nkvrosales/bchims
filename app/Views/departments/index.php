@@ -53,8 +53,7 @@
             <thead>
                 <tr>
                     <th style="width: 5%">#</th>
-                    <th style="width: 65%">Department Name</th>
-                    <th style="width: 15%">Created</th>
+                    <th style="width: 80%">Department Name</th>
                     <th style="width: 15%" class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -66,10 +65,6 @@
 
                             <td>
                                 <span class="fw-semibold text-dark"><?php echo htmlspecialchars($dept['name']); ?></span>
-                            </td>
-
-                            <td class="small text-secondary">
-                                <?php echo !empty($dept['created_at']) ? date('M d, Y', strtotime($dept['created_at'])) : '—'; ?>
                             </td>
 
                             <td class="text-end">
@@ -96,7 +91,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">
+                        <td colspan="3" class="text-center py-5 text-muted">
                             <i class="fa-regular fa-folder-open d-block fs-2 mb-2 text-secondary"></i>
                             <span class="fw-medium">No departments found.</span>
                         </td>

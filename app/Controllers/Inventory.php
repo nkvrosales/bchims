@@ -142,6 +142,7 @@ class Inventory extends BaseController
             $batchNum   = $this->request->getPost('batch_num') ?: null;
             $lotNum     = $this->request->getPost('lot_num')   ?: null;
             $expiration = $this->request->getPost('expiration_date') ?: null;
+            $unit       = $this->request->getPost('unit') ?: null;
 
             if ($isAdmin) {
                 // Insert into central_supply
@@ -152,6 +153,7 @@ class Inventory extends BaseController
                     'batch_num'        => $batchNum,
                     'lot_num'          => $lotNum,
                     'expiration_date'  => $expiration,
+                    'unit'             => $unit,
                     'quantity'         => $quantity,
                     'quantity_on_hand' => $quantity,
                     'category_id'      => $categoryId,
@@ -168,6 +170,7 @@ class Inventory extends BaseController
                     'batch_num'       => $batchNum,
                     'lot_num'         => $lotNum,
                     'expiration_date' => $expiration,
+                    'unit'            => $unit,
                     'quantity'        => $quantity,
                     'category_id'     => $categoryId,
                 ];
@@ -183,6 +186,7 @@ class Inventory extends BaseController
                         'batch_num'        => $batchNum,
                         'lot_num'          => $lotNum,
                         'expiration_date'  => $expiration,
+                        'unit'             => $unit,
                         'quantity'         => 0,
                         'quantity_on_hand' => 0,
                         'category_id'      => $categoryId,
@@ -220,7 +224,7 @@ class Inventory extends BaseController
                     'batch_num'            => $batchNum,
                     'lot_num'              => $lotNum,
                     'expiration_date'      => $expiration,
-                    'unit'                 => 0,
+                    'unit'                 => $unit,
                     'quantity'             => $quantity,
                     'category_id'          => $categoryId,
                 ]);
@@ -296,12 +300,15 @@ class Inventory extends BaseController
                 'batch_num'       => $this->request->getPost('batch_num') ?: null,
                 'lot_num'         => $this->request->getPost('lot_num')   ?: null,
                 'expiration_date' => $this->request->getPost('expiration_date') ?: null,
+                'unit'            => $this->request->getPost('unit') ?: null,
                 'quantity'        => (int)$this->request->getPost('quantity'),
             ];
 
             if ($isAdmin) {
                 $update_data['quantity_on_hand'] = (int)$this->request->getPost('quantity');
                 $this->itemModel->update($id, $update_data);
+                // Also update supply unit for admin if needed
+                $db->table('supply')->where('central_supply_id', $id)->update(['unit' => $update_data['unit']]);
             } else {
                 // For staff: remove source_id from inventory update (not a column in inventory table)
                 unset($update_data['source_id']);
@@ -317,6 +324,8 @@ class Inventory extends BaseController
                        ->where('department_supply_id', $dsRow['department_supply_id'])
                        ->update(['quantity_on_hand' => (int)$this->request->getPost('quantity')]);
                 }
+                // Update supply unit
+                $db->table('supply')->where('inventory_id', $id)->update(['unit' => $update_data['unit']]);
             }
 
             $db->transComplete();

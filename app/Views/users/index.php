@@ -87,15 +87,28 @@
 
                         <!-- Role -->
                         <td>
-                            <?php if ($u['role'] === 'admin'): ?>
+                            <?php 
+                                $r = strtolower($u['role']);
+                                if ($r === 'dev'):
+                            ?>
+                                <span class="badge rounded-2 px-2 py-1 small fw-semibold"
+                                      style="background:#f3e8ff; color:#7c3aed; border:1px solid #d8b4fe;">
+                                    DEV
+                                </span>
+                            <?php elseif ($r === 'admin' || $r === 'administrator'): ?>
                                 <span class="badge rounded-2 px-2 py-1 small fw-semibold"
                                       style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">
                                     ADMIN
                                 </span>
-                            <?php else: ?>
+                            <?php elseif ($r === 'encoder'): ?>
                                 <span class="badge rounded-2 px-2 py-1 small fw-semibold"
                                       style="background:#ccfbf1; color:#0f766e; border:1px solid #99f6e4;">
-                                    STAFF
+                                    ENCODER
+                                </span>
+                            <?php else: ?>
+                                <span class="badge rounded-2 px-2 py-1 small fw-semibold"
+                                      style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">
+                                    VIEWER
                                 </span>
                             <?php endif; ?>
                         </td>
@@ -105,7 +118,7 @@
                             <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
                                 <?php if (!empty($u['department_code'])): ?>
                                     <?php echo htmlspecialchars($u['department_code']); ?>
-                                <?php elseif ($u['role'] === 'admin'): ?>
+                                <?php elseif (in_array(strtolower($u['role']), ['admin', 'dev', 'administrator'])): ?>
                                     Administrator
                                 <?php else: ?>
                                     <span class="text-muted fw-normal">None</span>
@@ -267,6 +280,19 @@
                                    required>
                         </div>
 
+                        <!-- Email -->
+                        <div class="col-12 col-sm-6">
+                            <label for="modal_email" class="form-label small fw-semibold text-secondary">
+                                Email
+                            </label>
+                            <input type="email"
+                                   class="form-control input-custom"
+                                   id="modal_email"
+                                   name="email"
+                                   value="<?php echo old('email'); ?>"
+                                   >
+                        </div>
+
                         <!-- Password -->
                         <div class="col-12 col-sm-6">
                             <label for="modal_password" class="form-label small fw-semibold text-secondary">
@@ -286,8 +312,10 @@
                             </label>
                             <select class="form-select input-custom" id="modal_role" name="role" required>
                                 <option value="">Select Role</option>
+                                <option value="dev" <?php echo old('role') === 'dev' ? 'selected' : ''; ?>>Dev</option>
                                 <option value="admin" <?php echo old('role') === 'admin' ? 'selected' : ''; ?>>Administrator</option>
-                                <option value="staff" <?php echo old('role') === 'staff' ? 'selected' : ''; ?>>Staff</option>
+                                <option value="encoder" <?php echo old('role') === 'encoder' ? 'selected' : ''; ?>>Encoder</option>
+                                <option value="viewer" <?php echo old('role') === 'viewer' ? 'selected' : ''; ?>>Viewer</option>
                             </select>
                         </div>
 
@@ -431,7 +459,6 @@
                                            class="form-control input-custom"
                                            id="modal_edit_first_name_<?php echo $u['id']; ?>"
                                            name="first_name"
-                                           placeholder="e.g. Juan"
                                            value="<?php echo htmlspecialchars($val_first_name); ?>"
                                            required>
                                 </div>
@@ -445,7 +472,6 @@
                                            class="form-control input-custom"
                                            id="modal_edit_last_name_<?php echo $u['id']; ?>"
                                            name="last_name"
-                                           placeholder="e.g. Dela Cruz"
                                            value="<?php echo htmlspecialchars($val_last_name); ?>"
                                            required>
                                 </div>
@@ -459,9 +485,21 @@
                                            class="form-control input-custom"
                                            id="modal_edit_username_<?php echo $u['id']; ?>"
                                            name="username"
-                                           placeholder="e.g. staff_juan"
                                            value="<?php echo htmlspecialchars($val_username); ?>"
                                            required>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="col-12 col-sm-6">
+                                    <label for="modal_edit_email_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
+                                        Email
+                                    </label>
+                                    <input type="email"
+                                           class="form-control input-custom"
+                                           id="modal_edit_email_<?php echo $u['id']; ?>"
+                                           name="email"
+                                           value="<?php echo htmlspecialchars($is_open ? old('email', $u['email']) : $u['email']); ?>"
+                                           >
                                 </div>
 
                                 <!-- Password (Optional) -->
@@ -483,14 +521,16 @@
                                     </label>
                                     <?php if ($is_self): ?>
                                         <select class="form-select input-custom bg-light" id="modal_edit_role_disabled_<?php echo $u['id']; ?>" disabled style="cursor: not-allowed;">
-                                            <option value="admin" selected>Administrator</option>
+                                            <option value="<?php echo htmlspecialchars($val_role); ?>" selected><?php echo htmlspecialchars(ucfirst($val_role)); ?></option>
                                         </select>
-                                        <input type="hidden" name="role" value="admin">
+                                        <input type="hidden" name="role" value="<?php echo htmlspecialchars($val_role); ?>">
                                         <div class="form-text small text-secondary"><i class="fa-solid fa-circle-info me-1"></i>You cannot demote your active admin session.</div>
                                     <?php else: ?>
                                         <select class="form-select input-custom" id="modal_edit_role_<?php echo $u['id']; ?>" name="role" required>
-                                            <option value="admin" <?php echo ($val_role === 'admin') ? 'selected' : ''; ?>>Administrator</option>
-                                            <option value="staff" <?php echo ($val_role === 'staff') ? 'selected' : ''; ?>>Staff</option>
+                                            <option value="dev" <?php echo ($val_role === 'dev') ? 'selected' : ''; ?>>Dev</option>
+                                            <option value="admin" <?php echo ($val_role === 'admin' || $val_role === 'administrator') ? 'selected' : ''; ?>>Administrator</option>
+                                            <option value="encoder" <?php echo ($val_role === 'encoder') ? 'selected' : ''; ?>>Encoder</option>
+                                            <option value="viewer" <?php echo ($val_role === 'viewer') ? 'selected' : ''; ?>>Viewer</option>
                                         </select>
                                     <?php endif; ?>
                                 </div>
