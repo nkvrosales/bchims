@@ -99,44 +99,5 @@ class AuditModel extends Model
         return $builder->orderBy('action_date', 'DESC')->findAll($limit);
     }
 
-    /**
-     * Get audit logs up to a specific date.
-     */
-    public function get_logs_before_date($date)
-    {
-        return $this->select("audit_logs.*, audit_logs.action_type AS action, audit_logs.action_description AS description, audit_logs.action_date AS created_at, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.username AS username")
-                    ->join('users', 'users.user_id = audit_logs.user_id', 'left')
-                    ->where('DATE(action_date) <=', $date)
-                    ->orderBy('action_date', 'ASC')
-                    ->findAll();
-    }
-
-    /**
-     * Delete audit logs up to a specific date.
-     */
-    public function delete_logs_before_date($date)
-    {
-        return $this->where('DATE(action_date) <=', $date)->delete();
-    }
-
-    /**
-     * Get specific audit logs by an array of log IDs.
-     */
-    public function get_logs_by_ids(array $ids)
-    {
-        return $this->select("audit_logs.*, audit_logs.action_type AS action, audit_logs.action_description AS description, audit_logs.action_date AS created_at, CONCAT(users.first_name, ' ', users.last_name) AS full_name, users.username AS username")
-                    ->join('users', 'users.user_id = audit_logs.user_id', 'left')
-                    ->whereIn('log_id', $ids)
-                    ->orderBy('action_date', 'ASC')
-                    ->findAll();
-    }
-
-    /**
-     * Delete specific audit logs by an array of log IDs.
-     */
-    public function delete_logs_by_ids(array $ids)
-    {
-        return $this->whereIn('log_id', $ids)->delete();
-    }
 }
 
