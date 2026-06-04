@@ -47,11 +47,53 @@ class Dashboard extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         $db = \Config\Database::connect();
+        $requestModel = new \App\Models\SupplyRequestModel();
+
+        $role = session()->get('role');
 
         $data['title'] = 'Dashboard';
         $data['recent_logs'] = $this->auditModel->get_recent_logs(5);
         $data['total_users'] = $db->table('user')->countAll();
-        $data['total_logs'] = $db->table('user_log')->countAll();
+
+        // Always fetch the real department_id from the DB (session may be stale / not set for old logins)
+        $userModel = new \App\Models\UserModel();
+        $currentUser = $userModel->get_user_by_id(session()->get('user_id'));
+        $deptId = $currentUser['department_id'] ?? null;
+
+        if ($role === 'admin') {
+            $data['total_inventory'] = $db->table('central_supply')->countAll();
+            $data['total_low_stock'] = $db->table('central_supply')->where('quantity <=', 10)->where('quantity >', 0)->countAllResults();
+            $data['total_no_stock'] = $db->table('central_supply')->where('quantity', 0)->countAllResults();
+            $data['total_requests'] = $db->table('request')->countAll();
+        } else {
+            // Staff: count department_supply rows for this department (each row = one supply item allocation)
+            $data['total_inventory'] = $db->table('department_supply')
+                ->where('department_id', $deptId)
+                ->countAllResults();
+
+            $data['total_low_stock'] = $db->table('department_supply')
+                ->where('department_id', $deptId)
+                ->where('quantity_on_hand <=', 10)
+                ->where('quantity_on_hand >', 0)
+                ->countAllResults();
+
+            $data['total_no_stock'] = $db->table('department_supply')
+                ->where('department_id', $deptId)
+                ->where('quantity_on_hand', 0)
+                ->countAllResults();
+
+            $data['total_requests'] = $db->table('request')
+                ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id')
+                ->where('department_supply.department_id', $deptId)
+                ->countAllResults();
+        }
+
+        // Fetch recent requests: if staff, filter by department
+        if ($role === 'admin') {
+            $data['recent_requests'] = array_slice($requestModel->get_requests(), 0, 5);
+        } else {
+            $data['recent_requests'] = array_slice($requestModel->get_requests(null, $deptId), 0, 5);
+        }
 
         return view('templates/header', $data)
              . view('dashboard/index', $data)
@@ -72,7 +114,6 @@ class Dashboard extends BaseController
              . view('dashboard/audit_trail', $data)
              . view('templates/footer');
     }
-
 
     /**
      * Log client-side actions (Export CSV or Print History) to the Audit Trail via AJAX.

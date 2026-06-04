@@ -149,19 +149,67 @@
                                             <i class="fa-solid fa-xmark"></i>
                                             <span class="small fw-semibold">Reject</span>
                                         </button>
+
+                                        <!-- Delete Button Trigger -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
+                                                title="Delete Request"
+                                                style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
                                     </div>
                                 <?php elseif (session()->get('role') === 'admin' && $req['status'] === 'Partially Served'): ?>
-                                    <button type="button" 
-                                            class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>"
-                                            id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>"
-                                            title="Complete Partially Served Request">
-                                        <i class="fa-solid fa-check-double"></i>
-                                        <span class="small fw-semibold">Complete</span>
-                                    </button>
+                                    <div class="d-inline-flex gap-2">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>"
+                                                title="Complete Partially Served Request">
+                                            <i class="fa-solid fa-check-double"></i>
+                                            <span class="small fw-semibold">Complete</span>
+                                        </button>
+
+                                        <!-- Delete Button Trigger -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
+                                                title="Delete Request"
+                                                style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 <?php elseif ($req['status'] !== 'Pending'): ?>
-                                    <small class="text-muted">Processed</small>
+                                    <div class="d-inline-flex gap-2">
+                                        <!-- View Details (icon only) -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerView_<?php echo $req['request_id']; ?>"
+                                                title="View Details"
+                                                style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+
+                                        <?php if (session()->get('role') === 'admin'): ?>
+                                            <!-- Delete Button Trigger (icon only) -->
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
+                                                    id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
+                                                    title="Delete Request"
+                                                    style="width: 32px; height: 32px; padding: 0;">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php else: ?>
                                     <small class="text-warning fw-semibold">Pending Admin</small>
                                 <?php endif; ?>
@@ -324,8 +372,136 @@
                         </form>
                     </div>
                 </div>
-            </div>
         <?php endif; ?>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<!-- View Request Details Modals (For all roles) -->
+<?php if (!empty($requests)): ?>
+    <?php foreach ($requests as $req): ?>
+        <div class="modal fade" id="viewModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="viewModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                    <div class="modal-header border-bottom px-4">
+                        <h5 class="modal-title fw-bold text-dark" id="viewModalLabel_<?php echo $req['request_id']; ?>">
+                            <i class="fa-solid fa-circle-info text-primary me-2"></i>Request Details
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-4 py-4">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Request ID</label>
+                                <span class="fw-bold text-dark">#<?php echo $req['request_id']; ?></span>
+                            </div>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Status</label>
+                                <?php 
+                                    if ($req['status'] === 'Served') {
+                                        $badge = 'bg-success-subtle text-success border border-success-subtle';
+                                    } elseif ($req['status'] === 'Partially Served') {
+                                        $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
+                                    } elseif ($req['status'] === 'Rejected') {
+                                        $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                    } else {
+                                        $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                    }
+                                ?>
+                                <span class="badge <?php echo $badge; ?>"><?php echo $req['status']; ?></span>
+                            </div>
+                            <div class="col-12"><hr class="my-1"></div>
+                            <div class="col-12">
+                                <label class="small fw-semibold text-secondary d-block">Requester / Department</label>
+                                <span class="text-dark"><?php echo htmlspecialchars($req['department_name'] ?? 'N/A'); ?></span>
+                            </div>
+                            <div class="col-12">
+                                <label class="small fw-semibold text-secondary d-block">Item Name & Code</label>
+                                <span class="text-dark fw-medium"><?php echo htmlspecialchars($req['item_name'] ?? 'N/A'); ?></span>
+                                <small class="text-muted d-block">(<?php echo htmlspecialchars($req['item_code'] ?? 'N/A'); ?>)</small>
+                            </div>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Requested Quantity</label>
+                                <span class="text-dark fw-bold"><?php echo $req['quantity_requested']; ?> unit(s)</span>
+                            </div>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Served Quantity</label>
+                                <span class="text-dark fw-bold"><?php echo $req['quantity_served'] ?? 0; ?> unit(s)</span>
+                            </div>
+                            <div class="col-12"><hr class="my-1"></div>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Request Date</label>
+                                <span class="text-dark small"><?php echo $req['request_date'] ? date('M d, Y h:i A', strtotime($req['request_date'])) : 'N/A'; ?></span>
+                            </div>
+                            <?php if (!empty($req['served_date'])): ?>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Served Date</label>
+                                <span class="text-dark small"><?php echo date('M d, Y h:i A', strtotime($req['served_date'])); ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($req['partial_date'])): ?>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Partial Serve Date</label>
+                                <span class="text-dark small"><?php echo date('M d, Y h:i A', strtotime($req['partial_date'])); ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($req['cancelled_date'])): ?>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Cancelled Date</label>
+                                <span class="text-dark small"><?php echo date('M d, Y h:i A', strtotime($req['cancelled_date'])); ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($req['closed_date'])): ?>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Closed Date</label>
+                                <span class="text-dark small"><?php echo date('M d, Y h:i A', strtotime($req['closed_date'])); ?></span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center">
+                        <button type="button" class="btn btn-secondary rounded-2 px-4 py-2 fw-medium text-white" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<!-- Single Delete Confirmation Modals (Admin only) -->
+<?php if (session()->get('role') === 'admin' && !empty($requests)): ?>
+    <?php foreach ($requests as $req): ?>
+        <div class="modal fade" id="deleteSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="deleteSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                    <div class="modal-header border-bottom px-4">
+                        <h5 class="modal-title fw-bold text-dark" id="deleteSingleModalLabel_<?php echo $req['request_id']; ?>">
+                            <i class="fa-solid fa-trash-can text-danger me-2"></i>Delete Supply Request
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="<?php echo base_url('supply_requests/delete/' . $req['request_id']); ?>">
+                        <div class="modal-body px-4 py-4 text-center">
+                            <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size:1.6rem; color:#ef4444;"></i>
+                            </div>
+                            <h5 class="fw-semibold text-dark mb-2">Are you sure?</h5>
+                            <p class="text-muted small mb-0">
+                                You are about to permanently delete supply request <strong>#<?php echo $req['request_id']; ?></strong>.<br>
+                                Item: <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> (<?php echo htmlspecialchars($req['item_code']); ?>)<br>
+                                Requested by: <strong><?php echo htmlspecialchars($req['department_name']); ?></strong><br>
+                                This action <strong>cannot be undone</strong>.
+                            </p>
+                        </div>
+                        <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center gap-3">
+                            <button type="button" class="btn btn-light rounded-2 px-4 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background:#ef4444; border:none;">
+                                <i class="fa-solid fa-trash-can me-1"></i> Confirm Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     <?php endforeach; ?>
 <?php endif; ?>
 

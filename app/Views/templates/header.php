@@ -151,15 +151,12 @@
                     $avatarLetter = !empty($fullName) ? strtoupper(substr($fullName, 0, 1)) : 'U';
                 ?>
                 <div class="dropdown">
-                    <button class="navbar-user-profile-btn dropdown-toggle" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="navbar-user-avatar">
-                            <?php echo $avatarLetter; ?>
-                        </div>
+                    <button class="navbar-user-profile-btn dropdown-toggle" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #e2e8f0; background: #ffffff; padding: 0.4rem 1rem; border-radius: 50px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); transition: all 0.2s ease;">
                         <div class="navbar-user-info text-start d-none d-sm-flex">
-                            <span class="navbar-user-name"><?php echo htmlspecialchars($fullName); ?></span>
-                            <span class="navbar-user-username">@<?php echo htmlspecialchars($username); ?></span>
+                            <span class="navbar-user-name" style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);"><?php echo htmlspecialchars($fullName); ?></span>
+                            <span class="navbar-user-username" style="font-size: 0.75rem; color: var(--text-secondary);"><?php echo ucfirst(session()->get('role')); ?></span>
                         </div>
-                        <i class="fa-solid fa-chevron-down navbar-user-chevron ms-1"></i>
+                        <i class="fa-solid fa-chevron-down navbar-user-chevron ms-2" style="font-size: 0.75rem;"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end navbar-user-dropdown-menu" aria-labelledby="userDropdownMenu">
                         <li class="navbar-dropdown-user-info">

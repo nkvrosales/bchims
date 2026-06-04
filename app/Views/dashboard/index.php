@@ -2,13 +2,10 @@
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1">Overview Dashboard</h1>
+            <h1 class="page-title mb-1">Dashboard</h1>
         </div>
         <div class="d-flex gap-2">
-            <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">
-                <i class="fa-solid fa-file-invoice"></i>
-                <span>View Full Audit Logs</span>
-            </a>
+           
         </div>
     </div>
 </div>
@@ -26,83 +23,175 @@
 
 <!-- KPI Stats Section -->
 <div class="row g-4 mb-4 fade-in-up" style="animation-delay: 0.05s;">
-    <!-- Card 1: Registered Users -->
-    <div class="col-12 col-md-6">
-        <?php if (session()->get('role') === 'admin'): ?>
-            <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('users'); ?>'" style="cursor:pointer;">
-                <div class="kpi-icon-wrapper kpi-icon-success">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-                <div class="kpi-label">Registered Accounts</div>
-                <h3 class="kpi-value"><?php echo $total_users; ?></h3>
-            </div>
-        <?php else: ?>
-            <div class="kpi-card h-100">
-                <div class="kpi-icon-wrapper kpi-icon-success">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-                <div class="kpi-label">Registered Accounts</div>
-                <h3 class="kpi-value"><?php echo $total_users; ?></h3>
-            </div>
-        <?php endif; ?>
+
+    <!-- Inventory Count -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('inventory'); ?>'" style="cursor:pointer; border-left: 4px solid var(--primary); transition: all 0.2s ease;">
+            <div class="kpi-label text-secondary fw-semibold" style="font-size: 0.85rem; color: #475569 !important;"><i style="color: var(--primary);"></i>Inventory Count</div>
+            <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_inventory; ?></h3>
+        </div>
+    </div>
+    
+    <!-- Low Stock Count -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('inventory?stock_status=low_stock'); ?>'" style="cursor:pointer; border-left: 4px solid var(--warning); transition: all 0.2s ease;">
+            <div class="kpi-label text-warning fw-semibold" style="font-size: 0.85rem;">Low Stock Count</div>
+            <h3 class="kpi-value text-warning fw-bold mt-1"><?php echo $total_low_stock; ?></h3>
+        </div>
     </div>
 
-    <!-- Card 2: System Logs -->
-    <div class="col-12 col-md-6">
-        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('dashboard/audit_trail'); ?>'" style="cursor:pointer;">
-            <div class="kpi-icon-wrapper kpi-icon-warning">
-                <i class="bi bi-clipboard-data"></i>
-            </div>
-            <div class="kpi-label">System Operations Logs</div>
-            <h3 class="kpi-value"><?php echo $total_logs; ?></h3>
+    <!-- No Stock Count -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('inventory?stock_status=out_of_stock'); ?>'" style="cursor:pointer; border-left: 4px solid var(--danger); transition: all 0.2s ease;">
+            <div class="kpi-label text-danger fw-semibold" style="font-size: 0.85rem;">No Stock Count</div>
+            <h3 class="kpi-value text-danger fw-bold mt-1"><?php echo $total_no_stock; ?></h3>
+        </div>
+    </div>
+
+    
+
+    <!-- Supply Requests -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card h-100" onclick="window.location='<?php echo base_url('supply_requests'); ?>'" style="cursor:pointer; border-left: 4px solid #3b82f6; transition: all 0.2s ease;">
+            <div class="kpi-label text-secondary fw-semibold" style="font-size: 0.85rem; color: #475569 !important;"><i  style="color: #3b82f6;"></i>Supply Requests</div>
+            <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_requests; ?></h3>
         </div>
     </div>
 </div>
 
-<!-- Main Row Content -->
+<!-- Main Row Content (Stacked Tables layout) -->
 <div class="row g-4 fade-in-up" style="animation-delay: 0.1s;">
-    <!-- Recent Logs Mini Panel (Full-Width) -->
+    <!-- 1. Recent Supply Requests Panel (Top Full-Width Column) -->
     <div class="col-12">
         <div class="standard-card">
             <div class="card-header-styled">
                 <h5 class="card-title-styled">
-                    <i class="fa-solid fa-table-list text-primary me-2"></i>
-                    <span>Recent System Operations</span>
+                    <i class="bi bi-file-earmark-text text-primary"></i>
+                    <span>Recent Supply Requests</span>
                 </h5>
-                <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-link btn-sm text-decoration-none p-0 fw-semibold text-primary" id="btnRecentLogsAll">
-                    See All Operations <i class="fa-solid fa-arrow-right ms-1"></i>
+                <a href="<?php echo base_url('supply_requests'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
+                    <span>View All</span>
                 </a>
             </div>
             
             <div class="table-responsive-custom">
-                <table class="table table-custom table-hover">
+                <table class="table table-custom table-hover w-100">
                     <thead>
                         <tr>
-                            <th style="width: 15%">User</th>
-                            <th style="width: 15%">Action</th>
-                            <th style="width: 55%">Description</th>
-                            <th style="width: 15%">Time</th>
+                            <th style="width: 8%">ID</th>
+                            <th style="width: 20%">Date</th>
+                            <th style="width: 22%">Requester / Department</th>
+                            <th>Item Requested</th>
+                            <th style="width: 15%">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($recent_requests)): ?>
+                            <?php foreach ($recent_requests as $req): ?>
+                                <tr>
+                                    <td class="font-monospace fw-bold" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                        #<?php echo $req['request_id']; ?>
+                                    </td>
+                                    <td>
+                                        <span class="text-dark fw-medium" style="font-size: 0.88rem;">
+                                            <?php echo date('M d, Y h:i A', strtotime($req['request_date'])); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark" style="font-size: 0.88rem;">
+                                            <?php echo htmlspecialchars($req['department_name']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="font-size: 0.88rem; font-weight: 600;" class="text-dark">
+                                            <?php echo htmlspecialchars($req['item_name']); ?>
+                                        </div>
+                                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">
+                                            Quantity Requested: <?php echo $req['quantity_requested']; ?> unit(s)
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                            if ($req['status'] === 'Served') {
+                                                $badge = 'bg-success-subtle text-success border border-success-subtle';
+                                            } elseif ($req['status'] === 'Partially Served') {
+                                                $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
+                                            } elseif ($req['status'] === 'Rejected') {
+                                                $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                            } else {
+                                                $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                            }
+                                        ?>
+                                        <span class="badge badge-action <?php echo $badge; ?>">
+                                            <?php echo $req['status']; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-regular fa-folder-open d-block fs-3 mb-2 text-secondary"></i>
+                                    <span class="fw-medium">No recent requests found.</span>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Recent Activities Panel (Bottom Full-Width Column) -->
+    <div class="col-12 mt-4">
+        <div class="standard-card">
+            <div class="card-header-styled">
+                <h5 class="card-title-styled">
+                    <i class="bi bi-clock-history text-primary"></i>
+                    <span>Recent Activities</span>
+                </h5>
+                <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">
+                    <span>View All</span>
+                </a>
+            </div>
+            
+            <div class="table-responsive-custom">
+                <table class="table table-custom table-hover w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 18%">Date/Time</th>
+                            <th style="width: 12%">User</th>
+                            <th style="width: 12%">Action</th>
+                            <th>Description</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($recent_logs)): ?>
+                            <?php $count = 1; ?>
                             <?php foreach ($recent_logs as $log): ?>
                                 <tr>
+                                    <td><span class="text-muted small"><?php echo $count++; ?></span></td>
                                     <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                                    <span class="fw-medium" style="font-size:0.875rem;"><?php echo $log['username']; ?></span>
-                                        </div>
+                                        <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                                            <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">
+                                            <?php echo htmlspecialchars($log['username']); ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <?php 
                                             $badge_class = 'bg-secondary';
-                                            if (in_array($log['action'], array('LOGIN', 'CREATE_DEPT', 'CREATE_USER', 'ADD_ITEM'))) {
+                                            if (in_array($log['action'], array('LOGIN', 'CREATE_DEPT', 'CREATE_USER', 'ADD_ITEM', 'COMPLETE_PARTIAL_SUPPLY_REQUEST', 'SERVE_SUPPLY_REQUEST', 'PARTIAL_SUPPLY_REQUEST'))) {
                                                 $badge_class = 'bg-success-subtle text-success border border-success-subtle';
-                                            } elseif (in_array($log['action'], array('LOGOUT', 'DELETE_DEPT', 'DELETE_USER', 'DELETE_ITEM'))) {
+                                            } elseif (in_array($log['action'], array('LOGOUT', 'DELETE_DEPT', 'DELETE_USER', 'DELETE_ITEM', 'DELETE_SUPPLY_REQUEST', 'BULK_DELETE_SUPPLY_REQUESTS'))) {
                                                 $badge_class = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
-                                            } elseif (in_array($log['action'], array('LOGIN_FAIL', 'SYSTEM_ERR'))) {
+                                            } elseif (in_array($log['action'], array('LOGIN_FAIL', 'SYSTEM_ERR', 'REJECT_SUPPLY_REQUEST'))) {
                                                 $badge_class = 'bg-danger-subtle text-danger border border-danger-subtle';
-                                            } elseif (in_array($log['action'], array('UPDATE_DEPT', 'UPDATE_USER', 'UPDATE_ITEM'))) {
+                                            } elseif (in_array($log['action'], array('UPDATE_DEPT', 'UPDATE_USER', 'UPDATE_ITEM', 'UPDATE_PROFILE'))) {
                                                 $badge_class = 'bg-info-subtle text-info border border-info-subtle';
                                             }
                                         ?>
@@ -111,20 +200,15 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="text-secondary small d-inline-block text-truncate" style="max-width: 600px;" title="<?php echo htmlspecialchars($log['description']); ?>">
+                                        <span class="text-secondary small d-block" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
                                             <?php echo htmlspecialchars($log['description']); ?>
                                         </span>
-                                    </td>
-                                    <td>
-                                        <small class="text-secondary font-monospace" style="font-size:0.75rem;">
-                                            <?php echo date('H:i:s', strtotime($log['created_at'])); ?>
-                                        </small>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
+                                <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="fa-regular fa-folder-open d-block fs-3 mb-2 text-secondary"></i>
                                     <span class="fw-medium">No recent logs found.</span>
                                 </td>

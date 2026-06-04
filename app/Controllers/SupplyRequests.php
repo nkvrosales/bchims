@@ -161,23 +161,14 @@ class SupplyRequests extends BaseController
                 $invId = $invItem['inventory_id'];
             }
 
-            // 2. Get or create department_supply
-            $deptSupply = $this->db->table('department_supply')
-                                   ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
-                                   ->where('department_supply.department_id', $deptId)
-                                   ->where('supply.inventory_id', $invId)
-                                   ->get()->getRowArray();
-            if (!$deptSupply) {
-                $this->db->table('department_supply')->insert([
-                    'department_id'     => $deptId,
-                    'quantity_received' => 0,
-                    'quantity_used'     => 0,
-                    'quantity_on_hand'  => 0,
-                ]);
-                $deptSupplyId = $this->db->insertID();
-            } else {
-                $deptSupplyId = $deptSupply['department_supply_id'];
-            }
+            // 2. Create a new department_supply row for this request
+            $this->db->table('department_supply')->insert([
+                'department_id'     => $deptId,
+                'quantity_received' => 0,
+                'quantity_used'     => 0,
+                'quantity_on_hand'  => 0,
+            ]);
+            $deptSupplyId = $this->db->insertID();
 
             // 3. Create the request
             $insertData = [
@@ -686,6 +677,131 @@ class SupplyRequests extends BaseController
                 "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$remainingQty} unit(s) of '{$csItem['item_name']}'."
             );
             session()->setFlashdata('success', "Request completed! Remaining {$remainingQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
+        }
+
+        return redirect()->to('supply_requests');
+    }
+
+    /**
+     * Delete a supply request (Admin only).
+     * Must remove supply rows (FK: supply.request_id -> request.request_id) before
+     * deleting the request, and then clean up orphaned department_supply rows.
+     */
+    public function delete($id = null)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (session()->get('role') !== 'admin') {
+            session()->setFlashdata('error', 'Only administrators can delete supply requests.');
+            return redirect()->to('supply_requests');
+        }
+
+        if (empty($id)) {
+            return redirect()->to('supply_requests');
+        }
+
+        $request = $this->_getRequest($id);
+
+        if (!$request) {
+            session()->setFlashdata('error', 'Supply request not found.');
+            return redirect()->to('supply_requests');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        // 1. Collect department_supply_id(s) linked via supply rows for this request
+        $supplyRows = $db->table('supply')->where('request_id', $id)->get()->getResultArray();
+        $deptSupplyIds = array_unique(array_column($supplyRows, 'department_supply_id'));
+
+        // 2. Delete supply rows first (FK: supply.request_id -> request)
+        $db->table('supply')->where('request_id', $id)->delete();
+
+        // 3. Delete the request itself
+        $this->requestModel->delete($id);
+
+        // 4. Clean up orphaned department_supply rows (ones no longer referenced by any request or supply)
+        foreach ($deptSupplyIds as $dsId) {
+            $stillReferenced = $db->table('request')->where('department_supply_id', $dsId)->countAllResults();
+            $stillInSupply   = $db->table('supply')->where('department_supply_id', $dsId)->countAllResults();
+            if ($stillReferenced === 0 && $stillInSupply === 0) {
+                $db->table('department_supply')->where('department_supply_id', $dsId)->delete();
+            }
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            session()->setFlashdata('error', 'An error occurred while deleting the request. Please try again.');
+        } else {
+            $this->auditModel->log_activity(
+                'DELETE_SUPPLY_REQUEST',
+                'Supply Requests',
+                "Deleted supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'"
+            );
+            session()->setFlashdata('success', 'Supply request deleted successfully.');
+        }
+
+        return redirect()->to('supply_requests');
+    }
+
+    /**
+     * Bulk-delete selected supply requests (Admin only).
+     * Deletes supply rows first to satisfy FK constraints, then the requests.
+     */
+    public function delete_selected()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (session()->get('role') !== 'admin') {
+            session()->setFlashdata('error', 'Only administrators can delete supply requests.');
+            return redirect()->to('supply_requests');
+        }
+
+        $ids = $this->request->getPost('request_ids');
+        if (empty($ids) || !is_array($ids)) {
+            session()->setFlashdata('error', 'No supply requests selected.');
+            return redirect()->to('supply_requests');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $allDeptSupplyIds = [];
+
+        foreach ($ids as $id) {
+            // Collect department_supply_ids before deletion
+            $supplyRows = $db->table('supply')->where('request_id', $id)->get()->getResultArray();
+            foreach ($supplyRows as $row) {
+                $allDeptSupplyIds[] = $row['department_supply_id'];
+            }
+            // Delete supply rows (FK: supply.request_id -> request)
+            $db->table('supply')->where('request_id', $id)->delete();
+            // Delete the request
+            $this->requestModel->delete($id);
+        }
+
+        // Clean up orphaned department_supply rows
+        foreach (array_unique($allDeptSupplyIds) as $dsId) {
+            $stillReferenced = $db->table('request')->where('department_supply_id', $dsId)->countAllResults();
+            $stillInSupply   = $db->table('supply')->where('department_supply_id', $dsId)->countAllResults();
+            if ($stillReferenced === 0 && $stillInSupply === 0) {
+                $db->table('department_supply')->where('department_supply_id', $dsId)->delete();
+            }
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            session()->setFlashdata('error', 'An error occurred while deleting selected requests.');
+        } else {
+            $count = count($ids);
+            $this->auditModel->log_activity(
+                'BULK_DELETE_SUPPLY_REQUESTS',
+                'Supply Requests',
+                "Bulk deleted {$count} supply request(s)."
+            );
+            session()->setFlashdata('success', "Successfully deleted {$count} supply request(s).");
         }
 
         return redirect()->to('supply_requests');

@@ -65,6 +65,8 @@ $routes->group('supply_requests', function($routes) {
     $routes->post('partial/(:num)', 'SupplyRequests::partial/$1');
     $routes->post('complete_partial/(:num)', 'SupplyRequests::complete_partial/$1');
     $routes->post('reject/(:num)', 'SupplyRequests::reject/$1');
+    $routes->post('delete/(:num)', 'SupplyRequests::delete/$1');
+    $routes->post('delete_selected', 'SupplyRequests::delete_selected');
 });
 
 $routes->get('settings', 'Dashboard::settings');

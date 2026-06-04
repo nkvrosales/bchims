@@ -550,7 +550,7 @@
                             </select>
                         </div>
 
-                        <!-- Initial Quantity -->
+                        <!-- Quantity -->
                         <div class="col-12 col-sm-6">
                             <label for="modal_quantity" class="form-label small fw-semibold text-secondary">
                                 Quantity <span class="text-danger">*</span>

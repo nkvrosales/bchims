@@ -47,13 +47,14 @@ class Auth extends BaseController
             if ($user) {
                 // Successful verification, initialize session
                 $session_data = [
-                    'user_id'    => $user['user_id'],
-                    'username'   => $user['username'],
-                    'last_name'  => $user['last_name'],
-                    'first_name' => $user['first_name'],
-                    'full_name'  => $user['full_name'],  // "LastName, FirstName"
-                    'role'       => $user['role'],
-                    'logged_in'  => true
+                    'user_id'       => $user['user_id'],
+                    'username'      => $user['username'],
+                    'last_name'     => $user['last_name'],
+                    'first_name'    => $user['first_name'],
+                    'full_name'     => $user['full_name'],  // "LastName, FirstName"
+                    'role'          => $user['role'],
+                    'department_id' => $user['department_id'] ?? null,
+                    'logged_in'     => true
                 ];
                 $session->set($session_data);
 
