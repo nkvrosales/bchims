@@ -148,15 +148,30 @@
                 <?php 
                     $fullName = session()->get('full_name'); 
                     $username = session()->get('username');
-                    $avatarLetter = !empty($fullName) ? strtoupper(substr($fullName, 0, 1)) : 'U';
+                    
+                    // Generate initials
+                    $initials = '';
+                    if (!empty($fullName)) {
+                        $parts = explode(' ', trim($fullName));
+                        if (count($parts) >= 2) {
+                            $initials = strtoupper(substr($parts[0], 0, 1) . substr(end($parts), 0, 1));
+                        } else {
+                            $initials = strtoupper(substr($fullName, 0, 2));
+                        }
+                    } else {
+                        $initials = 'US';
+                    }
                 ?>
                 <div class="dropdown">
-                    <button class="navbar-user-profile-btn dropdown-toggle" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #e2e8f0; background: #ffffff; padding: 0.4rem 1rem; border-radius: 50px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); transition: all 0.2s ease;">
-                        <div class="navbar-user-info text-start d-none d-sm-flex">
-                            <span class="navbar-user-name" style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);"><?php echo htmlspecialchars($fullName); ?></span>
-                            <span class="navbar-user-username" style="font-size: 0.75rem; color: var(--text-secondary);"><?php echo ucfirst(session()->get('role')); ?></span>
+                    <button class="navbar-user-profile-btn dropdown-toggle d-flex align-items-center gap-2" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #cbd5e1; background: #ffffff; padding: 0.35rem 0.75rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); transition: all 0.2s ease;">
+                        <div class="user-avatar-square d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; border-radius: 8px; background-color: var(--primary); color: #ffffff; font-size: 0.8rem; font-family: var(--font-heading);">
+                            <?php echo $initials; ?>
                         </div>
-                        <i class="fa-solid fa-chevron-down navbar-user-chevron ms-2" style="font-size: 0.75rem;"></i>
+                        <div class="navbar-user-info text-start d-none d-sm-flex flex-column" style="line-height: 1.2;">
+                            <span class="navbar-user-name" style="font-size: 0.85rem; font-weight: 700; color: #1e293b;"><?php echo htmlspecialchars($fullName); ?></span>
+                            <span class="navbar-user-username text-muted" style="font-size: 0.7rem;"><?php echo ucfirst(session()->get('role')); ?></span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down navbar-user-chevron ms-1" style="font-size: 0.7rem; color: #64748b;"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end navbar-user-dropdown-menu" aria-labelledby="userDropdownMenu">
                         <li class="navbar-dropdown-user-info">
