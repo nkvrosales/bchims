@@ -106,7 +106,7 @@
                                         <div style="font-size: 0.88rem; font-weight: 600;" class="text-dark">
                                             <?php echo htmlspecialchars($req['item_name']); ?>
                                         </div>
-                                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">
+                                        <small class="text-muted" style="font-size: 0.75rem;">
                                             Quantity Requested: <?php echo $req['quantity_requested']; ?> unit(s)
                                         </small>
                                     </td>
