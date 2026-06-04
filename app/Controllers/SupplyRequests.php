@@ -140,17 +140,70 @@ class SupplyRequests extends BaseController
 
             $userId = session()->get('user_id');
             $user   = $this->userModel->get_user_by_id($userId);
+            $deptId = $user['department_id'] ?? null;
 
+            // 1. Get or create inventory item for the department
+            $invItem = $this->db->table('inventory')
+                                ->where('item_code', $item['item_code'])
+                                ->get()->getRowArray();
+            if (!$invItem) {
+                $this->db->table('inventory')->insert([
+                    'item_code'       => $item['item_code'],
+                    'item_name'       => $item['item_name'],
+                    'batch_num'       => $item['batch_num'],
+                    'lot_num'         => $item['lot_num'],
+                    'expiration_date' => $item['expiration_date'],
+                    'quantity'        => 0,
+                    'category_id'     => $item['category_id'],
+                ]);
+                $invId = $this->db->insertID();
+            } else {
+                $invId = $invItem['inventory_id'];
+            }
+
+            // 2. Get or create department_supply
+            $deptSupply = $this->db->table('department_supply')
+                                   ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
+                                   ->where('department_supply.department_id', $deptId)
+                                   ->where('supply.inventory_id', $invId)
+                                   ->get()->getRowArray();
+            if (!$deptSupply) {
+                $this->db->table('department_supply')->insert([
+                    'department_id'     => $deptId,
+                    'quantity_received' => 0,
+                    'quantity_used'     => 0,
+                    'quantity_on_hand'  => 0,
+                ]);
+                $deptSupplyId = $this->db->insertID();
+            } else {
+                $deptSupplyId = $deptSupply['department_supply_id'];
+            }
+
+            // 3. Create the request
             $insertData = [
-                'user_id'           => $userId,
-                'central_supply_id' => $centralSupplyId,
-                'quantity_requested'=> $quantity,
-                'quantity_served'   => 0,
-                'status'            => 'Pending',
-                'notes'             => $notes,
+                'department_supply_id' => $deptSupplyId,
+                'quantity_requested'   => $quantity,
+                'quantity_served'      => 0,
+                'status'               => 'Pending',
             ];
 
             if ($this->requestModel->insert($insertData)) {
+                $requestId = $this->requestModel->insertID();
+
+                // 4. Create a supply record for this request
+                $this->db->table('supply')->insert([
+                    'request_id'           => $requestId,
+                    'central_supply_id'    => $centralSupplyId,
+                    'department_supply_id' => $deptSupplyId,
+                    'inventory_id'         => $invId,
+                    'batch_num'            => $item['batch_num'],
+                    'lot_num'              => $item['lot_num'],
+                    'expiration_date'      => $item['expiration_date'],
+                    'unit'                 => $item['unit'],
+                    'quantity'             => 0,
+                    'category_id'          => $item['category_id'],
+                ]);
+
                 $this->auditModel->log_activity(
                     'CREATE_SUPPLY_REQUEST',
                     'Supply Requests',
@@ -215,9 +268,9 @@ class SupplyRequests extends BaseController
             return redirect()->to('supply_requests');
         }
 
-        // Get requester's department
-        $requester = $this->userModel->get_user_by_id($request['user_id']);
-        $deptId    = $requester['department_id'] ?? null;
+        // Get requester's department from joined request data
+        $deptId    = $request['department_id'] ?? null;
+        $deptName  = $request['department_name'] ?? 'Department';
 
         $db = \Config\Database::connect();
         $db->transStart();
@@ -228,55 +281,49 @@ class SupplyRequests extends BaseController
            ->update([
                'quantity'         => $csItem['quantity'] - $qtyRequested,
                'quantity_on_hand' => $csItem['quantity_on_hand'] - $qtyRequested,
-           ]);
+           ]);        // 2. Find the pre-created supply record for this request
+        $supplyRec = $db->table('supply')
+                        ->where('request_id', $id)
+                        ->get()->getRowArray();
 
-        // 2. Find or create inventory item for the department
-        $invItem = $db->table('inventory')
-                      ->where('item_code', $csItem['item_code'])
-                      ->get()->getRowArray();
+        if ($supplyRec) {
+            // Update department_supply quantity_on_hand
+            $deptSupply = $db->table('department_supply')
+                             ->where('department_supply_id', $supplyRec['department_supply_id'])
+                             ->get()->getRowArray();
+            if ($deptSupply) {
+                $db->table('department_supply')
+                   ->where('department_supply_id', $deptSupply['department_supply_id'])
+                   ->update([
+                       'quantity_received' => $deptSupply['quantity_received'] + $qtyRequested,
+                       'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $qtyRequested,
+                   ]);
+            }
+            $deptSupplyId = $supplyRec['department_supply_id'];
 
-        if (!$invItem) {
-            $db->table('inventory')->insert([
-                'item_code'   => $csItem['item_code'],
-                'item_name'   => $csItem['item_name'],
-                'batch_num'   => $csItem['batch_num'],
-                'lot_num'     => $csItem['lot_num'],
-                'expiration_date' => $csItem['expiration_date'],
-                'quantity'    => $qtyRequested,
-                'category_id' => $csItem['category_id'],
-                'source_id'   => $csItem['source_id'],
-            ]);
-            $invId = $db->insertID();
-        } else {
-            $invId = $invItem['inventory_id'];
-        }
+            // Update inventory quantity
+            $invItem = $db->table('inventory')
+                          ->where('inventory_id', $supplyRec['inventory_id'])
+                          ->get()->getRowArray();
+            if ($invItem) {
+                $db->table('inventory')
+                   ->where('inventory_id', $invItem['inventory_id'])
+                   ->update([
+                       'quantity' => $invItem['quantity'] + $qtyRequested,
+                   ]);
+            }
 
-        // 3. Upsert department_supply
-        $deptSupply = $db->table('department_supply')
-                         ->where('department_id', $deptId)
-                         ->where('inventory_id', $invId)
-                         ->get()->getRowArray();
-
-        if ($deptSupply) {
-            $newQtyOnHand = $deptSupply['quantity_on_hand'] + $qtyRequested;
-            $db->table('department_supply')
-               ->where('department_supply_id', $deptSupply['department_supply_id'])
+            // Update supply record quantity and details
+            $db->table('supply')
+               ->where('supply_id', $supplyRec['supply_id'])
                ->update([
-                   'quantity_received' => $deptSupply['quantity_received'] + $qtyRequested,
-                   'quantity_on_hand'  => $newQtyOnHand,
-                   'central_supply_id' => $csItem['central_supply_id'],
+                   'quantity' => $qtyRequested,
+                   'batch_num' => $csItem['batch_num'],
+                   'lot_num' => $csItem['lot_num'],
+                   'expiration_date' => $csItem['expiration_date'],
                ]);
-            $deptSupplyId = $deptSupply['department_supply_id'];
         } else {
-            $db->table('department_supply')->insert([
-                'department_id'     => $deptId,
-                'inventory_id'      => $invId,
-                'central_supply_id' => $csItem['central_supply_id'],
-                'quantity_received' => $qtyRequested,
-                'quantity_used'     => 0,
-                'quantity_on_hand'  => $qtyRequested,
-            ]);
-            $deptSupplyId = $db->insertID();
+            $deptSupplyId = null;
         }
 
         // 4. Update request to Served
@@ -294,9 +341,9 @@ class SupplyRequests extends BaseController
             $this->auditModel->log_activity(
                 'SERVE_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$qtyRequested} unit(s) of '{$csItem['item_name']}' to department '{$requester['department_name']}'."
+                "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$qtyRequested} unit(s) of '{$csItem['item_name']}' to department '{$deptName}'."
             );
-            session()->setFlashdata('success', "Request served! {$qtyRequested} unit(s) of '{$csItem['item_name']}' transferred to {$requester['department_name']}.");
+            session()->setFlashdata('success', "Request served! {$qtyRequested} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('supply_requests');
@@ -353,8 +400,9 @@ class SupplyRequests extends BaseController
             return redirect()->to('supply_requests');
         }
 
-        $requester = $this->userModel->get_user_by_id($request['user_id']);
-        $deptId    = $requester['department_id'] ?? null;
+        // Get requester's department from joined request data
+        $deptId    = $request['department_id'] ?? null;
+        $deptName  = $request['department_name'] ?? 'Department';
 
         $db = \Config\Database::connect();
         $db->transStart();
@@ -390,8 +438,9 @@ class SupplyRequests extends BaseController
 
         // 3. Upsert department_supply
         $deptSupply = $db->table('department_supply')
-                         ->where('department_id', $deptId)
-                         ->where('inventory_id', $invId)
+                         ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
+                         ->where('department_supply.department_id', $deptId)
+                         ->where('supply.inventory_id', $invId)
                          ->get()->getRowArray();
 
         if ($deptSupply) {
@@ -400,19 +449,30 @@ class SupplyRequests extends BaseController
                ->update([
                    'quantity_received' => $deptSupply['quantity_received'] + $servedQty,
                    'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $servedQty,
-                   'central_supply_id' => $csItem['central_supply_id'],
                ]);
             $deptSupplyId = $deptSupply['department_supply_id'];
         } else {
             $db->table('department_supply')->insert([
                 'department_id'     => $deptId,
-                'inventory_id'      => $invId,
-                'central_supply_id' => $csItem['central_supply_id'],
                 'quantity_received' => $servedQty,
                 'quantity_used'     => 0,
                 'quantity_on_hand'  => $servedQty,
             ]);
             $deptSupplyId = $db->insertID();
+
+            // Link via supply table
+            $db->table('supply')->insert([
+                'request_id'           => $id,
+                'central_supply_id'    => $csItem['central_supply_id'],
+                'department_supply_id' => $deptSupplyId,
+                'inventory_id'         => $invId,
+                'batch_num'            => $csItem['batch_num'],
+                'lot_num'              => $csItem['lot_num'],
+                'expiration_date'      => $csItem['expiration_date'],
+                'unit'                 => $csItem['unit'],
+                'quantity'             => $servedQty,
+                'category_id'          => $csItem['category_id'],
+            ]);
         }
 
         // 4. Update request to Partially Served
@@ -432,7 +492,7 @@ class SupplyRequests extends BaseController
                 'Supply Requests',
                 "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$servedQty} of {$qtyRequested} unit(s) of '{$csItem['item_name']}'."
             );
-            session()->setFlashdata('success', "Partially served! {$servedQty} unit(s) of '{$csItem['item_name']}' transferred to {$requester['department_name']}.");
+            session()->setFlashdata('success', "Partially served! {$servedQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('supply_requests');
@@ -533,8 +593,9 @@ class SupplyRequests extends BaseController
         }
 
         // Get requester's department
-        $requester = $this->userModel->get_user_by_id($request['user_id']);
-        $deptId    = $requester['department_id'] ?? null;
+        // Get requester's department from joined request data
+        $deptId    = $request['department_id'] ?? null;
+        $deptName  = $request['department_name'] ?? 'Department';
 
         $db = \Config\Database::connect();
         $db->transStart();
@@ -570,8 +631,9 @@ class SupplyRequests extends BaseController
 
         // 3. Upsert department_supply for the remaining quantity
         $deptSupply = $db->table('department_supply')
-                         ->where('department_id', $deptId)
-                         ->where('inventory_id', $invId)
+                         ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
+                         ->where('department_supply.department_id', $deptId)
+                         ->where('supply.inventory_id', $invId)
                          ->get()->getRowArray();
 
         if ($deptSupply) {
@@ -580,19 +642,30 @@ class SupplyRequests extends BaseController
                ->update([
                    'quantity_received' => $deptSupply['quantity_received'] + $remainingQty,
                    'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $remainingQty,
-                   'central_supply_id' => $csItem['central_supply_id'],
                ]);
             $deptSupplyId = $deptSupply['department_supply_id'];
         } else {
             $db->table('department_supply')->insert([
                 'department_id'     => $deptId,
-                'inventory_id'      => $invId,
-                'central_supply_id' => $csItem['central_supply_id'],
                 'quantity_received' => $remainingQty,
                 'quantity_used'     => 0,
                 'quantity_on_hand'  => $remainingQty,
             ]);
             $deptSupplyId = $db->insertID();
+
+            // Link via supply table
+            $db->table('supply')->insert([
+                'request_id'           => $id,
+                'central_supply_id'    => $csItem['central_supply_id'],
+                'department_supply_id' => $deptSupplyId,
+                'inventory_id'         => $invId,
+                'batch_num'            => $csItem['batch_num'],
+                'lot_num'              => $csItem['lot_num'],
+                'expiration_date'      => $csItem['expiration_date'],
+                'unit'                 => $csItem['unit'],
+                'quantity'             => $remainingQty,
+                'category_id'          => $csItem['category_id'],
+            ]);
         }
 
         // 4. Update request to Served and set quantity_served to full requested amount
@@ -612,7 +685,7 @@ class SupplyRequests extends BaseController
                 'Supply Requests',
                 "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$remainingQty} unit(s) of '{$csItem['item_name']}'."
             );
-            session()->setFlashdata('success', "Request completed! Remaining {$remainingQty} unit(s) of '{$csItem['item_name']}' transferred to {$requester['department_name']}.");
+            session()->setFlashdata('success', "Request completed! Remaining {$remainingQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('supply_requests');

@@ -14,7 +14,7 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'central_supply_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
+    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id'];
 
     protected $useTimestamps = false;
 
@@ -67,9 +67,11 @@ class ItemModel extends Model
         } else {
             $builder = $this->db->table('inventory')
                                 ->select('inventory.*, inventory.inventory_id AS id, inventory.inventory_id AS inventory_id, department_supply.quantity_on_hand AS quantity, category.category_code, category.category_description, source.source_type, source.supplier_name')
-                                ->join('department_supply', 'department_supply.inventory_id = inventory.inventory_id', 'inner')
+                                ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
+                                ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
                                 ->join('category', 'category.category_id = inventory.category_id', 'left')
-                                ->join('source', 'source.source_id = inventory.source_id', 'left')
+                                ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
+                                ->join('source', 'source.source_id = central_supply.source_id', 'left')
                                 ->where('department_supply.department_id', $department_id);
 
             if (!empty($search)) {

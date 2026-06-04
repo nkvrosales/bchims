@@ -170,19 +170,59 @@ class Inventory extends BaseController
                     'expiration_date' => $expiration,
                     'quantity'        => $quantity,
                     'category_id'     => $categoryId,
-                    'source_id'       => $sourceId,
                 ];
                 $this->itemModel->insert($insert_data);
                 $itemId = $db->insertID();
 
+                // Get or create central_supply entry for the item_code
+                $csItem = $db->table('central_supply')->where('item_code', $itemCode)->get()->getRowArray();
+                if (!$csItem) {
+                    $db->table('central_supply')->insert([
+                        'item_code'        => $itemCode,
+                        'item_name'        => $itemName,
+                        'batch_num'        => $batchNum,
+                        'lot_num'          => $lotNum,
+                        'expiration_date'  => $expiration,
+                        'quantity'         => 0,
+                        'quantity_on_hand' => 0,
+                        'category_id'      => $categoryId,
+                        'source_id'        => $sourceId, // source tracked in central_supply only
+                    ]);
+                    $csId = $db->insertID();
+                } else {
+                    $csId = $csItem['central_supply_id'];
+                }
+
                 // Link to department_supply
                 $db->table('department_supply')->insert([
                     'department_id'     => $user['department_id'],
-                    'inventory_id'      => $itemId,
-                    'central_supply_id' => null,
                     'quantity_received' => $quantity,
                     'quantity_used'     => 0,
                     'quantity_on_hand'  => $quantity,
+                ]);
+                $deptSupplyId = $db->insertID();
+
+                // Create a dummy request representing manual addition
+                $db->table('request')->insert([
+                    'department_supply_id' => $deptSupplyId,
+                    'quantity_requested'   => $quantity,
+                    'quantity_served'      => $quantity,
+                    'status'               => 'Manually Added',
+                ]);
+                $reqId = $db->insertID();
+
+                // Link via supply table
+                $db->table('supply')->insert([
+                    'request_id'           => $reqId,
+                    'central_supply_id'    => $csId,
+                    'department_supply_id' => $deptSupplyId,
+                    'inventory_id'         => $itemId,
+                    'batch_num'            => $batchNum,
+                    'lot_num'              => $lotNum,
+                    'expiration_date'      => $expiration,
+                    'unit'                 => 0,
+                    'quantity'             => $quantity,
+                    'category_id'          => $categoryId,
                 ]);
             }
 
@@ -263,12 +303,20 @@ class Inventory extends BaseController
                 $update_data['quantity_on_hand'] = (int)$this->request->getPost('quantity');
                 $this->itemModel->update($id, $update_data);
             } else {
+                // For staff: remove source_id from inventory update (not a column in inventory table)
+                unset($update_data['source_id']);
                 $this->itemModel->update($id, $update_data);
                 // Sync quantity_on_hand in department_supply
-                $db->table('department_supply')
-                   ->where('inventory_id', $id)
-                   ->where('department_id', $user['department_id'])
-                   ->update(['quantity_on_hand' => (int)$this->request->getPost('quantity')]);
+                $dsRow = $db->table('department_supply')
+                            ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
+                            ->where('supply.inventory_id', $id)
+                            ->where('department_supply.department_id', $user['department_id'])
+                            ->get()->getRowArray();
+                if ($dsRow) {
+                    $db->table('department_supply')
+                       ->where('department_supply_id', $dsRow['department_supply_id'])
+                       ->update(['quantity_on_hand' => (int)$this->request->getPost('quantity')]);
+                }
             }
 
             $db->transComplete();
@@ -324,8 +372,17 @@ class Inventory extends BaseController
         if ($isAdmin) {
             $this->itemModel->delete($id);
         } else {
-            // Delete from department supply first
-            $db->table('department_supply')->where('inventory_id', $id)->delete();
+            // Delete from supply, request, and department supply first
+            $supplies = $db->table('supply')
+                           ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id')
+                           ->where('supply.inventory_id', $id)
+                           ->where('department_supply.department_id', $user['department_id'])
+                           ->get()->getResultArray();
+            foreach ($supplies as $s) {
+                $db->table('request')->where('department_supply_id', $s['department_supply_id'])->update(['department_supply_id' => null]);
+                $db->table('supply')->where('supply_id', $s['supply_id'])->delete();
+                $db->table('department_supply')->where('department_supply_id', $s['department_supply_id'])->delete();
+            }
             $this->itemModel->delete($id);
         }
 
