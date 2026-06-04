@@ -108,24 +108,24 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2">
                                     <button type="button"
-                                       class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center rounded-2"
+                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                        data-bs-toggle="modal"
                                        data-bs-target="#viewItemModal<?php echo $item['id']; ?>"
-                                       style="width: 32px; height: 32px;"
+                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="View Item">
-                                        <i class="bi bi-eye"></i>
+                                        <i class="bi bi-search"></i>
                                     </button>
                                     <button type="button"
                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                        data-bs-toggle="modal"
                                        data-bs-target="#editItemModal<?php echo $item['id']; ?>"
-                                       style="width: 32px; height: 32px;"
+                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="Edit Item">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
                                     <a href="<?php echo base_url('inventory/delete/' . $item['id']); ?>" 
                                        class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                       style="width: 32px; height: 32px;"
+                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        data-bs-toggle="modal"
                                        data-bs-target="#deleteItemModal<?php echo $item['id']; ?>"
                                        title="Delete Item">
@@ -164,13 +164,12 @@
                     <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                         <div class="d-flex align-items-center">
                             <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="bi bi-eye" style="color: #0f172a; font-size: 1rem;"></i>
+                                <i class="bi bi-search" style="color: #0f172a; font-size: 1rem;"></i>
                             </div>
                             <div>
                                 <h5 class="modal-title fw-bold mb-0" id="viewItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.4rem; letter-spacing: 0;">
                                     Stock Details
                                 </h5>
-                                <div class="small text-muted"><?php echo htmlspecialchars($item['item_name']); ?></div>
                             </div>
                         </div>
                         <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>

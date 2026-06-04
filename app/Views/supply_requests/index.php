@@ -188,24 +188,24 @@
                                     <div class="d-inline-flex gap-2">
                                         <!-- View Details (icon only) -->
                                         <button type="button" 
-                                                class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center rounded-2"
+                                                class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
                                                 id="btnTriggerView_<?php echo $req['request_id']; ?>"
                                                 title="View Details"
-                                                style="width: 32px; height: 32px; padding: 0;">
-                                            <i class="fa-solid fa-eye"></i>
+                                                style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
+                                            <i class="bi bi-search"></i>
                                         </button>
 
                                         <?php if (session()->get('role') === 'admin'): ?>
-                                            <!-- Delete Button Trigger (icon only) -->
+                                            <!-- Delete Button Trigger -->
                                             <button type="button" 
                                                     class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
                                                     title="Delete Request"
-                                                    style="width: 32px; height: 32px; padding: 0;">
+                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         <?php endif; ?>
@@ -384,7 +384,7 @@
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                     <div class="modal-header border-bottom px-4">
                         <h5 class="modal-title fw-bold text-dark" id="viewModalLabel_<?php echo $req['request_id']; ?>">
-                            <i class="fa-solid fa-circle-info text-primary me-2"></i>Request Details
+                            <i class="bi bi-search me-2"></i>Request Details
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
