@@ -23,7 +23,7 @@ class DepartmentModel extends Model
      */
     public function find($id = null)
     {
-        return $this->select("department_id AS id, department_name AS name, created_at")
+        return $this->select("department_id AS id, department_name AS name, NULL AS created_at")
                     ->where('department_id', $id)
                     ->first();
     }
@@ -33,7 +33,7 @@ class DepartmentModel extends Model
      */
     public function get_departments()
     {
-        return $this->select("department_id AS id, department_name AS name, created_at")
+        return $this->select("department_id AS id, department_name AS name, NULL AS created_at")
                     ->orderBy('department_name', 'ASC')
                     ->findAll();
     }

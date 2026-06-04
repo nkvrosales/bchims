@@ -53,7 +53,7 @@ class Inventory extends BaseController
                 $sourceType = 'Supplier';
         }
 
-        $existing = $db->table('item_sources')
+        $existing = $db->table('source')
             ->where('source_type', $sourceType)
             ->get()
             ->getRowArray();
@@ -62,7 +62,7 @@ class Inventory extends BaseController
             return (int)$existing['source_id'];
         }
 
-        $db->table('item_sources')->insert([
+        $db->table('source')->insert([
             'source_type'   => $sourceType,
             'supplier_name' => $sourceType,
         ]);
@@ -96,7 +96,7 @@ class Inventory extends BaseController
 
         $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status);
         $data['categories'] = \Config\Database::connect()
-            ->table('categories')
+            ->table('category')
             ->orderBy('category_code', 'ASC')
             ->get()
             ->getResultArray();

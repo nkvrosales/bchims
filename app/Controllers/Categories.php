@@ -62,7 +62,7 @@ class Categories extends BaseController
         }
 
         $rules = [
-            'category_code'        => 'required|alpha_dash|max_length[10]|is_unique[categories.category_code]',
+            'category_code'        => 'required|alpha_dash|max_length[10]|is_unique[category.category_code]',
             'category_description' => 'permit_empty|max_length[100]',
         ];
 
@@ -113,7 +113,7 @@ class Categories extends BaseController
         }
 
         $rules = [
-            'category_code'        => "required|alpha_dash|max_length[10]|is_unique[categories.category_code,category_id,{$id}]",
+            'category_code'        => "required|alpha_dash|max_length[10]|is_unique[category.category_code,category_id,{$id}]",
             'category_description' => 'permit_empty|max_length[100]',
         ];
 

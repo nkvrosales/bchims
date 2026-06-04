@@ -14,7 +14,7 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'central_supply_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
+    protected $allowedFields = ['inventory_id', 'central_supply_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
 
     protected $useTimestamps = false;
 
@@ -41,9 +41,9 @@ class ItemModel extends Model
 
         if ($isAdmin) {
             $builder = $this->db->table('central_supply')
-                                ->select('central_supply.*, central_supply.central_supply_id AS id, central_supply.central_supply_id AS central_supply_id, categories.category_code, categories.category_description, item_sources.source_type, item_sources.supplier_name')
-                                ->join('categories', 'categories.category_id = central_supply.category_id', 'left')
-                                ->join('item_sources', 'item_sources.source_id = central_supply.source_id', 'left');
+                                ->select('central_supply.*, central_supply.central_supply_id AS id, central_supply.central_supply_id AS central_supply_id, category.category_code, category.category_description, source.source_type, source.supplier_name')
+                                ->join('category', 'category.category_id = central_supply.category_id', 'left')
+                                ->join('source', 'source.source_id = central_supply.source_id', 'left');
 
             if (!empty($search)) {
                 $builder = $builder->groupStart()
@@ -66,10 +66,10 @@ class ItemModel extends Model
             return $builder->orderBy('central_supply.item_name', 'ASC')->get()->getResultArray();
         } else {
             $builder = $this->db->table('inventory')
-                                ->select('inventory.*, inventory.inventory_id AS id, inventory.inventory_id AS inventory_id, department_supply.quantity_on_hand AS quantity, categories.category_code, categories.category_description, item_sources.source_type, item_sources.supplier_name')
+                                ->select('inventory.*, inventory.inventory_id AS id, inventory.inventory_id AS inventory_id, department_supply.quantity_on_hand AS quantity, category.category_code, category.category_description, source.source_type, source.supplier_name')
                                 ->join('department_supply', 'department_supply.inventory_id = inventory.inventory_id', 'inner')
-                                ->join('categories', 'categories.category_id = inventory.category_id', 'left')
-                                ->join('item_sources', 'item_sources.source_id = inventory.source_id', 'left')
+                                ->join('category', 'category.category_id = inventory.category_id', 'left')
+                                ->join('source', 'source.source_id = inventory.source_id', 'left')
                                 ->where('department_supply.department_id', $department_id);
 
             if (!empty($search)) {

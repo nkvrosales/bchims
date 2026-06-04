@@ -50,8 +50,8 @@ class Dashboard extends BaseController
 
         $data['title'] = 'Dashboard';
         $data['recent_logs'] = $this->auditModel->get_recent_logs(5);
-        $data['total_users'] = $db->table('users')->countAll();
-        $data['total_logs'] = $db->table('audit_logs')->countAll();
+        $data['total_users'] = $db->table('user')->countAll();
+        $data['total_logs'] = $db->table('user_log')->countAll();
 
         return view('templates/header', $data)
              . view('dashboard/index', $data)

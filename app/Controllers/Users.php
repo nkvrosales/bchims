@@ -70,7 +70,7 @@ class Users extends BaseController
         }
 
         $rules = [
-            'username'      => 'required|alpha_dash|max_length[50]|is_unique[users.username]',
+            'username'      => 'required|alpha_dash|max_length[50]|is_unique[user.username]',
             'last_name'     => 'required|max_length[50]',
             'first_name'    => 'required|max_length[50]',
             'password'      => 'required|min_length[4]|max_length[50]',
@@ -85,6 +85,7 @@ class Users extends BaseController
             $is_active = (int)$this->request->getPost('is_active');
             $insert_data = array(
                 'username'       => strtolower($this->request->getPost('username')),
+                'email'          => strtolower($this->request->getPost('username')) . '@bchims.local',
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
                 'password'       => $this->request->getPost('password'),
@@ -149,7 +150,7 @@ class Users extends BaseController
         }
 
         $rules = [
-            'username'      => "required|alpha_dash|max_length[50]|is_unique[users.username,user_id,{$id}]",
+            'username'      => "required|alpha_dash|max_length[50]|is_unique[user.username,user_id,{$id}]",
             'last_name'     => 'required|max_length[50]',
             'first_name'    => 'required|max_length[50]',
             'password'      => 'permit_empty|min_length[4]|max_length[50]',
@@ -171,6 +172,7 @@ class Users extends BaseController
 
             $update_data = array(
                 'username'       => strtolower($this->request->getPost('username')),
+                'email'          => strtolower($this->request->getPost('username')) . '@bchims.local',
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
                 'role_id'        => ($role === 'admin') ? 1 : 2,
