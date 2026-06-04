@@ -136,7 +136,7 @@ class Users extends BaseController
             return redirect()->to('users');
         }
 
-        $user = $this->userModel->find($id);
+        $user = $this->userModel->get_user_by_id($id);
         if (empty($user)) {
             session()->setFlashdata('error', 'User not found.');
             return redirect()->to('users');
@@ -261,7 +261,7 @@ class Users extends BaseController
             return redirect()->to('users');
         }
 
-        $user = $this->userModel->find($id);
+        $user = $this->userModel->get_user_by_id($id);
         if (empty($user)) {
             session()->setFlashdata('error', 'User not found.');
             return redirect()->to('users');
