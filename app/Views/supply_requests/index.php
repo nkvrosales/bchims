@@ -47,7 +47,7 @@
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
             <i class="bi bi-file-earmark-text text-primary"></i>
-            <span><?php echo session()->get('role') === 'admin' ? 'All Staff Supply Requests' : 'Departmental Supply Requests'; ?></span>
+            <span><?php echo is_admin_role() ? 'All Staff Supply Requests' : 'Departmental Supply Requests'; ?></span>
         </h5>
     </div>
 
@@ -115,7 +115,7 @@
                                 </span>
                             </td>
                             <td class="text-end">
-                                <?php if (session()->get('role') === 'admin' && $req['status'] === 'Pending'): ?>
+                                <?php if (is_admin_role() && $req['status'] === 'Pending'): ?>
                                     <div class="d-inline-flex gap-2">
                                         <!-- Serve Button Trigger -->
                                         <button type="button" 
@@ -161,7 +161,7 @@
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </div>
-                                <?php elseif (session()->get('role') === 'admin' && $req['status'] === 'Partially Served'): ?>
+                                <?php elseif (is_admin_role() && $req['status'] === 'Partially Served'): ?>
                                     <div class="d-inline-flex gap-2">
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
@@ -197,7 +197,7 @@
                                             <i class="bi bi-search"></i>
                                         </button>
 
-                                        <?php if (session()->get('role') === 'admin'): ?>
+                                        <?php if (is_admin_role()): ?>
                                             <!-- Delete Button Trigger -->
                                             <button type="button" 
                                                     class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
@@ -222,7 +222,7 @@
     </div>
 </div>
 
-<?php if (session()->get('role') === 'admin' && !empty($requests)): ?>
+<?php if (is_admin_role() && !empty($requests)): ?>
     <?php foreach ($requests as $req): ?>
         <?php if ($req['status'] === 'Pending'): ?>
             <!-- Serve Modal -->
@@ -468,7 +468,7 @@
 <?php endif; ?>
 
 <!-- Single Delete Confirmation Modals (Admin only) -->
-<?php if (session()->get('role') === 'admin' && !empty($requests)): ?>
+<?php if (is_admin_role() && !empty($requests)): ?>
     <?php foreach ($requests as $req): ?>
         <div class="modal fade" id="deleteSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="deleteSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">

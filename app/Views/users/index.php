@@ -396,7 +396,7 @@
         $val_first_name = $is_open ? old('first_name', $u['first_name']) : $u['first_name'];
         $val_last_name = $is_open ? old('last_name', $u['last_name']) : $u['last_name'];
         $val_username = $is_open ? old('username', $u['username']) : $u['username'];
-        $val_role = $is_open ? old('role', $u['role']) : $u['role'];
+        $val_role = strtolower($is_open ? old('role', $u['role']) : $u['role']);
         $val_dept_id = $is_open ? old('department_id', $u['department_id']) : $u['department_id'];
         $val_is_active = $is_open ? old('is_active', $u['is_active']) : $u['is_active'];
     ?>

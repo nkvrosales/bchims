@@ -103,13 +103,13 @@
                            placeholder="Leave blank to keep current">
                 </div>
 
-                <?php $isAdmin = (session()->get('role') === 'admin'); ?>
+                <?php $isAdmin = is_admin_role($user['role']); ?>
                 <!-- 5. Role -->
                 <div class="col-12 col-sm-6">
                     <label for="role_display" class="form-label small fw-semibold text-secondary">Role <span class="text-danger">*</span></label>
                     <select class="form-select input-custom bg-light" id="role_display" disabled style="cursor: not-allowed;">
                         <option value="<?php echo htmlspecialchars($user['role']); ?>" selected>
-                            <?php echo ($user['role'] === 'admin') ? 'Administrator' : 'Staff'; ?>
+                            <?php echo ucfirst($user['role']); ?>
                         </option>
                     </select>
                     <input type="hidden" name="role" value="<?php echo htmlspecialchars($user['role']); ?>">

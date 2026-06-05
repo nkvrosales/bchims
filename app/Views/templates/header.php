@@ -66,7 +66,7 @@
                     </a>
                 </li>
 
-                <?php if (session()->get('role') === 'admin'): ?>
+                <?php if (is_admin_role()): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('users'); ?>" 
                        class="sidebar-link <?php echo (isset($title) && in_array($title, ['User Management', 'Add User', 'Edit User'])) ? 'active' : ''; ?>" id="navUsers">
@@ -84,7 +84,7 @@
                     </a>
                 </li>
 
-                <?php if (session()->get('role') === 'admin'): ?>
+                <?php if (is_admin_role()): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('categories'); ?>"
                        class="sidebar-link <?php echo (isset($title) && in_array($title, ['Categories', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories">

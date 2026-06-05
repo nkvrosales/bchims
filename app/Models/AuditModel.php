@@ -55,7 +55,7 @@ class AuditModel extends Model
         $builder = $this->select("user_log.*, user_log.user_log_id AS log_id, user_log.action_type AS action, user_log.action_description AS description, user_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username")
                         ->join('user', 'user.user_id = user_log.user_id', 'left');
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             $builder = $builder->where('user_log.user_id', session()->get('user_id'));
         }
 
@@ -89,7 +89,7 @@ class AuditModel extends Model
         $builder = $this->select("user_log.*, user_log.user_log_id AS log_id, user_log.action_type AS action, user_log.action_description AS description, user_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username")
                         ->join('user', 'user.user_id = user_log.user_id', 'left');
                         
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             $builder = $builder->where('user_log.user_id', session()->get('user_id'));
         }
         return $builder->orderBy('action_date', 'DESC')->findAll($limit);

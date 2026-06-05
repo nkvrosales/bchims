@@ -13,3 +13,16 @@
  *
  * @see: https://codeigniter.com/user_guide/extending/common.html
  */
+
+/**
+ * Returns true if the given (or currently logged-in) user has admin-level
+ * privileges. Both 'admin' and 'dev' roles are treated as administrators
+ * throughout the application.
+ */
+if (!function_exists('is_admin_role')) {
+    function is_admin_role(?string $role = null): bool
+    {
+        $r = $role ?? session()->get('role');
+        return in_array(strtolower((string)$r), ['admin', 'dev'], true);
+    }
+}

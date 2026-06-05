@@ -60,7 +60,7 @@ class Dashboard extends BaseController
         $currentUser = $userModel->get_user_by_id(session()->get('user_id'));
         $deptId = $currentUser['department_id'] ?? null;
 
-        if ($role === 'admin') {
+        if (is_admin_role()) {
             $data['total_inventory'] = $db->table('central_supply')->countAll();
             $data['total_low_stock'] = $db->table('central_supply')->where('quantity <=', 10)->where('quantity >', 0)->countAllResults();
             $data['total_no_stock'] = $db->table('central_supply')->where('quantity', 0)->countAllResults();
@@ -89,7 +89,7 @@ class Dashboard extends BaseController
         }
 
         // Fetch recent requests: if staff, filter by department
-        if ($role === 'admin') {
+        if (is_admin_role()) {
             $data['recent_requests'] = array_slice($requestModel->get_requests(), 0, 5);
         } else {
             $data['recent_requests'] = array_slice($requestModel->get_requests(null, $deptId), 0, 5);
@@ -163,7 +163,7 @@ class Dashboard extends BaseController
         $data['user'] = $user;
         $data['departments'] = $departmentModel->get_departments();
 
-        $isAdmin = (session()->get('role') === 'admin');
+        $isAdmin = is_admin_role();
 
         $rules = [
             'username'   => 'required|alpha_numeric_punct|min_length[4]|max_length[30]',
@@ -241,7 +241,7 @@ class Dashboard extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         // Settings are only accessible by administrator
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'You do not have permission to access the System Settings page.');
             return redirect()->to('dashboard');
         }

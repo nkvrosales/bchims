@@ -55,7 +55,7 @@ class SupplyRequests extends BaseController
         $role   = session()->get('role');
         $search = trim((string) $this->request->getGet('search'));
 
-        if ($role === 'admin') {
+        if (is_admin_role()) {
             $requests = $this->requestModel->get_requests();
             $items    = [];
         } else {
@@ -221,7 +221,7 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can serve supply requests.');
             return redirect()->to('supply_requests');
         }
@@ -347,7 +347,7 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can serve supply requests.');
             return redirect()->to('supply_requests');
         }
@@ -496,7 +496,7 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can reject supply requests.');
             return redirect()->to('supply_requests');
         }
@@ -538,7 +538,7 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can complete supply requests.');
             return redirect()->to('supply_requests');
         }
@@ -691,7 +691,7 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can delete supply requests.');
             return redirect()->to('supply_requests');
         }
@@ -753,7 +753,7 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can delete supply requests.');
             return redirect()->to('supply_requests');
         }

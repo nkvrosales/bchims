@@ -34,7 +34,7 @@ class Users extends BaseController
             return redirect()->to('auth/login');
         }
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             session()->setFlashdata('error', 'Access Denied: Administrative privileges required.');
             return redirect()->to('dashboard');
         }

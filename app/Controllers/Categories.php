@@ -32,7 +32,7 @@ class Categories extends BaseController
             return redirect()->to('auth/login');
         }
 
-        if (session()->get('role') !== 'admin') {
+        if (!is_admin_role()) {
             return redirect()->to('dashboard');
         }
 
