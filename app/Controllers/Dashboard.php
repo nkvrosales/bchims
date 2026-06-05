@@ -64,7 +64,7 @@ class Dashboard extends BaseController
             $data['total_inventory'] = $db->table('central_supply')->countAll();
             $data['total_low_stock'] = $db->table('central_supply')->where('quantity <=', 10)->where('quantity >', 0)->countAllResults();
             $data['total_no_stock'] = $db->table('central_supply')->where('quantity', 0)->countAllResults();
-            $data['total_requests'] = $db->table('request')->countAll();
+            $data['total_requests'] = $db->table('request')->whereIn('status', ['Pending', 'Partially Served'])->countAllResults();
         } else {
             // Staff: count department_supply rows for this department (each row = one supply item allocation)
             $data['total_inventory'] = $db->table('department_supply')
@@ -85,6 +85,7 @@ class Dashboard extends BaseController
             $data['total_requests'] = $db->table('request')
                 ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id')
                 ->where('department_supply.department_id', $deptId)
+                ->whereIn('request.status', ['Pending', 'Partially Served'])
                 ->countAllResults();
         }
 

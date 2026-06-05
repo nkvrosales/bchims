@@ -14,7 +14,7 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id'];
+    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
 
     protected $useTimestamps = false;
 

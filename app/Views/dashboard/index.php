@@ -26,7 +26,7 @@
 
     <!-- Inventory Count -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #0d9488; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Inventory Count</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_inventory; ?></h3>
@@ -38,7 +38,7 @@
     
     <!-- Low Stock Count -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=low_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #f59e0b; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=low_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--warning); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Low Stock Count</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_low_stock; ?></h3>
@@ -50,7 +50,7 @@
 
     <!-- No Stock Count -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=out_of_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #ef4444; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=out_of_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--danger); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">No Stock Count</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_no_stock; ?></h3>
@@ -60,7 +60,7 @@
 
     <!-- Supply Requests -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('supply_requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #0d9488; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('supply_requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Supply Requests</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_requests; ?></h3>
