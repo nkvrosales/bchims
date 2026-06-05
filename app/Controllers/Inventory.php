@@ -81,7 +81,7 @@ class Inventory extends BaseController
         $user = $this->userModel->get_user_by_id($userId);
 
         $role = session()->get('role');
-        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator'], true);
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
         $deptId = $user['department_id'] ?? 3; // default fallback to Central Supplies
 
         $data['title'] = 'Inventory';
@@ -117,10 +117,15 @@ class Inventory extends BaseController
             return redirect()->to('inventory');
         }
 
+        $role = session()->get('role');
+        if (strtolower((string) $role) === 'viewer') {
+            session()->setFlashdata('error', 'You do not have permission to add inventory items.');
+            return redirect()->to('inventory');
+        }
+
         $userId = session()->get('user_id');
         $user   = $this->userModel->get_user_by_id($userId);
-        $role   = session()->get('role');
-        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator'], true);
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
         $rules = [
             'item_code'   => 'required|alpha_dash|max_length[50]',
@@ -267,10 +272,15 @@ class Inventory extends BaseController
             return redirect()->to('inventory');
         }
 
+        $role = session()->get('role');
+        if (strtolower((string) $role) === 'viewer') {
+            session()->setFlashdata('error', 'You do not have permission to edit inventory items.');
+            return redirect()->to('inventory');
+        }
+
         $userId = session()->get('user_id');
         $user   = $this->userModel->get_user_by_id($userId);
-        $role   = session()->get('role');
-        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator'], true);
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
         $this->itemModel->set_table($isAdmin ? 'central_supply' : 'inventory');
         $item = $this->itemModel->find($id);
@@ -362,10 +372,16 @@ class Inventory extends BaseController
             return redirect()->to('inventory');
         }
 
+        $role = session()->get('role');
+        if (strtolower((string) $role) === 'viewer') {
+            session()->setFlashdata('error', 'You do not have permission to delete inventory items.');
+            return redirect()->to('inventory');
+        }
+
         $userId = session()->get('user_id');
         $user = $this->userModel->get_user_by_id($userId);
         $role = session()->get('role');
-        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator'], true);
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
         $this->itemModel->set_table($isAdmin ? 'central_supply' : 'inventory');
         $item = $this->itemModel->find($id);

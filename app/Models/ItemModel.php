@@ -37,7 +37,7 @@ class ItemModel extends Model
      */
     public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '')
     {
-        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator'], true);
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
         if ($isAdmin) {
             $builder = $this->db->table('central_supply')

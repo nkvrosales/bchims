@@ -9,6 +9,7 @@
         <div>
             <h1 class="page-title mb-1"> Inventory</h1>
         </div>
+        <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
         <div>
             <button type="button"
                     class="btn d-flex align-items-center gap-2"
@@ -20,6 +21,7 @@
                 <span>Add Item</span>
             </button>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -115,6 +117,7 @@
                                        title="View Item">
                                         <i class="bi bi-search"></i>
                                     </button>
+                                    <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                                     <button type="button"
                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                        data-bs-toggle="modal"
@@ -131,6 +134,7 @@
                                        title="Delete Item">
                                         <i class="fa-solid fa-trash"></i>
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
