@@ -379,14 +379,27 @@ h1, h2, h3, h4, h5, h6 {
 
 .navbar-user-profile-btn:hover,
 .navbar-user-profile-btn:focus {
-    background: #f8fafc;
-    border-color: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
-    transform: translateY(-1px);
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.navbar-user-profile-btn:hover .navbar-user-name,
+.navbar-user-profile-btn:focus .navbar-user-name,
+.navbar-user-profile-btn:hover .navbar-user-username,
+.navbar-user-profile-btn:focus .navbar-user-username {
+    color: #64748b !important;
+    opacity: 1 !important;
+}
+
+.navbar-user-profile-btn:hover .bi-person-circle,
+.navbar-user-profile-btn:focus .bi-person-circle {
+    color: #cbd5e1 !important;
 }
 
 .navbar-user-profile-btn:active {
-    transform: translateY(0);
+    transform: none !important;
 }
 
 /* Hide default Bootstrap arrow */

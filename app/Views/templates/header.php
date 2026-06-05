@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=1.0.2'); ?>">
 
     <link rel="icon" href="<?php echo base_url('bchlogo.ico'); ?>" type="image/x-icon">
 
@@ -163,15 +163,17 @@
                     }
                 ?>
                 <div class="dropdown">
-                    <button class="navbar-user-profile-btn dropdown-toggle d-flex align-items-center gap-2" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #cbd5e1; background: #ffffff; padding: 0.35rem 0.75rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); transition: all 0.2s ease;">
-                        <div class="user-avatar-square d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; border-radius: 8px; background-color: var(--primary); color: #ffffff; font-size: 0.8rem; font-family: var(--font-heading);">
-                            <?php echo $initials; ?>
+                    <button class="navbar-user-profile-btn d-flex align-items-center gap-2 bg-transparent border-0 p-0 shadow-none" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; outline: none;">
+                        <div style="border-left: 1px solid #cbd5e1; height: 32px; margin-right: 0.5rem; margin-left: 0.25rem;"></div>
+                        <div class="navbar-user-info text-start d-none d-sm-block" style="font-size: 0.95rem; color: #64748b; font-weight: 500; font-family: var(--font-body);">
+                            <?php 
+                                $roleLower = strtolower((string)session()->get('role'));
+                                $displayRole = ($roleLower === 'dev') ? 'DEVELOPER' : strtoupper($roleLower);
+                            ?>
+                            <span class="navbar-user-name" style="color: #64748b;"><?php echo htmlspecialchars($fullName); ?></span>
+                            <span class="navbar-user-username" style="color: #64748b; margin-left: 0.25rem;">(<?php echo $displayRole; ?>)</span>
                         </div>
-                        <div class="navbar-user-info text-start d-none d-sm-flex flex-column" style="line-height: 1.2;">
-                            <span class="navbar-user-name" style="font-size: 0.85rem; font-weight: 700; color: #1e293b;"><?php echo htmlspecialchars($fullName); ?></span>
-                            <span class="navbar-user-username text-muted" style="font-size: 0.7rem;"><?php echo ucfirst(session()->get('role')); ?></span>
-                        </div>
-                        <i class="fa-solid fa-chevron-down navbar-user-chevron ms-1" style="font-size: 0.7rem; color: #64748b;"></i>
+                        <i class="bi bi-person-circle" style="font-size: 2.3rem; color: #cbd5e1; line-height: 1;"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end navbar-user-dropdown-menu" aria-labelledby="userDropdownMenu">
                         <li class="navbar-dropdown-user-info">
