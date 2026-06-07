@@ -5,12 +5,12 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Auth::login');
+$routes->get('/', 'Auth::login', ['filter' => 'throttle']);
 $routes->get('logout', 'Auth::logout');
 
 $routes->group('auth', function($routes) {
-    $routes->get('login', 'Auth::login');
-    $routes->post('login', 'Auth::login');
+    $routes->get('login', 'Auth::login', ['filter' => 'throttle']);
+    $routes->post('login', 'Auth::login', ['filter' => 'throttle']);
     $routes->get('logout', 'Auth::logout');
 });
 
