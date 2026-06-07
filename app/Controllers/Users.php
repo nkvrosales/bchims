@@ -92,7 +92,7 @@ class Users extends BaseController
 
             $insert_data = array(
                 'username'       => strtolower($this->request->getPost('username')),
-                'email'          => !empty($email_val) ? strtolower($email_val) : '',
+                'email'          => !empty($email_val) ? strtolower($email_val) : null,
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
                 'password'       => $this->request->getPost('password'),
@@ -185,7 +185,7 @@ class Users extends BaseController
 
             $update_data = array(
                 'username'       => strtolower($this->request->getPost('username')),
-                'email'          => !empty($email_val) ? strtolower($email_val) : '',
+                'email'          => !empty($email_val) ? strtolower($email_val) : null,
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
                 'role_id'        => $role_id,

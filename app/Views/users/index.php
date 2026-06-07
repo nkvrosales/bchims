@@ -298,11 +298,18 @@
                             <label for="modal_password" class="form-label small fw-semibold text-secondary">
                                 Password <span class="text-danger">*</span>
                             </label>
-                            <input type="password"
-                                   class="form-control input-custom"
-                                   id="modal_password"
-                                   name="password"
-                                   required>
+                            <div class="position-relative">
+                                <input type="password"
+                                       class="form-control input-custom"
+                                       id="modal_password"
+                                       name="password"
+                                       required
+                                       style="padding-right: 40px;">
+                                <button type="button" id="toggleCreatePassword" tabindex="-1"
+                                        style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Role -->
@@ -507,11 +514,18 @@
                                     <label for="modal_edit_password_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
                                         New Password
                                     </label>
-                                    <input type="password"
-                                           class="form-control input-custom"
-                                           id="modal_edit_password_<?php echo $u['id']; ?>"
-                                           name="password"
-                                           placeholder="Leave blank to keep current">
+                                    <div class="position-relative">
+                                        <input type="password"
+                                               class="form-control input-custom"
+                                               id="modal_edit_password_<?php echo $u['id']; ?>"
+                                               name="password"
+                                               placeholder="Leave blank to keep current"
+                                               style="padding-right: 40px;">
+                                        <button type="button" class="toggle-edit-password" data-target="modal_edit_password_<?php echo $u['id']; ?>" tabindex="-1"
+                                                style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Role -->
@@ -738,6 +752,65 @@
     });
 </script>
 <?php endif; ?>
+
+<!-- Reset forms on modal close + password visibility toggle -->
+<script>
+    document.getElementById('createUserModal')?.addEventListener('hidden.bs.modal', function () {
+        this.querySelector('form').reset();
+        var btn = document.getElementById('toggleCreatePassword');
+        if (btn) btn.style.display = 'none';
+    });
+
+    document.querySelectorAll('[id^="editUserModal-"]').forEach(function(modal) {
+        modal.addEventListener('hidden.bs.modal', function () {
+            this.querySelector('form').reset();
+            this.querySelectorAll('.toggle-edit-password').forEach(function(btn) {
+                btn.style.display = 'none';
+            });
+        });
+    });
+
+    var toggleCreateBtn = document.getElementById('toggleCreatePassword');
+    var createInput = document.getElementById('modal_password');
+
+    createInput?.addEventListener('input', function() {
+        toggleCreateBtn.style.display = this.value ? '' : 'none';
+    });
+
+    toggleCreateBtn?.addEventListener('click', function() {
+        var icon = this.querySelector('i');
+        if (createInput.type === 'password') {
+            createInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            createInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+
+    document.querySelectorAll('.toggle-edit-password').forEach(function(btn) {
+        var editInput = document.getElementById(btn.dataset.target);
+
+        editInput?.addEventListener('input', function() {
+            btn.style.display = this.value ? '' : 'none';
+        });
+
+        btn.addEventListener('click', function() {
+            var icon = this.querySelector('i');
+            if (editInput.type === 'password') {
+                editInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                editInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+</script>
 
 <!-- Hover style for Add New User button -->
 <style>
