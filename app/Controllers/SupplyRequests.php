@@ -58,12 +58,18 @@ class SupplyRequests extends BaseController
         if (is_admin_role()) {
             $requests = $this->requestModel->get_requests();
             $items    = [];
+            $categories = [];
         } else {
             // Staff sees their own department's requests
             $requests = $this->requestModel->get_requests(null, $user['department_id'] ?? 0);
-            // Fetch Central Supply items for the request dropdown
+            // Fetch categories for the filter dropdown
+            $categories = $this->db->table('category')
+                                   ->orderBy('category_code', 'ASC')
+                                   ->get()->getResultArray();
+            // Fetch in-stock Central Supply items for the request dropdown
             $items = $this->db->table('central_supply')
-                              ->select('central_supply_id AS id, item_code, item_name AS name, quantity_on_hand AS quantity')
+                              ->select('central_supply_id AS id, item_code, item_name AS name, quantity_on_hand AS quantity, category_id')
+                              ->where('quantity_on_hand >', 0)
                               ->orderBy('item_name', 'ASC')
                               ->get()->getResultArray();
         }
@@ -94,11 +100,12 @@ class SupplyRequests extends BaseController
             }));
         }
 
-        $data['title']    = 'Supply Requests';
-        $data['requests'] = $requests;
-        $data['user']     = $user;
-        $data['items']    = $items;
-        $data['search']   = $search;
+        $data['title']      = 'Supply Requests';
+        $data['requests']   = $requests;
+        $data['user']       = $user;
+        $data['items']      = $items;
+        $data['categories'] = $categories;
+        $data['search']     = $search;
 
         return view('templates/header', $data)
              . view('supply_requests/index', $data)

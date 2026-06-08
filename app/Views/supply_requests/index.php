@@ -13,7 +13,7 @@
                         data-bs-target="#createRequestModal"
                         style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
                     <i class="fa-solid fa-file-circle-plus"></i>
-                    <span>New Supply Request</span>
+                    <span>Supply Request</span>
                 </button>
             <?php endif; ?>
         </div>
@@ -517,15 +517,10 @@
 
             <!-- Modal Header -->
             <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; ">
-                        <i class="fa-solid fa-file-invoice" style="color: #000000; font-size: 1rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0" id="createRequestModalLabel" style="color: #0f172a; font-size: 1.25rem; letter-spacing: -0.01em;">
-                            New Supply Request
-                        </h5>
-                    </div>
+                <div class="d-flex align-items-center">
+                    <h5 class="modal-title fw-bold mb-0" id="createRequestModalLabel" style="color: #0f172a; font-size: 1.25rem; letter-spacing: -0.01em;">
+                        Supply Request
+                    </h5>
                 </div>
                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
             </div>
@@ -548,16 +543,33 @@
                     <?php endif; ?>
 
                     <div class="row g-3">
+                        <!-- Select Category -->
+                        <div class="col-12">
+                            <label for="modal_category_id" class="form-label small fw-semibold text-secondary">
+                                Category
+                            </label>
+                            <select class="form-select input-custom" id="modal_category_id">
+                                <option value="">All Categories</option>
+                                <?php foreach (($categories ?? []) as $cat): ?>
+                                    <option value="<?php echo $cat['category_id']; ?>">
+                                        <?php echo htmlspecialchars($cat['category_code'] . ' - ' . $cat['category_description']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <!-- Select Item -->
                         <div class="col-12">
                             <label for="modal_item_id" class="form-label small fw-semibold text-secondary">
                                 Select Item <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom" id="modal_item_id" name="item_id" required>
-                                <option value="">Choose an item</option>
+                                <option value="" disabled selected hidden>Choose an item</option>
                                 <?php foreach ($items as $item): ?>
-                                    <option value="<?php echo $item['id']; ?>" <?php echo old('item_id') == $item['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($item['name']); ?> (<?php echo htmlspecialchars($item['item_code']); ?>) — Stock: <?php echo $item['quantity']; ?>
+                                    <option value="<?php echo $item['id']; ?>"
+                                            data-category="<?php echo $item['category_id']; ?>"
+                                            <?php echo old('item_id') == $item['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($item['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -610,6 +622,19 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('modal_category_id')?.addEventListener('change', function() {
+    var catId = this.value;
+    var itemSelect = document.getElementById('modal_item_id');
+    for (var i = 0; i < itemSelect.options.length; i++) {
+        var opt = itemSelect.options[i];
+        if (!opt.value) continue;
+        opt.style.display = (!catId || opt.getAttribute('data-category') === catId) ? '' : 'none';
+    }
+    itemSelect.value = '';
+});
+</script>
 
 <!-- Auto-open modal on validation failure -->
 <?php if (session()->getFlashdata('create_request_modal_open')): ?>
