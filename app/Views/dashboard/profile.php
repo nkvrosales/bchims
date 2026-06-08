@@ -46,7 +46,6 @@
         <div class="standard-card">
             <div class="card-header-styled mb-4">
                 <h5 class="card-title-styled">
-                    <i class="fa-solid fa-user-gear text-primary"></i>
                     <span>Profile</span>
                 </h5>
             </div>

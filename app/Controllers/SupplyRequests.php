@@ -105,15 +105,15 @@ class SupplyRequests extends BaseController
              . view('templates/footer');
     }
 
-    /**
-     * Submit a new supply request (Staff only).
-     */
+     /**
+      * Submit a new supply request (Encoder only).
+      */
     public function create()
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (session()->get('role') !== 'staff') {
-            session()->setFlashdata('error', 'Administrators are not permitted to submit supply requests.');
+        if (session()->get('role') !== 'encoder') {
+            session()->setFlashdata('error', 'Only encoders are permitted to submit supply requests.');
             return redirect()->to('supply_requests');
         }
 

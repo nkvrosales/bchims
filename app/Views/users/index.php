@@ -9,7 +9,8 @@
                     class="btn d-flex align-items-center gap-2"
                     id="btnAddNewUser"
                     data-bs-toggle="modal"
-                    data-bs-target="#createUserModal"
+                    data-bs-target="#userModal"
+                    onclick="setupUserModal('add')"
                     style="background: #10b981 ; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
                 <i class="fa-solid fa-user-plus"></i>
                 <span>Add New User</span>
@@ -43,7 +44,7 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <i class="fa-solid fa-users text-primary"></i>
+            
             <span>Users</span>
         </h5>
     </div>
@@ -69,6 +70,7 @@
                     foreach ($users as $u):
                         $initials = strtoupper(substr($u['first_name'], 0, 1)) . strtoupper(substr($u['last_name'], 0, 1));
                         $color = $avatar_palette[ord(strtoupper($u['last_name'][0] ?? 'A')) % count($avatar_palette)];
+                        $is_self = ((int)$u['id'] === (int)$current_user_id);
                     ?>
                     <tr>
                         <!-- Username -->
@@ -116,8 +118,8 @@
                         <!-- Department -->
                         <td>
                             <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
-                                <?php if (!empty($u['department_code'])): ?>
-                                    <?php echo htmlspecialchars($u['department_code']); ?>
+                                <?php if (!empty($u['department_name'])): ?>
+                                    <?php echo htmlspecialchars($u['department_name']); ?>
                                 <?php elseif (in_array(strtolower($u['role']), ['admin', 'dev', 'administrator'])): ?>
                                     Administrator
                                 <?php else: ?>
@@ -155,7 +157,17 @@
                                         class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                         style="width: 32px; height: 32px;"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#editUserModal-<?php echo $u['id']; ?>"
+                                        data-bs-target="#userModal"
+                                        data-id="<?php echo $u['id']; ?>"
+                                        data-username="<?php echo htmlspecialchars($u['username']); ?>"
+                                        data-first-name="<?php echo htmlspecialchars($u['first_name']); ?>"
+                                        data-last-name="<?php echo htmlspecialchars($u['last_name']); ?>"
+                                        data-email="<?php echo htmlspecialchars($u['email'] ?? ''); ?>"
+                                        data-role="<?php echo htmlspecialchars(strtolower($u['role'])); ?>"
+                                        data-department-id="<?php echo htmlspecialchars($u['department_id'] ?? ''); ?>"
+                                        data-is-active="<?php echo htmlspecialchars($u['is_active']); ?>"
+                                        data-is-self="<?php echo $is_self ? 'true' : 'false'; ?>"
+                                        onclick="setupUserModal('edit', this.dataset)"
                                         title="Edit User">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
@@ -166,7 +178,7 @@
                                             style="width: 32px; height: 32px;"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteUserModal-<?php echo $u['id']; ?>"
-                                            title="Delete User">
+                                            title="Deactivate User">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 <?php else: ?>
@@ -189,31 +201,18 @@
 </div>
 
 
-<!-- ===================== CREATE USER MODAL ===================== -->
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+<!-- ===================== USER MODAL ===================== -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
             <!-- Modal Header -->
-            <div class="modal-header border-bottom px-4"
-                 style=" padding-top: 1.1rem; padding-bottom: 1.1rem;">
+            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                 <div class="d-flex align-items-center">
-                    <div style="
-                        width: 40px; height: 40px;
-                        border-radius: 10px;
-                        background: rgba(255,255,255,0.12);
-                        border: 1px solid rgba(255,255,255,0.18);
-                        display: flex; align-items: center; justify-content: center;
-                        flex-shrink: 0;
-                    ">
-                        <i class="fa-solid fa-user-plus" style="color: #000000ff; font-size: 1rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0" id="createUserModalLabel"
-                            style="color: #000000ff; font-size: 1.4rem; letter-spacing: -0.01em;">
-                            Add New User
-                        </h5>
-                    </div>
+                    <h5 class="modal-title fw-bold mb-0" id="userModalLabel"
+                        style="color: #000000ff; font-size: 1.4rem; letter-spacing: -0.01em;">
+                        Add New User
+                    </h5>
                 </div>
                 <button type="button"
                         class="btn-close btn-close-dark"
@@ -223,17 +222,23 @@
             </div>
 
             <!-- Form -->
-            <form method="POST" action="<?php echo base_url('users/create'); ?>">
+            <form method="POST" action="<?php echo base_url('users/create'); ?>" id="userForm">
                 <div class="modal-body px-4 py-4">
 
                     <!-- Validation Errors -->
-                    <?php if ($create_errors = session()->getFlashdata('create_validation_errors')): ?>
+                    <?php 
+                    $create_errors = session()->getFlashdata('create_validation_errors');
+                    $edit_errors = session()->getFlashdata('edit_validation_errors');
+                    $has_errors = !empty($create_errors) || !empty($edit_errors);
+                    $errors_to_show = $create_errors ?: $edit_errors;
+                    if ($has_errors): 
+                    ?>
                     <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
                         <div class="d-flex align-items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation mt-1"></i>
                             <div>
                                 <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
-                                <div class="small"><?php echo $create_errors; ?></div>
+                                <div class="small"><?php echo $errors_to_show; ?></div>
                             </div>
                         </div>
                     </div>
@@ -250,7 +255,6 @@
                                    class="form-control input-custom"
                                    id="modal_first_name"
                                    name="first_name"
-                                   value="<?php echo old('first_name'); ?>"
                                    required>
                         </div>
 
@@ -263,7 +267,6 @@
                                    class="form-control input-custom"
                                    id="modal_last_name"
                                    name="last_name"
-                                   value="<?php echo old('last_name'); ?>"
                                    required>
                         </div>
 
@@ -276,7 +279,6 @@
                                    class="form-control input-custom"
                                    id="modal_username"
                                    name="username"
-                                   value="<?php echo old('username'); ?>"
                                    required>
                         </div>
 
@@ -288,14 +290,12 @@
                             <input type="email"
                                    class="form-control input-custom"
                                    id="modal_email"
-                                   name="email"
-                                   value="<?php echo old('email'); ?>"
-                                   >
+                                   name="email">
                         </div>
 
                         <!-- Password -->
                         <div class="col-12 col-sm-6">
-                            <label for="modal_password" class="form-label small fw-semibold text-secondary">
+                            <label for="modal_password" class="form-label small fw-semibold text-secondary" id="label_password">
                                 Password <span class="text-danger">*</span>
                             </label>
                             <div class="position-relative">
@@ -319,22 +319,24 @@
                             </label>
                             <select class="form-select input-custom" id="modal_role" name="role" required>
                                 <option value="">Select Role</option>
-                                <option value="dev" <?php echo old('role') === 'dev' ? 'selected' : ''; ?>>Dev</option>
-                                <option value="admin" <?php echo old('role') === 'admin' ? 'selected' : ''; ?>>Administrator</option>
-                                <option value="encoder" <?php echo old('role') === 'encoder' ? 'selected' : ''; ?>>Encoder</option>
-                                <option value="viewer" <?php echo old('role') === 'viewer' ? 'selected' : ''; ?>>Viewer</option>
+                                <option value="admin">Administrator</option>
+                                <option value="encoder">Encoder</option>
+                                <option value="viewer">Viewer</option>
                             </select>
+                            <div class="form-text small text-secondary" id="roleSelfInfo" style="display: none;">
+                                <i class="fa-solid fa-circle-info me-1"></i>You cannot demote your active admin session.
+                            </div>
                         </div>
 
                         <!-- Department -->
                         <div class="col-12 col-sm-6">
                             <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department</label>
                             <select class="form-select input-custom" id="modal_department_id" name="department_id">
+                                <option value="">Select Department</option>
                                 <option value="">Administrator</option>
                                 <?php if (!empty($departments)): ?>
                                     <?php foreach ($departments as $d): ?>
-                                        <option value="<?php echo $d['id']; ?>"
-                                            <?php echo old('department_id') == $d['id'] ? 'selected' : ''; ?>>
+                                        <option value="<?php echo $d['id']; ?>">
                                             <?php echo htmlspecialchars($d['name']); ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -343,14 +345,17 @@
                         </div>
 
                         <!-- Status -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-6" id="statusContainer">
                             <label for="modal_is_active" class="form-label small fw-semibold text-secondary">
                                 Status <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom" id="modal_is_active" name="is_active" required>
-                                <option value="1" <?php echo (old('is_active', '1') === '1') ? 'selected' : ''; ?>>Active</option>
-                                <option value="0" <?php echo old('is_active') === '0' ? 'selected' : ''; ?>>Inactive</option>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
                             </select>
+                            <div class="form-text small text-secondary" id="statusSelfInfo" style="display: none;">
+                                <i class="fa-solid fa-circle-info me-1"></i>You cannot deactivate your active admin session.
+                            </div>
                         </div>
 
                     </div><!-- /.row -->
@@ -375,6 +380,7 @@
                         Cancel
                     </button>
                     <button type="submit"
+                            id="btnSubmitUser"
                             style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
                             onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
                             onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
@@ -395,240 +401,7 @@
         
         $initials = strtoupper(substr($u['first_name'], 0, 1)) . strtoupper(substr($u['last_name'], 0, 1));
         $color = $avatar_palette[ord(strtoupper($u['last_name'][0] ?? 'A')) % count($avatar_palette)];
-        
-        // Handle validation errors or old input values for this specific user edit modal
-        $open_id = session()->getFlashdata('edit_modal_open_id');
-        $is_open = ($open_id == $u['id']);
-        
-        $val_first_name = $is_open ? old('first_name', $u['first_name']) : $u['first_name'];
-        $val_last_name = $is_open ? old('last_name', $u['last_name']) : $u['last_name'];
-        $val_username = $is_open ? old('username', $u['username']) : $u['username'];
-        $val_role = strtolower($is_open ? old('role', $u['role']) : $u['role']);
-        $val_dept_id = $is_open ? old('department_id', $u['department_id']) : $u['department_id'];
-        $val_is_active = $is_open ? old('is_active', $u['is_active']) : $u['is_active'];
     ?>
-        <!-- ===================== EDIT USER MODAL (User: @<?php echo htmlspecialchars($u['username']); ?>) ===================== -->
-        <div class="modal fade" id="editUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="editUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-
-                    <!-- Modal Header -->
-                    <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                        <div class="d-flex align-items-center">
-                            <div style="
-                                width: 40px; height: 40px;
-                               
-                                display: flex; align-items: center; justify-content: center;
-                                flex-shrink: 0;
-                            ">
-                                <i class="fa-solid fa-user-pen" style="color: #000000ff; font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold mb-0" id="editUserModalLabel-<?php echo $u['id']; ?>"
-                                    style="color: #1e293b; font-size: 1.4rem; letter-spacing: -0.01em; margin-left: 0.75rem;">
-                                    Edit User Account
-                                </h5>
-                                
-                            </div>
-                        </div>
-                        <button type="button"
-                                class="btn-close btn-close-dark"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                                style="opacity: 0.6;"></button>
-                    </div>
-
-                    <!-- Form -->
-                    <form method="POST" action="<?php echo base_url('users/edit/' . $u['id']); ?>">
-                        <div class="modal-body px-4 py-4">
-
-                            <!-- Validation Errors -->
-                            <?php if ($is_open && $edit_errors = session()->getFlashdata('edit_validation_errors')): ?>
-                            <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
-                                <div class="d-flex align-items-start gap-2">
-                                    <i class="fa-solid fa-triangle-exclamation mt-1"></i>
-                                    <div>
-                                        <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
-                                        <div class="small"><?php echo $edit_errors; ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-
-                            <div class="row g-3">
-
-                                <!-- First Name -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_first_name_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        First Name <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="modal_edit_first_name_<?php echo $u['id']; ?>"
-                                           name="first_name"
-                                           value="<?php echo htmlspecialchars($val_first_name); ?>"
-                                           required>
-                                </div>
-
-                                <!-- Last Name -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_last_name_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Last Name <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="modal_edit_last_name_<?php echo $u['id']; ?>"
-                                           name="last_name"
-                                           value="<?php echo htmlspecialchars($val_last_name); ?>"
-                                           required>
-                                </div>
-
-                                <!-- Username -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_username_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Username <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="modal_edit_username_<?php echo $u['id']; ?>"
-                                           name="username"
-                                           value="<?php echo htmlspecialchars($val_username); ?>"
-                                           required>
-                                </div>
-
-                                <!-- Email -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_email_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Email
-                                    </label>
-                                    <input type="email"
-                                           class="form-control input-custom"
-                                           id="modal_edit_email_<?php echo $u['id']; ?>"
-                                           name="email"
-                                           value="<?php echo htmlspecialchars($is_open ? old('email', $u['email']) : $u['email']); ?>"
-                                           >
-                                </div>
-
-                                <!-- Password (Optional) -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_password_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        New Password
-                                    </label>
-                                    <div class="position-relative">
-                                        <input type="password"
-                                               class="form-control input-custom"
-                                               id="modal_edit_password_<?php echo $u['id']; ?>"
-                                               name="password"
-                                               placeholder="Leave blank to keep current"
-                                               style="padding-right: 40px;">
-                                        <button type="button" class="toggle-edit-password" data-target="modal_edit_password_<?php echo $u['id']; ?>" tabindex="-1"
-                                                style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Role -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_role_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Role <span class="text-danger">*</span>
-                                    </label>
-                                    <?php if ($is_self): ?>
-                                        <select class="form-select input-custom bg-light" id="modal_edit_role_disabled_<?php echo $u['id']; ?>" disabled style="cursor: not-allowed;">
-                                            <option value="<?php echo htmlspecialchars($val_role); ?>" selected><?php echo htmlspecialchars(ucfirst($val_role)); ?></option>
-                                        </select>
-                                        <input type="hidden" name="role" value="<?php echo htmlspecialchars($val_role); ?>">
-                                        <div class="form-text small text-secondary"><i class="fa-solid fa-circle-info me-1"></i>You cannot demote your active admin session.</div>
-                                    <?php else: ?>
-                                        <select class="form-select input-custom" id="modal_edit_role_<?php echo $u['id']; ?>" name="role" required>
-                                            <option value="dev" <?php echo ($val_role === 'dev') ? 'selected' : ''; ?>>Dev</option>
-                                            <option value="admin" <?php echo ($val_role === 'admin' || $val_role === 'administrator') ? 'selected' : ''; ?>>Administrator</option>
-                                            <option value="encoder" <?php echo ($val_role === 'encoder') ? 'selected' : ''; ?>>Encoder</option>
-                                            <option value="viewer" <?php echo ($val_role === 'viewer') ? 'selected' : ''; ?>>Viewer</option>
-                                        </select>
-                                    <?php endif; ?>
-                                </div>
-
-                                <!-- Department -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_department_id_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">Department</label>
-                                    <select class="form-select input-custom" id="modal_edit_department_id_<?php echo $u['id']; ?>" name="department_id">
-                                        <option value="">Administrator</option>
-                                        <?php if (!empty($departments)): ?>
-                                            <?php foreach ($departments as $d): ?>
-                                                <option value="<?php echo $d['id']; ?>"
-                                                    <?php echo ($val_dept_id == $d['id']) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($d['name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </select>
-                                </div>
-
-                                <!-- Status -->
-                                <div class="col-12 col-sm-6">
-                                    <label for="modal_edit_is_active_<?php echo $u['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Status <span class="text-danger">*</span>
-                                    </label>
-                                    <?php if ($is_self): ?>
-                                        <select class="form-select input-custom bg-light" id="modal_edit_is_active_disabled_<?php echo $u['id']; ?>" disabled style="cursor: not-allowed;">
-                                            <option value="1" selected>Active</option>
-                                        </select>
-                                        <input type="hidden" name="is_active" value="1">
-                                        <div class="form-text small text-secondary"><i class="fa-solid fa-circle-info me-1"></i>You cannot deactivate your active admin session.</div>
-                                    <?php else: ?>
-                                        <select class="form-select input-custom" id="modal_edit_is_active_<?php echo $u['id']; ?>" name="is_active" required>
-                                            <option value="1" <?php echo ($val_is_active == 1) ? 'selected' : ''; ?>>Active</option>
-                                            <option value="0" <?php echo ($val_is_active == 0) ? 'selected' : ''; ?>>Inactive</option>
-                                        </select>
-                                    <?php endif; ?>
-                                </div>
-
-                            </div><!-- /.row -->
-                        </div><!-- /.modal-body -->
-
-                        <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                            <button type="button"
-                                    data-bs-dismiss="modal"
-                                    style="
-                                        background: #fff;
-                                        color: #374151;
-                                        border: 1.5px solid #d1d5db;
-                                        border-radius: 8px;
-                                        padding: 0.5rem 1.4rem;
-                                        font-size: 0.9rem;
-                                        font-weight: 500;
-                                        cursor: pointer;
-                                        transition: background 0.15s, border-color 0.15s;
-                                    "
-                                    onmouseover="this.style.background='#f9fafb'"
-                                    onmouseout="this.style.background='#fff'">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                    style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
-                                Save Account
-                            </button>
-                        </div>
-                    </form>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Auto-open logic for edit validation error -->
-        <?php if ($is_open): ?>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var el = document.getElementById('editUserModal-<?php echo $u['id']; ?>');
-                if (el) { new bootstrap.Modal(el).show(); }
-            });
-        </script>
-        <?php endif; ?>
-
-
         <!-- ===================== DELETE CONFIRMATION MODAL (User: @<?php echo htmlspecialchars($u['username']); ?>) ===================== -->
         <?php if (!$is_self): ?>
         <div class="modal fade" id="deleteUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="deleteUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
@@ -648,7 +421,7 @@
                             <div>
                                 <h5 class="modal-title fw-bold mb-0" id="deleteUserModalLabel-<?php echo $u['id']; ?>"
                                     style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em; margin-left: 0.75rem;">
-                                    Delete User Account
+                                    Deactivate User Account
                                 </h5>
                             </div>
                         </div>
@@ -686,7 +459,7 @@
                         </div>
                         
                         <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                            Are you sure you want to permanently delete this user account? This action **cannot be undone** and will be recorded in the system audit trail.
+                            Are you sure you want to deactivate this user account? The user will be marked as <strong>Inactive</strong> and will no longer be able to log in. This action will be recorded in the system audit trail.
                         </p>
                     </div>
 
@@ -714,7 +487,7 @@
                         </button>
                         <a href="<?php echo base_url('users/delete/' . $u['id']); ?>"
                            style="
-                               background: #ef4444;
+                               background: #ef4444;;
                                color: #fff;
                                border: 1px solid transparent;
                                border-radius: 8px;
@@ -723,15 +496,15 @@
                                font-weight: 600;
                                text-decoration: none;
                                cursor: pointer;
-                               box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+                               box-shadow: 0 2px 8px rgba(245,158,11,0.3);
                                transition: background 0.15s, box-shadow 0.15s;
                                display: inline-flex;
                                align-items: center;
                                height: 38px;
                            "
-                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'"
-                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(239,68,68,0.3)'">
-                            Delete Account
+                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
+                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                            Deactivate Account
                         </a>
                     </div>
 
@@ -743,74 +516,207 @@
     <?php endforeach; ?>
 <?php endif; ?>
 
-<!-- Auto-open modal on validation failure -->
-<?php if (session()->getFlashdata('create_modal_open')): ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var el = document.getElementById('createUserModal');
-        if (el) { new bootstrap.Modal(el).show(); }
-    });
-</script>
-<?php endif; ?>
-
 <!-- Reset forms on modal close + password visibility toggle -->
 <script>
-    document.getElementById('createUserModal')?.addEventListener('hidden.bs.modal', function () {
-        this.querySelector('form').reset();
-        var btn = document.getElementById('toggleCreatePassword');
-        if (btn) btn.style.display = 'none';
-    });
+    function setupUserModal(mode, data = {}) {
+        const modal = document.getElementById('userModal');
+        if (!modal) return;
+        
+        const form = modal.querySelector('form');
+        const labelPassword = document.getElementById('label_password');
+        const passwordInput = document.getElementById('modal_password');
+        const statusContainer = document.getElementById('statusContainer');
+        const modalTitle = document.getElementById('userModalLabel');
+        const submitBtn = document.getElementById('btnSubmitUser');
+        
+        const roleSelect = document.getElementById('modal_role');
+        const statusSelect = document.getElementById('modal_is_active');
+        const roleSelfInfo = document.getElementById('roleSelfInfo');
+        const statusSelfInfo = document.getElementById('statusSelfInfo');
+        
+        // Remove existing hidden self-inputs
+        form.querySelectorAll('.self-hidden-input').forEach(el => el.remove());
+        
+        // Reset password toggle visibility
+        var toggleBtn = document.getElementById('toggleCreatePassword');
+        if (toggleBtn) toggleBtn.style.display = 'none';
+        
+        if (mode === 'add') {
+            modalTitle.textContent = 'Add New User';
+            form.action = '<?php echo base_url('users/create'); ?>';
+            submitBtn.textContent = 'Add User';
+            
+            labelPassword.innerHTML = 'Password <span class="text-danger">*</span>';
+            passwordInput.required = true;
+            passwordInput.placeholder = '';
+            
+            statusContainer.style.display = 'none';
+            statusSelect.required = false;
+            
+            // Populate fields
+            document.getElementById('modal_first_name').value = data.firstName || '';
+            document.getElementById('modal_last_name').value = data.lastName || '';
+            document.getElementById('modal_username').value = data.username || '';
+            document.getElementById('modal_email').value = data.email || '';
+            passwordInput.value = '';
+            roleSelect.value = data.role || '';
+            document.getElementById('modal_department_id').value = data.departmentId || '';
+            statusSelect.value = '1';
+            
+            roleSelect.disabled = false;
+            statusSelect.disabled = false;
+            if (roleSelfInfo) roleSelfInfo.style.display = 'none';
+            if (statusSelfInfo) statusSelfInfo.style.display = 'none';
+            
+        } else if (mode === 'edit') {
+            modalTitle.textContent = 'Edit User Account';
+            form.action = '<?php echo base_url('users/edit'); ?>/' + data.id;
+            submitBtn.textContent = 'Save Account';
+            
+            labelPassword.textContent = 'New Password';
+            passwordInput.required = false;
+            passwordInput.placeholder = 'Leave blank to keep current';
+            
+            statusContainer.style.display = 'block';
+            statusSelect.required = true;
+            
+            // Populate fields
+            document.getElementById('modal_first_name').value = data.firstName || '';
+            document.getElementById('modal_last_name').value = data.lastName || '';
+            document.getElementById('modal_username').value = data.username || '';
+            document.getElementById('modal_email').value = data.email || '';
+            passwordInput.value = '';
+            document.getElementById('modal_department_id').value = data.departmentId || '';
+            
+            const isSelf = data.isSelf === 'true' || data.isSelf === true;
+            if (isSelf) {
+                roleSelect.value = data.role || '';
+                roleSelect.disabled = true;
+                if (roleSelfInfo) roleSelfInfo.style.display = 'block';
+                
+                statusSelect.value = '1';
+                statusSelect.disabled = true;
+                if (statusSelfInfo) statusSelfInfo.style.display = 'block';
+                
+                // Add hidden inputs since disabled fields are not submitted
+                const hiddenRole = document.createElement('input');
+                hiddenRole.type = 'hidden';
+                hiddenRole.name = 'role';
+                hiddenRole.value = data.role || '';
+                hiddenRole.className = 'self-hidden-input';
+                form.appendChild(hiddenRole);
+                
+                const hiddenActive = document.createElement('input');
+                hiddenActive.type = 'hidden';
+                hiddenActive.name = 'is_active';
+                hiddenActive.value = '1';
+                hiddenActive.className = 'self-hidden-input';
+                form.appendChild(hiddenActive);
+            } else {
+                roleSelect.value = data.role || '';
+                roleSelect.disabled = false;
+                if (roleSelfInfo) roleSelfInfo.style.display = 'none';
+                
+                statusSelect.value = data.isActive !== undefined ? data.isActive : '1';
+                statusSelect.disabled = false;
+                if (statusSelfInfo) statusSelfInfo.style.display = 'none';
+            }
+        }
+    }
 
-    document.querySelectorAll('[id^="editUserModal-"]').forEach(function(modal) {
-        modal.addEventListener('hidden.bs.modal', function () {
-            this.querySelector('form').reset();
-            this.querySelectorAll('.toggle-edit-password').forEach(function(btn) {
-                btn.style.display = 'none';
-            });
-        });
-    });
-
-    var toggleCreateBtn = document.getElementById('toggleCreatePassword');
-    var createInput = document.getElementById('modal_password');
-
-    createInput?.addEventListener('input', function() {
-        toggleCreateBtn.style.display = this.value ? '' : 'none';
-    });
-
-    toggleCreateBtn?.addEventListener('click', function() {
-        var icon = this.querySelector('i');
-        if (createInput.type === 'password') {
-            createInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            createInput.type = 'password';
+    document.getElementById('userModal')?.addEventListener('hidden.bs.modal', function () {
+        const form = this.querySelector('form');
+        form.reset();
+        form.querySelectorAll('.self-hidden-input').forEach(el => el.remove());
+        document.getElementById('modal_role').disabled = false;
+        document.getElementById('modal_is_active').disabled = false;
+        
+        var toggleBtn = document.getElementById('toggleCreatePassword');
+        if (toggleBtn) toggleBtn.style.display = 'none';
+        document.getElementById('modal_password').type = 'password';
+        
+        var icon = toggleBtn?.querySelector('i');
+        if (icon) {
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
         }
     });
 
-    document.querySelectorAll('.toggle-edit-password').forEach(function(btn) {
-        var editInput = document.getElementById(btn.dataset.target);
+    // Password visibility toggle
+    var togglePasswordBtn = document.getElementById('toggleCreatePassword');
+    var passwordInput = document.getElementById('modal_password');
 
-        editInput?.addEventListener('input', function() {
-            btn.style.display = this.value ? '' : 'none';
-        });
+    passwordInput?.addEventListener('input', function() {
+        if (togglePasswordBtn) {
+            togglePasswordBtn.style.display = this.value ? '' : 'none';
+        }
+    });
 
-        btn.addEventListener('click', function() {
-            var icon = this.querySelector('i');
-            if (editInput.type === 'password') {
-                editInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                editInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
+    togglePasswordBtn?.addEventListener('click', function() {
+        var icon = this.querySelector('i');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     });
 </script>
+
+<!-- Auto-open modal on validation failure -->
+<?php if (session()->getFlashdata('create_modal_open')): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const data = {
+            firstName: <?php echo json_encode(old('first_name') ?? ''); ?>,
+            lastName: <?php echo json_encode(old('last_name') ?? ''); ?>,
+            username: <?php echo json_encode(old('username') ?? ''); ?>,
+            email: <?php echo json_encode(old('email') ?? ''); ?>,
+            role: <?php echo json_encode(old('role') ?? ''); ?>,
+            departmentId: <?php echo json_encode(old('department_id') ?? ''); ?>,
+        };
+        setupUserModal('add', data);
+        var el = document.getElementById('userModal');
+        if (el) { new bootstrap.Modal(el).show(); }
+    });
+</script>
+<?php endif; ?>
+
+<?php if ($open_id = session()->getFlashdata('edit_modal_open_id')): 
+    // Find user in $users
+    $failed_user = null;
+    foreach ($users as $u) {
+        if ((int)$u['id'] === (int)$open_id) {
+            $failed_user = $u;
+            break;
+        }
+    }
+    if ($failed_user):
+        $is_self = ((int)$failed_user['id'] === (int)session()->get('user_id'));
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const data = {
+            id: <?php echo json_encode($failed_user['id']); ?>,
+            firstName: <?php echo json_encode(old('first_name', $failed_user['first_name'])); ?>,
+            lastName: <?php echo json_encode(old('last_name', $failed_user['last_name'])); ?>,
+            username: <?php echo json_encode(old('username', $failed_user['username'])); ?>,
+            email: <?php echo json_encode(old('email', $failed_user['email'])); ?>,
+            role: <?php echo json_encode(old('role', strtolower($failed_user['role']))); ?>,
+            departmentId: <?php echo json_encode(old('department_id', $failed_user['department_id'])); ?>,
+            isActive: <?php echo json_encode(old('is_active', $failed_user['is_active'])); ?>,
+            isSelf: <?php echo $is_self ? 'true' : 'false'; ?>
+        };
+        setupUserModal('edit', data);
+        var el = document.getElementById('userModal');
+        if (el) { new bootstrap.Modal(el).show(); }
+    });
+</script>
+<?php endif; ?>
+<?php endif; ?>
 
 <!-- Hover style for Add New User button -->
 <style>

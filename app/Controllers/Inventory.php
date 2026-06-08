@@ -118,7 +118,7 @@ class Inventory extends BaseController
         }
 
         $role = session()->get('role');
-        if (strtolower((string) $role) === 'viewer') {
+        if (in_array(strtolower((string) $role), ['viewer', 'encoder'], true)) {
             session()->setFlashdata('error', 'You do not have permission to add inventory items.');
             return redirect()->to('inventory');
         }

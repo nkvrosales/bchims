@@ -14,7 +14,7 @@ class DepartmentModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['department_name'];
+    protected $allowedFields = ['department_name', 'department_code'];
 
     protected $useTimestamps = false;
 
@@ -23,7 +23,7 @@ class DepartmentModel extends Model
      */
     public function find($id = null)
     {
-        return $this->select("department_id AS id, department_name AS name, NULL AS created_at")
+        return $this->select("department_id AS id, department_name AS name, department_code AS code, NULL AS created_at")
                     ->where('department_id', $id)
                     ->first();
     }
@@ -33,7 +33,7 @@ class DepartmentModel extends Model
      */
     public function get_departments()
     {
-        return $this->select("department_id AS id, department_name AS name, NULL AS created_at")
+        return $this->select("department_id AS id, department_name AS name, department_code AS code, NULL AS created_at")
                     ->orderBy('department_name', 'ASC')
                     ->findAll();
     }
@@ -52,7 +52,8 @@ class DepartmentModel extends Model
     public function insert_department($data)
     {
         $insert_data = [
-            'department_name' => $data['name'] ?? $data['department_name'] ?? ''
+            'department_name' => $data['name'] ?? $data['department_name'] ?? '',
+            'department_code' => $data['code'] ?? $data['department_code'] ?? null
         ];
         return $this->insert($insert_data);
     }
@@ -65,6 +66,9 @@ class DepartmentModel extends Model
         $update_data = [];
         if (isset($data['name'])) {
             $update_data['department_name'] = $data['name'];
+        }
+        if (isset($data['code'])) {
+            $update_data['department_code'] = $data['code'];
         }
         return $this->update($id, $update_data);
     }

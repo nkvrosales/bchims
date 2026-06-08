@@ -11,7 +11,7 @@
                     data-bs-toggle="modal"
                     data-bs-target="#createDeptModal"
                     style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.2s;">
-                <i class="fa-solid fa-circle-plus"></i>
+                <i class="fa-solid fa-plus"></i>
                 <span>Add Department</span>
             </button>
         </div>
@@ -43,7 +43,6 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <i class="fa-solid fa-hospital-user text-primary"></i>
             <span>Hospital Departments</span>
         </h5>
     </div>
@@ -52,16 +51,18 @@
         <table class="table table-custom table-hover w-100" id="departmentsTable">
             <thead>
                 <tr>
-                    <th style="width: 5%">#</th>
-                    <th style="width: 80%">Department Name</th>
+                    <th style="width: 20%">Department Code</th>
+                    <th style="width: 65%">Department Name</th>
                     <th style="width: 15%" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (!empty($departments)): ?>
-                    <?php foreach ($departments as $index => $dept): ?>
+                    <?php foreach ($departments as $dept): ?>
                         <tr>
-                            <td class="small text-secondary fw-semibold"><?php echo $index + 1; ?></td>
+                            <td>
+                                <span class="fw-semibold text-dark" style="font-size: 0.9rem;"><?php echo htmlspecialchars($dept['code'] ?? '—'); ?></span>
+                            </td>
 
                             <td>
                                 <span class="fw-semibold text-dark"><?php echo htmlspecialchars($dept['name']); ?></span>
@@ -141,6 +142,19 @@
                     </div>
                     <?php endif; ?>
 
+                    <!-- Department Code -->
+                    <div class="mb-3">
+                        <label for="create_dept_code" class="form-label small fw-semibold text-secondary">
+                            Department Code <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control input-custom"
+                               id="create_dept_code"
+                               name="code"
+                               value="<?php echo old('code'); ?>"
+                               required>
+                    </div>
+
                     <!-- Department Name -->
                     <div>
                         <label for="create_dept_name" class="form-label small fw-semibold text-secondary">
@@ -184,6 +198,7 @@
         $open_id  = session()->getFlashdata('edit_modal_open_id');
         $is_open  = ($open_id == $dept['id']);
         $val_name = $is_open ? old('name', $dept['name']) : $dept['name'];
+        $val_code = $is_open ? old('code', $dept['code']) : $dept['code'];
     ?>
 
     <!-- ===================== EDIT DEPARTMENT MODAL ===================== -->
@@ -225,6 +240,19 @@
                         </div>
                         <?php endif; ?>
 
+                        <!-- Department Code -->
+                        <div class="mb-3">
+                            <label for="edit_dept_code_<?php echo $dept['id']; ?>" class="form-label small fw-semibold text-secondary">
+                                Department Code <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="edit_dept_code_<?php echo $dept['id']; ?>"
+                                   name="code"
+                                   value="<?php echo htmlspecialchars($val_code); ?>"
+                                   required>
+                        </div>
+
                         <!-- Department Name -->
                         <div>
                             <label for="edit_dept_name_<?php echo $dept['id']; ?>" class="form-label small fw-semibold text-secondary">
@@ -236,7 +264,6 @@
                                    name="name"
                                    value="<?php echo htmlspecialchars($val_name); ?>"
                                    required>
-                            
                         </div>
 
                     </div><!-- /.modal-body -->

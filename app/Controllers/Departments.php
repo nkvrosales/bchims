@@ -63,18 +63,20 @@ class Departments extends BaseController
         }
 
         $rules = [
+            'code' => 'required|max_length[50]|is_unique[departments.department_code]',
             'name' => 'required|max_length[100]|is_unique[departments.department_name]',
         ];
 
         if ($this->validate($rules)) {
+            $code = $this->request->getPost('code');
             $name = $this->request->getPost('name');
-            $insert_data = ['name' => $name];
+            $insert_data = ['code' => $code, 'name' => $name];
 
             if ($this->departmentModel->insert_department($insert_data)) {
                 $this->auditModel->log_activity(
                     'CREATE_DEPT',
                     'Departments',
-                    "Created new hospital department: {$name}."
+                    "Created new hospital department: {$name} ({$code})."
                 );
 
                 session()->setFlashdata('success', 'Department successfully created!');
@@ -116,18 +118,21 @@ class Departments extends BaseController
         }
 
         $rules = [
+            'code' => "required|max_length[50]|is_unique[departments.department_code,department_id,{$id}]",
             'name' => "required|max_length[100]|is_unique[departments.department_name,department_id,{$id}]",
         ];
 
         if ($this->validate($rules)) {
+            $code     = $this->request->getPost('code');
             $name     = $this->request->getPost('name');
             $old_name = $dept['name'];
-            $update_data = ['name' => $name];
+            $old_code = $dept['code'];
+            $update_data = ['code' => $code, 'name' => $name];
 
             if ($this->departmentModel->update_department($id, $update_data)) {
-                $audit_desc = "Updated hospital department: '{$old_name}'";
-                if ($old_name !== $name) {
-                    $audit_desc .= " → '{$name}'.";
+                $audit_desc = "Updated hospital department: '{$old_name}' ({$old_code})";
+                if ($old_name !== $name || $old_code !== $code) {
+                    $audit_desc .= " → '{$name}' ({$code}).";
                 } else {
                     $audit_desc .= ". No values were changed.";
                 }

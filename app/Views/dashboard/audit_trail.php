@@ -28,7 +28,6 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <i class="bi bi-clock-history text-primary"></i>
             <span>Log Database History</span>
         </h5>
         <!-- Container for DataTable Buttons Injection -->

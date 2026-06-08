@@ -66,15 +66,7 @@
                     </a>
                 </li>
 
-                <?php if (is_admin_role()): ?>
-                <li class="sidebar-item">
-                    <a href="<?php echo base_url('users'); ?>" 
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['User Management', 'Add User', 'Edit User'])) ? 'active' : ''; ?>" id="navUsers">
-                        <i class="bi bi-people"></i>
-                        <span>Users</span>
-                    </a>
-                </li>
-                <?php endif; ?>
+                
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('inventory'); ?>"
@@ -84,7 +76,29 @@
                     </a>
                 </li>
 
+                
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('supply_requests'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Supply Requests</span>
+                    </a>
+                </li>
+
+                <!-- SYSTEM Section -->
+                <li class="sidebar-section-label">SYSTEM</li>
+
                 <?php if (is_admin_role()): ?>
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('users'); ?>" 
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['User Management', 'Add User', 'Edit User'])) ? 'active' : ''; ?>" id="navUsers">
+                        <i class="bi bi-people"></i>
+                        <span>Users</span>
+                    </a>
+                </li>
+
+
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('categories'); ?>"
                        class="sidebar-link <?php echo (isset($title) && in_array($title, ['Categories', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories">
@@ -101,17 +115,6 @@
                     </a>
                 </li>
                 <?php endif; ?>
-
-                <li class="sidebar-item">
-                    <a href="<?php echo base_url('supply_requests'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span>Supply Requests</span>
-                    </a>
-                </li>
-
-                <!-- SYSTEM Section -->
-                <li class="sidebar-section-label">SYSTEM</li>
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard/audit_trail'); ?>"

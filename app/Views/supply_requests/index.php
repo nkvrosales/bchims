@@ -5,7 +5,7 @@
             <h1 class="page-title mb-1">Supply Requests</h1>
         </div>
         <div>
-            <?php if (session()->get('role') === 'staff'): ?>
+            <?php if (session()->get('role') === 'encoder'): ?>
                 <button type="button"
                         class="btn d-flex align-items-center gap-2"
                         id="btnNewSupplyRequest"
@@ -46,7 +46,6 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <i class="bi bi-file-earmark-text text-primary"></i>
             <span><?php echo is_admin_role() ? 'All Staff Supply Requests' : 'Departmental Supply Requests'; ?></span>
         </h5>
     </div>
@@ -505,7 +504,7 @@
     <?php endforeach; ?>
 <?php endif; ?>
 
-<?php if (session()->get('role') === 'staff'): ?>
+<?php if (session()->get('role') === 'encoder'): ?>
 <!-- ===================== NEW SUPPLY REQUEST MODAL ===================== -->
 <div class="modal fade" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">

@@ -75,7 +75,6 @@
         <div class="standard-card">
             <div class="card-header-styled">
                 <h5 class="card-title-styled">
-                    <i class="bi bi-file-earmark-text text-primary"></i>
                     <span>Recent Supply Requests</span>
                 </h5>
                 <a href="<?php echo base_url('supply_requests'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
@@ -156,7 +155,6 @@
         <div class="standard-card">
             <div class="card-header-styled">
                 <h5 class="card-title-styled">
-                    <i class="bi bi-clock-history text-primary"></i>
                     <span>Recent Activities</span>
                 </h5>
                 <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">

@@ -11,7 +11,7 @@
                     data-bs-toggle="modal"
                     data-bs-target="#createCategoryModal"
                     style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.2s;">
-                <i class="fa-solid fa-circle-plus"></i>
+                <i class="fa-solid fa-plus"></i>
                 <span>Add Category</span>
             </button>
         </div>
@@ -41,7 +41,6 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <i class="bi bi-tags text-primary"></i>
             <span>Inventory Categories</span>
         </h5>
     </div>
@@ -51,7 +50,7 @@
             <thead>
                 <tr>
                     <th style="width: 20%">Code</th>
-                    <th style="width: 65%">Description</th>
+                    <th style="width: 65%">Category</th>
                     <th style="width: 15%" class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -59,10 +58,10 @@
                 <?php if (!empty($categories)): ?>
                     <?php foreach ($categories as $category): ?>
                         <tr>
-                            <td class="font-monospace fw-bold text-dark" style="font-size: 0.875rem;">
+                            <td class="fw-bold text-dark" style="font-size: 0.875rem;">
                                 <?php echo htmlspecialchars($category['category_code']); ?>
                             </td>
-                            <td class="text-secondary">
+                            <td class="fw-bold text-dark">
                                 <?php echo !empty($category['category_description']) ? htmlspecialchars($category['category_description']) : 'N/A'; ?>
                             </td>
                             <td class="text-end">

@@ -9,7 +9,7 @@
         <div>
             <h1 class="page-title mb-1"> Inventory</h1>
         </div>
-        <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
+        <?php if (!in_array(strtolower((string) session()->get('role')), ['viewer', 'encoder'], true)): ?>
         <div>
             <button type="button"
                     class="btn d-flex align-items-center gap-2"
@@ -51,7 +51,7 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <i class="bi bi-box2-fill text-primary"></i>
+            
             <span>Inventory</span>
         </h5>
     </div>
@@ -72,7 +72,7 @@
                 <?php if (!empty($items)): ?>
                     <?php foreach ($items as $item): ?>
                         <tr>
-                            <td class="font-monospace fw-bold" style="font-size: 0.85rem; color: var(--text-secondary);">
+                            <td class="fw-bold text-dark" style="font-size: 0.85rem; color: var(--text-secondary);">
                                 <?php echo htmlspecialchars($item['item_code']); ?>
                             </td>
                             <td>
@@ -498,7 +498,6 @@
             <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                 <div class="d-flex align-items-center ">
                     <div style="width: 40px; height: 40px;  display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="fa-solid fa-plus" style="color: #000000ff; font-size: 1rem;"></i>
                     </div>
                     <div>
                         <h5 class="modal-title fw-bold mb-0" id="createItemModalLabel" style="color: #0f172a; font-size: 1.4rem; letter-spacing: -0.01em;">

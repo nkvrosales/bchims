@@ -282,16 +282,17 @@ class Users extends BaseController
             return redirect()->to('users');
         }
 
-        if ($this->userModel->delete($id)) {
+        $update_data = ['account_status' => 'Inactive'];
+        if ($this->userModel->update($id, $update_data)) {
             $this->auditModel->log_activity(
-                'DELETE_USER',
+                'DEACTIVATE_USER',
                 'Users',
-                "Deleted user account: {$user['username']} ({$user['last_name']}, {$user['first_name']}) with role {$user['role']}."
+                "Deactivated user account (made inactive instead of deleted): {$user['username']} ({$user['last_name']}, {$user['first_name']}) with role {$user['role']}."
             );
 
-            session()->setFlashdata('success', 'User account successfully deleted!');
+            session()->setFlashdata('success', 'User account successfully deactivated (marked as Inactive)!');
         } else {
-            session()->setFlashdata('error', 'An error occurred while deleting the account.');
+            session()->setFlashdata('error', 'An error occurred while deactivating the account.');
         }
 
         return redirect()->to('users');
