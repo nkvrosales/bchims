@@ -32,8 +32,8 @@ class SupplyRequestModel extends Model
             central_supply.item_code AS item_code,
             central_supply.quantity_on_hand AS item_current_stock,
             'pcs' AS item_unit,
-            departments.department_name AS requester_username,
-            departments.department_name AS requester_full_name,
+            user.username AS requester_username,
+            CONCAT(user.first_name, ' ', user.last_name) AS requester_full_name,
             departments.department_name AS department_name,
             departments.department_id AS department_id,
             user.user_id AS user_id

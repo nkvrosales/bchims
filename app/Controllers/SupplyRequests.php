@@ -106,7 +106,7 @@ class SupplyRequests extends BaseController
     }
 
      /**
-      * Submit a new supply request (Encoder only).
+      * Submit a new supply request.
       */
     public function create()
     {

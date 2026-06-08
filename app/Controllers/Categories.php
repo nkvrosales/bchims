@@ -83,13 +83,13 @@ class Categories extends BaseController
                 return redirect()->to('categories');
             }
 
-            session()->setFlashdata('create_modal_open', true);
-            session()->setFlashdata('create_validation_errors', '<li>An error occurred while creating the category.</li>');
+            session()->setFlashdata('modal_mode', 'create');
+            session()->setFlashdata('modal_errors', '<li>An error occurred while creating the category.</li>');
             return redirect()->to('categories')->withInput();
         }
 
-        session()->setFlashdata('create_modal_open', true);
-        session()->setFlashdata('create_validation_errors', $this->validator->listErrors());
+        session()->setFlashdata('modal_mode', 'create');
+        session()->setFlashdata('modal_errors', $this->validator->listErrors());
         return redirect()->to('categories')->withInput();
     }
 
@@ -108,7 +108,8 @@ class Categories extends BaseController
         }
 
         if (strcasecmp($this->request->getMethod(), 'get') === 0) {
-            session()->setFlashdata('edit_modal_open_id', $id);
+            session()->setFlashdata('modal_mode', 'edit');
+            session()->setFlashdata('modal_edit_id', $id);
             return redirect()->to('categories');
         }
 
@@ -135,13 +136,15 @@ class Categories extends BaseController
                 return redirect()->to('categories');
             }
 
-            session()->setFlashdata('edit_modal_open_id', $id);
-            session()->setFlashdata('edit_validation_errors', '<li>An error occurred while updating the category.</li>');
+            session()->setFlashdata('modal_mode', 'edit');
+            session()->setFlashdata('modal_edit_id', $id);
+            session()->setFlashdata('modal_errors', '<li>An error occurred while updating the category.</li>');
             return redirect()->to('categories')->withInput();
         }
 
-        session()->setFlashdata('edit_modal_open_id', $id);
-        session()->setFlashdata('edit_validation_errors', $this->validator->listErrors());
+        session()->setFlashdata('modal_mode', 'edit');
+        session()->setFlashdata('modal_edit_id', $id);
+        session()->setFlashdata('modal_errors', $this->validator->listErrors());
         return redirect()->to('categories')->withInput();
     }
 

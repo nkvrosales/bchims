@@ -82,14 +82,14 @@ class Departments extends BaseController
                 session()->setFlashdata('success', 'Department successfully created!');
                 return redirect()->to('departments');
             } else {
-                session()->setFlashdata('create_modal_open', true);
-                session()->setFlashdata('create_validation_errors', '<li>An error occurred while creating the department. Please try again.</li>');
+                session()->setFlashdata('modal_mode', 'create');
+                session()->setFlashdata('modal_errors', '<li>An error occurred while creating the department. Please try again.</li>');
                 return redirect()->to('departments')->withInput();
             }
         } else {
             // Validation failed — re-open modal with errors
-            session()->setFlashdata('create_modal_open', true);
-            session()->setFlashdata('create_validation_errors', $this->validator->listErrors());
+            session()->setFlashdata('modal_mode', 'create');
+            session()->setFlashdata('modal_errors', $this->validator->listErrors());
             return redirect()->to('departments')->withInput();
         }
     }
@@ -113,7 +113,8 @@ class Departments extends BaseController
 
         // GET requests: redirect to departments and open this dept's edit modal
         if (strcasecmp($this->request->getMethod(), 'get') === 0) {
-            session()->setFlashdata('edit_modal_open_id', $id);
+            session()->setFlashdata('modal_mode', 'edit');
+            session()->setFlashdata('modal_edit_id', $id);
             return redirect()->to('departments');
         }
 
@@ -142,14 +143,16 @@ class Departments extends BaseController
                 session()->setFlashdata('success', 'Department successfully updated!');
                 return redirect()->to('departments');
             } else {
-                session()->setFlashdata('edit_modal_open_id', $id);
-                session()->setFlashdata('edit_validation_errors', '<li>An error occurred while updating the department. Please try again.</li>');
+                session()->setFlashdata('modal_mode', 'edit');
+                session()->setFlashdata('modal_edit_id', $id);
+                session()->setFlashdata('modal_errors', '<li>An error occurred while updating the department. Please try again.</li>');
                 return redirect()->to('departments')->withInput();
             }
         } else {
             // Validation failed — redirect back & open the correct edit modal with errors
-            session()->setFlashdata('edit_modal_open_id', $id);
-            session()->setFlashdata('edit_validation_errors', $this->validator->listErrors());
+            session()->setFlashdata('modal_mode', 'edit');
+            session()->setFlashdata('modal_edit_id', $id);
+            session()->setFlashdata('modal_errors', $this->validator->listErrors());
             return redirect()->to('departments')->withInput();
         }
     }

@@ -249,8 +249,8 @@ class Inventory extends BaseController
                 session()->setFlashdata('success', 'Item successfully added to inventory!');
             }
         } else {
-            session()->setFlashdata('create_item_modal_open', true);
-            session()->setFlashdata('create_item_validation_errors', $this->validator->listErrors());
+            session()->setFlashdata('modal_mode', 'create');
+            session()->setFlashdata('modal_errors', $this->validator->listErrors());
         }
 
         return redirect()->to('inventory');
@@ -342,7 +342,9 @@ class Inventory extends BaseController
 
             if ($db->transStatus() === false) {
                 session()->setFlashdata('error', 'An error occurred while updating the item. Please try again.');
-                session()->setFlashdata('edit_item_modal_open', $id);
+                session()->setFlashdata('modal_mode', 'edit');
+                session()->setFlashdata('modal_edit_id', $id);
+                session()->setFlashdata('modal_errors', '<li>An error occurred while updating the item. Please try again.</li>');
                 return redirect()->to('inventory')->withInput();
             } else {
                 $this->auditModel->log_activity(
@@ -355,8 +357,9 @@ class Inventory extends BaseController
                 return redirect()->to('inventory');
             }
         } else {
-            session()->setFlashdata('edit_item_modal_open', $id);
-            session()->setFlashdata('edit_item_validation_errors', $this->validator->listErrors());
+            session()->setFlashdata('modal_mode', 'edit');
+            session()->setFlashdata('modal_edit_id', $id);
+            session()->setFlashdata('modal_errors', $this->validator->listErrors());
             return redirect()->to('inventory')->withInput();
         }
     }

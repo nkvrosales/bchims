@@ -240,7 +240,7 @@
                                 <h5 class="fw-semibold text-dark mb-2">Confirm Full Serve</h5>
                                 <p class="text-muted small mb-3">
                                     Transfer <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
-                                    to <strong><?php echo htmlspecialchars($req['department_name']); ?></strong>.
+                                    to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).
                                 </p>
                                 <div class="d-flex justify-content-center gap-3 small">
                                     <div class="text-center">
@@ -358,7 +358,7 @@
                                 <p class="text-muted small mb-3">
                                     This request has already been partially served.<br>
                                     Requested: <strong><?php echo $req['quantity_requested']; ?></strong> unit(s), Already Served: <strong><?php echo $req['quantity_served']; ?></strong> unit(s).<br>
-                                    Remaining to serve: <strong><?php echo $remaining; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['department_name']); ?></strong>.<br>
+                                    Remaining to serve: <strong><?php echo $remaining; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
                                     Central Supply available: <strong><?php echo $req['item_current_stock']; ?></strong> unit(s).
                                 </p>
                             </div>
@@ -371,6 +371,7 @@
                         </form>
                     </div>
                 </div>
+            </div>
         <?php endif; ?>
     <?php endforeach; ?>
 <?php endif; ?>
@@ -409,8 +410,12 @@
                                 <span class="badge <?php echo $badge; ?>"><?php echo $req['status']; ?></span>
                             </div>
                             <div class="col-12"><hr class="my-1"></div>
-                            <div class="col-12">
-                                <label class="small fw-semibold text-secondary d-block">Requester / Department</label>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Requester</label>
+                                <span class="text-dark"><?php echo htmlspecialchars($req['requester_full_name'] ?? 'N/A'); ?></span>
+                            </div>
+                            <div class="col-6">
+                                <label class="small fw-semibold text-secondary d-block">Department</label>
                                 <span class="text-dark"><?php echo htmlspecialchars($req['department_name'] ?? 'N/A'); ?></span>
                             </div>
                             <div class="col-12">
@@ -487,7 +492,7 @@
                             <p class="text-muted small mb-0">
                                 You are about to permanently delete supply request <strong>#<?php echo $req['request_id']; ?></strong>.<br>
                                 Item: <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> (<?php echo htmlspecialchars($req['item_code']); ?>)<br>
-                                Requested by: <strong><?php echo htmlspecialchars($req['department_name']); ?></strong><br>
+                                Requested by: <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)<br>
                                 This action <strong>cannot be undone</strong>.
                             </p>
                         </div>

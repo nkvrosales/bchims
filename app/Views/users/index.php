@@ -318,7 +318,7 @@
                                 Role <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom" id="modal_role" name="role" required>
-                                <option value="">Select Role</option>
+                                <option value="" disabled selected hidden>Select Role</option>
                                 <option value="admin">Administrator</option>
                                 <option value="encoder">Encoder</option>
                                 <option value="viewer">Viewer</option>
@@ -331,9 +331,9 @@
                         <!-- Department -->
                         <div class="col-12 col-sm-6">
                             <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department</label>
-                            <select class="form-select input-custom" id="modal_department_id" name="department_id">
-                                <option value="">Select Department</option>
-                                <option value="">Administrator</option>
+                            <select class="form-select input-custom" id="modal_department_id" name="department_id" required>
+                                <option value="" disabled selected hidden>Select Department</option>
+                                <option value="0">Administrator</option>
                                 <?php if (!empty($departments)): ?>
                                     <?php foreach ($departments as $d): ?>
                                         <option value="<?php echo $d['id']; ?>">
@@ -410,21 +410,10 @@
 
                     <!-- Modal Header -->
                     <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="
-                                
-                                display: flex; align-items: center; justify-content: center;
-                                flex-shrink: 0;
-                            ">
-                                <i class="fa-solid fa-trash-can" style="color: #000000ff; font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold mb-0" id="deleteUserModalLabel-<?php echo $u['id']; ?>"
-                                    style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em; margin-left: 0.75rem;">
-                                    Deactivate User Account
-                                </h5>
-                            </div>
-                        </div>
+                        <h5 class="modal-title fw-bold mb-0" id="deleteUserModalLabel-<?php echo $u['id']; ?>"
+                            style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                            Deactivate User Account
+                        </h5>
                         <button type="button"
                                 class="btn-close btn-close-dark"
                                 data-bs-dismiss="modal"

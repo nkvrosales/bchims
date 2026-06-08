@@ -1,8 +1,3 @@
-<?php
-    $editItemModalOpen = session()->getFlashdata('edit_item_modal_open');
-    $editItemValidationErrors = session()->getFlashdata('edit_item_validation_errors');
-?>
-
 <!-- Page Title Section -->
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -14,8 +9,7 @@
             <button type="button"
                     class="btn d-flex align-items-center gap-2"
                     id="btnAddNewItem"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createItemModal"
+                    onclick="openItemModal('create')"
                     style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
                 <i class="fa-solid fa-plus"></i>
                 <span>Add Item</span>
@@ -120,8 +114,18 @@
                                     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                                     <button type="button"
                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                       data-bs-toggle="modal"
-                                       data-bs-target="#editItemModal<?php echo $item['id']; ?>"
+                                       onclick='openItemModal("edit", <?php echo json_encode([
+                                           "id" => $item["id"],
+                                           "item_code" => $item["item_code"],
+                                           "name" => $item["item_name"],
+                                           "category_id" => $item["category_id"] ?? "",
+                                           "quantity" => $item["quantity"],
+                                           "unit" => $item["unit"] ?? "",
+                                           "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
+                                           "expiration_date" => $item["expiration_date"] ?? "",
+                                           "batch_num" => $item["batch_num"] ?? "",
+                                           "lot_num" => $item["lot_num"] ?? "",
+                                       ]); ?>)'
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="Edit Item">
                                         <i class="bi bi-pencil-square"></i>
@@ -167,14 +171,9 @@
 
                     <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                         <div class="d-flex align-items-center">
-                            <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="bi bi-search" style="color: #0f172a; font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold mb-0" id="viewItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.4rem; letter-spacing: 0;">
-                                    Stock Details
-                                </h5>
-                            </div>
+                            <h5 class="modal-title fw-bold mb-0" id="viewItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.4rem; letter-spacing: 0;">
+                                Stock Details
+                            </h5>
                         </div>
                         <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                     </div>
@@ -252,188 +251,237 @@
 <?php endif; ?>
 <!-- ============================================================= -->
 
-<!-- ===================== EDIT ITEM MODALS ===================== -->
-<?php if (!empty($items)): ?>
-    <?php foreach ($items as $item): ?>
-        <?php
-            $isEditModalOpen = ((string)$editItemModalOpen === (string)$item['id']);
-            $editItemCode = $isEditModalOpen ? old('item_code', $item['item_code']) : $item['item_code'];
-            $editItemName = $isEditModalOpen ? old('name', $item['item_name']) : $item['item_name'];
-            $editCategoryId = $isEditModalOpen ? old('category_id', $item['category_id'] ?? '') : ($item['category_id'] ?? '');
-            $editSourceType = $isEditModalOpen ? old('source_type', str_replace(' ', '_', strtolower($item['source_type'] ?? 'supplier'))) : str_replace(' ', '_', strtolower($item['source_type'] ?? 'supplier'));
-            $editBatchNum = $isEditModalOpen ? old('batch_num', $item['batch_num'] ?? '') : ($item['batch_num'] ?? '');
-            $editLotNum = $isEditModalOpen ? old('lot_num', $item['lot_num'] ?? '') : ($item['lot_num'] ?? '');
-            $editExpirationDate = $isEditModalOpen ? old('expiration_date', $item['expiration_date'] ?? '') : ($item['expiration_date'] ?? '');
-            $editQuantity = $isEditModalOpen ? old('quantity', $item['quantity']) : $item['quantity'];
-        ?>
-        <div class="modal fade" id="editItemModal<?php echo $item['id']; ?>" tabindex="-1" aria-labelledby="editItemModalLabel<?php echo $item['id']; ?>" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+<!-- ===================== SINGLE ITEM MODAL (Add/Edit) ===================== -->
+<div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
-                    <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                        <div class="d-flex align-items-center">
-                            <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fa-solid fa-pen-to-square" style="color: #000000ff; font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold mb-0" id="editItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.4rem; letter-spacing: 0;">
-                                    Edit Item
-                                </h5>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
-                    </div>
-
-                    <form method="POST" action="<?php echo base_url('inventory/edit/' . $item['id']); ?>">
-                        <div class="modal-body px-4 py-4">
-
-                            <?php if ($isEditModalOpen && !empty($editItemValidationErrors)): ?>
-                                <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="fa-solid fa-triangle-exclamation mt-1"></i>
-                                        <div>
-                                            <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
-                                            <div class="small"><?php echo $editItemValidationErrors; ?></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-
-                            <div class="row g-3">
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_item_code_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Item Code <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="edit_item_code_<?php echo $item['id']; ?>"
-                                           name="item_code"
-                                           style="text-transform: uppercase;"
-                                           value="<?php echo htmlspecialchars($editItemCode); ?>"
-                                           required>
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_item_name_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Item Name <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="edit_item_name_<?php echo $item['id']; ?>"
-                                           name="name"
-                                           value="<?php echo htmlspecialchars($editItemName); ?>"
-                                           required>
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_category_id_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Category <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select input-custom"
-                                            id="edit_category_id_<?php echo $item['id']; ?>"
-                                            name="category_id"
-                                            required>
-                                        <option value="">Select Category</option>
-                                        <?php foreach (($categories ?? []) as $category): ?>
-                                            <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)$editCategoryId === (string)$category['category_id']) ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($category['category_code'] . ' - ' . $category['category_description']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_quantity_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Quantity <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="number"
-                                           class="form-control input-custom"
-                                           id="edit_quantity_<?php echo $item['id']; ?>"
-                                           name="quantity"
-                                           min="0"
-                                           value="<?php echo htmlspecialchars($editQuantity); ?>"
-                                           required>
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_unit_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">Unit</label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="edit_unit_<?php echo $item['id']; ?>"
-                                           name="unit"
-                                           value="<?php echo htmlspecialchars($item['unit'] ?? ''); ?>">
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_source_type_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">
-                                        Source <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select input-custom"
-                                            id="edit_source_type_<?php echo $item['id']; ?>"
-                                            name="source_type"
-                                            required>
-                                        <option value="">Select Source</option>
-                                        <option value="supplier" <?php echo ($editSourceType === 'supplier') ? 'selected' : ''; ?>>Supplier</option>
-                                        <option value="donation" <?php echo ($editSourceType === 'donation') ? 'selected' : ''; ?>>Donation</option>
-                                        <option value="old_stock" <?php echo ($editSourceType === 'old_stock') ? 'selected' : ''; ?>>Old Stock</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_expiration_date_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">Expiration Date</label>
-                                    <input type="date"
-                                           class="form-control input-custom"
-                                           id="edit_expiration_date_<?php echo $item['id']; ?>"
-                                           name="expiration_date"
-                                           value="<?php echo htmlspecialchars($editExpirationDate); ?>">
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_batch_num_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">Batch No.</label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="edit_batch_num_<?php echo $item['id']; ?>"
-                                           name="batch_num"
-                                           value="<?php echo htmlspecialchars($editBatchNum); ?>">
-                                </div>
-
-
-                                <div class="col-12 col-sm-6">
-                                    <label for="edit_lot_num_<?php echo $item['id']; ?>" class="form-label small fw-semibold text-secondary">Lot No.</label>
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="edit_lot_num_<?php echo $item['id']; ?>"
-                                           name="lot_num"
-                                           value="<?php echo htmlspecialchars($editLotNum); ?>">
-                                </div>
-
-
-                            </div>
-                        </div>
-
-                        <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                            <button type="button"
-                                    data-bs-dismiss="modal"
-                                    style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
-                                    onmouseover="this.style.background='#f9fafb'"
-                                    onmouseout="this.style.background='#fff'">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                    style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                                    onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                                    onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
-                                Update Item
-                            </button>
-                        </div>
-                    </form>
-
+            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                <div class="d-flex align-items-center">
+                    <h5 class="modal-title fw-bold mb-0" id="itemModalLabel" style="color: #0f172a; font-size: 1.4rem; letter-spacing: -0.01em;">
+                        Add New Item
+                    </h5>
                 </div>
+                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
             </div>
+
+            <form method="POST" action="<?php echo base_url('inventory/create'); ?>" id="itemForm">
+                <div class="modal-body px-4 py-4">
+
+                    <?php
+                        $modal_errors = session()->getFlashdata('modal_errors');
+                        $modal_mode   = session()->getFlashdata('modal_mode');
+                        $modal_edit_id = session()->getFlashdata('modal_edit_id');
+                    ?>
+                    <?php if ($modal_errors): ?>
+                    <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-triangle-exclamation mt-1"></i>
+                            <div>
+                                <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
+                                <div class="small"><?php echo $modal_errors; ?></div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_code" class="form-label small fw-semibold text-secondary">
+                                Item Code <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_code"
+                                   name="item_code"
+                                   style="text-transform: uppercase;"
+                                   value="<?php echo old('item_code'); ?>"
+                                   required>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_name" class="form-label small fw-semibold text-secondary">
+                                Item Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_name"
+                                   name="name"
+                                   value="<?php echo old('name'); ?>"
+                                   required>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_category_id" class="form-label small fw-semibold text-secondary">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select input-custom"
+                                    id="item_category_id"
+                                    name="category_id"
+                                    required>
+                                <option value="">Select Category</option>
+                                <?php foreach (($categories ?? []) as $category): ?>
+                                    <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['category_code'] . ' - ' . $category['category_description']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_quantity" class="form-label small fw-semibold text-secondary">
+                                Quantity <span class="text-danger">*</span>
+                            </label>
+                            <input type="number"
+                                   class="form-control input-custom"
+                                   id="item_quantity"
+                                   name="quantity"
+                                   min="0"
+                                   value="<?php echo old('quantity', '0'); ?>"
+                                   required>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_unit" class="form-label small fw-semibold text-secondary">Unit</label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_unit"
+                                   name="unit"
+                                   value="<?php echo old('unit'); ?>">
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_source_type" class="form-label small fw-semibold text-secondary">
+                                Source <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select input-custom"
+                                    id="item_source_type"
+                                    name="source_type"
+                                    required>
+                                <option value="">Select Source</option>
+                                <option value="supplier" <?php echo (old('source_type') === 'supplier') ? 'selected' : ''; ?>>Supplier</option>
+                                <option value="donation" <?php echo (old('source_type') === 'donation') ? 'selected' : ''; ?>>Donation</option>
+                                <option value="old_stock" <?php echo (old('source_type') === 'old_stock') ? 'selected' : ''; ?>>Old Stock</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_expiration_date" class="form-label small fw-semibold text-secondary">Expiration Date</label>
+                            <input type="date"
+                                   class="form-control input-custom"
+                                   id="item_expiration_date"
+                                   name="expiration_date"
+                                   value="<?php echo old('expiration_date'); ?>">
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_batch_num" class="form-label small fw-semibold text-secondary">Batch No.</label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_batch_num"
+                                   name="batch_num"
+                                   value="<?php echo old('batch_num'); ?>">
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_lot_num" class="form-label small fw-semibold text-secondary">Lot No.</label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_lot_num"
+                                   name="lot_num"
+                                   value="<?php echo old('lot_num'); ?>">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
+                    <button type="button"
+                            data-bs-dismiss="modal"
+                            style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
+                            onmouseover="this.style.background='#f9fafb'"
+                            onmouseout="this.style.background='#fff'">
+                        Cancel
+                    </button>
+                    <button type="submit" id="itemFormSubmitBtn"
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
+                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                        Add Item
+                    </button>
+                </div>
+            </form>
+
         </div>
-    <?php endforeach; ?>
+    </div>
+</div>
+
+<script>
+function openItemModal(mode, data) {
+    var form = document.getElementById('itemForm');
+    var label = document.getElementById('itemModalLabel');
+    var btn = document.getElementById('itemFormSubmitBtn');
+    if (mode === 'edit') {
+        form.action = '<?php echo base_url('inventory/edit'); ?>/' + data.id;
+        label.textContent = 'Edit Item';
+        btn.textContent = 'Update Item';
+        document.getElementById('item_code').value = data.item_code || '';
+        document.getElementById('item_name').value = data.name || '';
+        document.getElementById('item_category_id').value = data.category_id || '';
+        document.getElementById('item_quantity').value = data.quantity || 0;
+        document.getElementById('item_unit').value = data.unit || '';
+        document.getElementById('item_source_type').value = data.source_type || 'supplier';
+        document.getElementById('item_expiration_date').value = data.expiration_date || '';
+        document.getElementById('item_batch_num').value = data.batch_num || '';
+        document.getElementById('item_lot_num').value = data.lot_num || '';
+    } else {
+        form.action = '<?php echo base_url('inventory/create'); ?>';
+        label.textContent = 'Add New Item';
+        btn.textContent = 'Add Item';
+        document.getElementById('item_code').value = '';
+        document.getElementById('item_name').value = '';
+        document.getElementById('item_category_id').value = '';
+        document.getElementById('item_quantity').value = '0';
+        document.getElementById('item_unit').value = '';
+        document.getElementById('item_source_type').value = '';
+        document.getElementById('item_expiration_date').value = '';
+        document.getElementById('item_batch_num').value = '';
+        document.getElementById('item_lot_num').value = '';
+    }
+    new bootstrap.Modal(document.getElementById('itemModal')).show();
+}
+
+<?php if ($modal_mode === 'edit' && $modal_edit_id): ?>
+document.addEventListener('DOMContentLoaded', function () {
+    openItemModal('edit', {
+        id: <?php echo $modal_edit_id; ?>,
+        item_code: '<?php echo addslashes(old('item_code', '')); ?>',
+        name: '<?php echo addslashes(old('name', '')); ?>',
+        category_id: '<?php echo addslashes(old('category_id', '')); ?>',
+        quantity: '<?php echo addslashes(old('quantity', '0')); ?>',
+        unit: '<?php echo addslashes(old('unit', '')); ?>',
+        source_type: '<?php echo addslashes(old('source_type', 'supplier')); ?>',
+        expiration_date: '<?php echo addslashes(old('expiration_date', '')); ?>',
+        batch_num: '<?php echo addslashes(old('batch_num', '')); ?>',
+        lot_num: '<?php echo addslashes(old('lot_num', '')); ?>'
+    });
+});
+<?php elseif ($modal_mode === 'create'): ?>
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('item_code').value = '<?php echo addslashes(old('item_code', '')); ?>';
+    document.getElementById('item_name').value = '<?php echo addslashes(old('name', '')); ?>';
+    document.getElementById('item_category_id').value = '<?php echo addslashes(old('category_id', '')); ?>';
+    document.getElementById('item_quantity').value = '<?php echo addslashes(old('quantity', '0')); ?>';
+    document.getElementById('item_unit').value = '<?php echo addslashes(old('unit', '')); ?>';
+    document.getElementById('item_source_type').value = '<?php echo addslashes(old('source_type', '')); ?>';
+    document.getElementById('item_expiration_date').value = '<?php echo addslashes(old('expiration_date', '')); ?>';
+    document.getElementById('item_batch_num').value = '<?php echo addslashes(old('batch_num', '')); ?>';
+    document.getElementById('item_lot_num').value = '<?php echo addslashes(old('lot_num', '')); ?>';
+    new bootstrap.Modal(document.getElementById('itemModal')).show();
+});
 <?php endif; ?>
-<!-- ============================================================= -->
+</script>
 
 <!-- ===================== DELETE ITEM MODALS ===================== -->
 <?php if (!empty($items)): ?>
@@ -444,14 +492,10 @@
 
                     <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                         <div class="d-flex align-items-center">
-                            <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fa-solid fa-trash" style="color: #dc2626; font-size: 1rem;"></i>
-                            </div>
                             <div>
                                 <h5 class="modal-title fw-bold mb-0" id="deleteItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.25rem; letter-spacing: 0;">
                                     Delete Item
                                 </h5>
-                                <div class="small text-muted">This action will be recorded in the audit logs.</div>
                             </div>
                         </div>
                         <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
@@ -489,200 +533,7 @@
 <!-- ============================================================= -->
 
 
-<!-- ===================== ADD ITEM MODAL ===================== -->
-<div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
-            <!-- Modal Header -->
-            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                <div class="d-flex align-items-center ">
-                    <div style="width: 40px; height: 40px;  display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0" id="createItemModalLabel" style="color: #0f172a; font-size: 1.4rem; letter-spacing: -0.01em;">
-                            Add New Item
-                        </h5>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
-            </div>
-
-            <!-- Form -->
-            <form method="POST" action="<?php echo base_url('inventory/create'); ?>">
-                <div class="modal-body px-4 py-4">
-
-                    <!-- Validation Errors -->
-                    <?php if ($create_errors = session()->getFlashdata('create_item_validation_errors')): ?>
-                    <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
-                        <div class="d-flex align-items-start gap-2">
-                            <i class="fa-solid fa-triangle-exclamation mt-1"></i>
-                            <div>
-                                <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
-                                <div class="small"><?php echo $create_errors; ?></div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <div class="row g-3">
-
-                        <!-- Item Code -->
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_item_code" class="form-label small fw-semibold text-secondary">
-                                Item Code <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="modal_item_code"
-                                   name="item_code"
-                                   style="text-transform: uppercase;"
-                                   value="<?php echo old('item_code'); ?>"
-                                   required>
-                        </div>
-
-                        <!-- Item Name -->
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_item_name" class="form-label small fw-semibold text-secondary">
-                                Item Name <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="modal_item_name"
-                                   name="name"
-                                   value="<?php echo old('name'); ?>"
-                                   required>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_category_id" class="form-label small fw-semibold text-secondary">
-                                Category <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select input-custom"
-                                    id="modal_category_id"
-                                    name="category_id"
-                                    required>
-                                <option value="">Select Category</option>
-                                <?php foreach (($categories ?? []) as $category): ?>
-                                    <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($category['category_code'] . ' - ' . $category['category_description']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <!-- Quantity -->
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_quantity" class="form-label small fw-semibold text-secondary">
-                                Quantity <span class="text-danger">*</span>
-                            </label>
-                            <input type="number"
-                                   class="form-control input-custom"
-                                   id="modal_quantity"
-                                   name="quantity"
-                                   min="0"
-                                   value="<?php echo old('quantity', '0'); ?>"
-                                   required>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_unit" class="form-label small fw-semibold text-secondary">Unit</label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="modal_unit"
-                                   name="unit"
-                                   value="<?php echo old('unit'); ?>">
-                        </div>
-
-
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_source_type" class="form-label small fw-semibold text-secondary">
-                                Source <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select input-custom"
-                                    id="modal_source_type"
-                                    name="source_type"
-                                    required>
-                                <option value="">Select Source</option>
-                                <option value="supplier" <?php echo (old('source_type') === 'supplier') ? 'selected' : ''; ?>>Supplier</option>
-                                <option value="donation" <?php echo (old('source_type') === 'donation') ? 'selected' : ''; ?>>Donation</option>
-                                <option value="old_stock" <?php echo (old('source_type') === 'old_stock') ? 'selected' : ''; ?>>Old Stock</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_expiration_date" class="form-label small fw-semibold text-secondary">Expiration Date</label>
-                            <input type="date"
-                                   class="form-control input-custom"
-                                   id="modal_expiration_date"
-                                   name="expiration_date"
-                                   value="<?php echo old('expiration_date'); ?>">
-                        </div>
-
-                        <!-- Batch Number -->
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_batch_num" class="form-label small fw-semibold text-secondary">Batch No.</label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="modal_batch_num"
-                                   name="batch_num"
-                                   value="<?php echo old('batch_num'); ?>">
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label for="modal_lot_num" class="form-label small fw-semibold text-secondary">Lot No.</label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="modal_lot_num"
-                                   name="lot_num"
-                                   value="<?php echo old('lot_num'); ?>">
-                        </div>
-
-
-
-                    </div><!-- /.row -->
-                </div><!-- /.modal-body -->
-
-                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                    <button type="button"
-                            data-bs-dismiss="modal"
-                            style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
-                            onmouseover="this.style.background='#f9fafb'"
-                            onmouseout="this.style.background='#fff'">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
-                        Add Item
-                    </button>
-                </div>
-            </form>
-
-        </div>
-    </div>
-</div>
-<!-- ============================================================= -->
-
-<!-- Auto-open modal on validation failure -->
-<?php if (session()->getFlashdata('create_item_modal_open')): ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var el = document.getElementById('createItemModal');
-        if (el) { new bootstrap.Modal(el).show(); }
-    });
-</script>
-<?php endif; ?>
-
-<?php if (!empty($editItemModalOpen)): ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var el = document.getElementById('editItemModal<?php echo htmlspecialchars($editItemModalOpen); ?>');
-        if (el) { new bootstrap.Modal(el).show(); }
-    });
-</script>
-<?php endif; ?>
 
 <style>
     #btnAddNewItem:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
