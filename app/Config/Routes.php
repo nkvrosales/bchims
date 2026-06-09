@@ -15,7 +15,7 @@ $routes->group('auth', function($routes) {
 });
 
 $routes->get('dashboard', 'Dashboard::index');
-$routes->get('dashboard/audit_trail', 'Dashboard::audit_trail');
+$routes->get('audit', 'Dashboard::audit_trail');
 $routes->post('dashboard/log_action', 'Dashboard::log_action');
 $routes->post('dashboard/archive_logs', 'Dashboard::archive_logs');
 $routes->get('dashboard/download_archive/(:any)', 'Dashboard::download_archive/$1');
@@ -74,15 +74,14 @@ $routes->group('sources', function($routes) {
     $routes->get('delete/(:num)', 'Sources::delete/$1');
 });
 
-$routes->group('supply_requests', function($routes) {
+$routes->group('requests', function($routes) {
     $routes->get('/', 'SupplyRequests::index');
     $routes->post('create', 'SupplyRequests::create');
     $routes->post('serve/(:num)', 'SupplyRequests::serve/$1');
     $routes->post('partial/(:num)', 'SupplyRequests::partial/$1');
     $routes->post('complete_partial/(:num)', 'SupplyRequests::complete_partial/$1');
     $routes->post('reject/(:num)', 'SupplyRequests::reject/$1');
-    $routes->post('delete/(:num)', 'SupplyRequests::delete/$1');
-    $routes->post('delete_selected', 'SupplyRequests::delete_selected');
+    $routes->post('archive/(:num)', 'SupplyRequests::archive/$1');
+    $routes->post('restore/(:num)', 'SupplyRequests::restore/$1');
+    $routes->post('archive_selected', 'SupplyRequests::archive_selected');
 });
-
-$routes->get('settings', 'Dashboard::settings');

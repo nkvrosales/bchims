@@ -64,7 +64,7 @@ class Dashboard extends BaseController
             $data['total_inventory'] = $db->table('central_supply')->countAll();
             $data['total_low_stock'] = $db->table('central_supply')->where('quantity <=', 10)->where('quantity >', 0)->countAllResults();
             $data['total_no_stock'] = $db->table('central_supply')->where('quantity', 0)->countAllResults();
-            $data['total_requests'] = $db->table('request')->whereIn('status', ['Pending', 'Partially Served'])->countAllResults();
+            $data['total_requests'] = $db->table('request')->whereIn('request_status', ['Pending', 'Partially Served'])->countAllResults();
         } else {
             // Staff: count department_supply rows for this department (each row = one supply item allocation)
             $data['total_inventory'] = $db->table('department_supply')
@@ -85,7 +85,7 @@ class Dashboard extends BaseController
             $data['total_requests'] = $db->table('request')
                 ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id')
                 ->where('department_supply.department_id', $deptId)
-                ->whereIn('request.status', ['Pending', 'Partially Served'])
+                ->whereIn('request.request_status', ['Pending', 'Partially Served'])
                 ->countAllResults();
         }
 
@@ -97,7 +97,7 @@ class Dashboard extends BaseController
         }
 
         return view('templates/header', $data)
-             . view('dashboard/index', $data)
+             . view('dashboard/dashboard', $data)
              . view('templates/footer');
     }
 
@@ -112,7 +112,7 @@ class Dashboard extends BaseController
         $data['logs']  = $this->auditModel->get_audit_logs();
 
         return view('templates/header', $data)
-             . view('dashboard/audit_trail', $data)
+             . view('audit/audit', $data)
              . view('templates/footer');
     }
 
@@ -234,23 +234,5 @@ class Dashboard extends BaseController
              . view('templates/footer');
     }
 
-    /**
-     * System settings page.
-     */
-    public function settings()
-    {
-        if ($res = $this->checkAuth()) return $res;
-
-        // Settings are only accessible by administrator
-        if (!is_admin_role()) {
-            session()->setFlashdata('error', 'You do not have permission to access the System Settings page.');
-            return redirect()->to('dashboard');
-        }
-
-        $data['title'] = 'System Settings';
-
-        return view('templates/header', $data)
-             . view('dashboard/settings', $data)
-             . view('templates/footer');
-    }
 }
+

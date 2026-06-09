@@ -16,7 +16,7 @@
             </button>
         </div>
         <?php endif; ?>
-    </div>
+    </div>  
 </div>
 
 <!-- Flash Messages -->
@@ -66,17 +66,17 @@
                 <?php if (!empty($items)): ?>
                     <?php foreach ($items as $item): ?>
                         <tr>
-                            <td class="fw-bold text-dark" style="font-size: 0.85rem; color: var(--text-secondary);">
+                            <td class="text-dark" style="font-size: 0.85rem; color: var(--text-secondary);">
                                 <?php echo htmlspecialchars($item['item_code']); ?>
                             </td>
                             <td>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['item_name']); ?></div>
+                                <div class="text-dark"><?php echo htmlspecialchars($item['item_name']); ?></div>
                             </td>
                             <td>
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_description'] ?? 'N/A'); ?></span>
                             </td>
                             <td>
-                                <span class="fw-bold fs-6 text-dark">
+                                <span class="fs-6 text-dark">
                                     <?php echo (int)$item['quantity']; ?>
                                     <?php if (!empty($item['unit'])): ?>
                                         <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
@@ -397,7 +397,7 @@
                                     id="item_source_name_select"
                                     name="source_name"
                                     required>
-                                <option value="">— Select Source —</option>
+                                <option value="" disabled selected hidden>Select Source</option>
                             </select>
                             <input type="text"
                                    class="form-control input-custom"
@@ -533,7 +533,7 @@ function toggleSourceName() {
     var typeSelect = document.getElementById('item_source_type');
     var sel = document.getElementById('item_source_name_select');
     var txt = document.getElementById('item_source_name_text');
-    sel.innerHTML = '<option value="">Select Source</option>';
+    sel.innerHTML = '<option value="" disabled selected hidden>Select Source</option>';
     txt.value = '';
     if (typeSelect.value === 'supplier' || typeSelect.value === 'donation') {
         sel.style.display = '';

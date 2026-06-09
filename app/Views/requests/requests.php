@@ -75,20 +75,20 @@
                                 <span class="text-dark"><?php echo !empty($req['created_at']) ? date('Y-m-d', strtotime($req['created_at'])) : 'N/A'; ?></span>
                             </td>
                             <td>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($req['requester_full_name']); ?></div>
+                                <div class="text-dark"><?php echo htmlspecialchars($req['requester_full_name']); ?></div>
                             </td>
                             <td>
                                 <span class="text-dark"><?php echo htmlspecialchars($req['department_name'] ?? 'N/A'); ?></span>
                             </td>
                             <td>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($req['item_name']); ?></div>
+                                <div class="text-dark"><?php echo htmlspecialchars($req['item_name']); ?></div>
                             </td>
                             <td>
                                 <?php $servedQty = (int)($req['quantity_served'] ?? 0); ?>
                                 <div>
-                                    <?php if ($req['status'] === 'Served'): ?>
+                                    <?php if ($req['request_status'] === 'Served'): ?>
                                         <span class="text-success fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
-                                    <?php elseif ($req['status'] === 'Partially Served'): ?>
+                                    <?php elseif ($req['request_status'] === 'Partially Served'): ?>
                                         <span class="text-primary fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
                                     <?php else: ?>
                                         <span class="fw-bold text-dark" title="Served Quantity"><?php echo $servedQty; ?></span>
@@ -99,22 +99,22 @@
                             </td>
                             <td>
                                 <?php 
-                                    if ($req['status'] === 'Served') {
+                                    if ($req['request_status'] === 'Served') {
                                         $badge = 'bg-success-subtle text-success border border-success-subtle';
-                                    } elseif ($req['status'] === 'Partially Served') {
+                                    } elseif ($req['request_status'] === 'Partially Served') {
                                         $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
-                                    } elseif ($req['status'] === 'Rejected') {
+                                    } elseif ($req['request_status'] === 'Rejected') {
                                         $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
                                     } else {
                                         $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
                                     }
                                 ?>
                                 <span class="badge badge-action <?php echo $badge; ?>">
-                                    <?php echo $req['status']; ?>
+                                    <?php echo $req['request_status']; ?>
                                 </span>
                             </td>
                             <td class="text-end">
-                                <?php if (is_admin_role() && $req['status'] === 'Pending'): ?>
+                                <?php if (is_admin_role() && $req['request_status'] === 'Pending'): ?>
                                     <div class="d-inline-flex gap-2">
                                         <!-- Serve Button Trigger -->
                                         <button type="button" 
@@ -149,18 +149,18 @@
                                             <span class="small fw-semibold">Reject</span>
                                         </button>
 
-                                        <!-- Delete Button Trigger -->
+                                        <!-- Archive Button Trigger -->
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                                 data-bs-toggle="modal" 
-                                                data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
-                                                id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
-                                                title="Delete Request"
+                                                data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
+                                                title="Archive Request"
                                                 style="width: 32px; height: 32px; padding: 0;">
-                                            <i class="fa-solid fa-trash-can"></i>
+                                            <i class="fa-regular fa-folder"></i>
                                         </button>
                                     </div>
-                                <?php elseif (is_admin_role() && $req['status'] === 'Partially Served'): ?>
+                                <?php elseif (is_admin_role() && $req['request_status'] === 'Partially Served'): ?>
                                     <div class="d-inline-flex gap-2">
                                         <!-- Partial Serve Again -->
                                         <button type="button" 
@@ -184,18 +184,18 @@
                                             <span class="small fw-semibold">Complete</span>
                                         </button>
 
-                                        <!-- Delete -->
+                                        <!-- Archive -->
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                                 data-bs-toggle="modal" 
-                                                data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
-                                                id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
-                                                title="Delete Request"
+                                                data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
+                                                title="Archive Request"
                                                 style="width: 32px; height: 32px; padding: 0;">
-                                            <i class="fa-solid fa-trash-can"></i>
+                                            <i class="fa-regular fa-folder"></i>
                                         </button>
                                     </div>
-                                <?php elseif ($req['status'] !== 'Pending'): ?>
+                                <?php elseif ($req['request_status'] !== 'Pending'): ?>
                                     <div class="d-inline-flex gap-2">
                                         <!-- View Details (icon only) -->
                                         <button type="button" 
@@ -209,15 +209,14 @@
                                         </button>
 
                                         <?php if (is_admin_role()): ?>
-                                            <!-- Delete Button Trigger -->
+                                            <!-- Archive Button Trigger -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#deleteSingleModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerDelete_<?php echo $req['request_id']; ?>"
-                                                    title="Delete Request"
+                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
+                                                    id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
+                                                    title="Archive Request"
                                                     style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                                <i class="fa-regular fa-folder"></i>
                                             </button>
                                         <?php endif; ?>
                                     </div>
@@ -235,7 +234,7 @@
 
 <?php if (is_admin_role() && !empty($requests)): ?>
     <?php foreach ($requests as $req): ?>
-        <?php if ($req['status'] === 'Pending'): ?>
+        <?php if ($req['request_status'] === 'Pending'): ?>
             <!-- Serve Modal -->
             <div class="modal fade" id="serveModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="serveModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -244,7 +243,7 @@
                             <h5 class="modal-title fw-bold text-dark" id="serveModalLabel_<?php echo $req['request_id']; ?>">Serve Supply Request</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="POST" action="<?php echo base_url('supply_requests/serve/' . $req['request_id']); ?>">
+                        <form method="POST" action="<?php echo base_url('requests/serve/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4 text-center">
                                 <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(34,197,94,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                                     <i class="fa-solid fa-boxes-packing" style="font-size: 1.5rem; color: #22c55e;"></i>
@@ -284,7 +283,7 @@
                             <h5 class="modal-title fw-bold text-dark" id="rejectModalLabel_<?php echo $req['request_id']; ?>">Reject Supply Request</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="POST" action="<?php echo base_url('supply_requests/reject/' . $req['request_id']); ?>">
+                        <form method="POST" action="<?php echo base_url('requests/reject/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4 text-center">
                                 <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                                     <i class="fa-solid fa-ban" style="font-size: 1.5rem; color: #ef4444;"></i>
@@ -308,7 +307,7 @@
             </div>
         <?php endif; ?>
 
-        <?php if ($req['status'] === 'Pending' || $req['status'] === 'Partially Served'): ?>
+        <?php if ($req['request_status'] === 'Pending' || $req['request_status'] === 'Partially Served'): ?>
             <?php
                 $remaining = $req['quantity_requested'] - $req['quantity_served'];
                 $partialMax = $remaining > 0 ? $remaining - 1 : 0;
@@ -321,7 +320,7 @@
                             <h5 class="modal-title fw-bold text-dark" id="partialModalLabel_<?php echo $req['request_id']; ?>">Partially Serve Request</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="POST" action="<?php echo base_url('supply_requests/partial/' . $req['request_id']); ?>">
+                        <form method="POST" action="<?php echo base_url('requests/partial/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4">
                                 <div class="text-center mb-3">
                                     <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
@@ -367,7 +366,7 @@
             </div>
         <?php endif; ?>
 
-        <?php if ($req['status'] === 'Partially Served'): ?>
+        <?php if ($req['request_status'] === 'Partially Served'): ?>
             <!-- Complete Partial Serve Modal -->
             <div class="modal fade" id="completePartialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="completePartialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -376,7 +375,7 @@
                             <h5 class="modal-title fw-bold text-dark" id="completePartialModalLabel_<?php echo $req['request_id']; ?>">Complete Partially Served Request</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="POST" action="<?php echo base_url('supply_requests/complete_partial/' . $req['request_id']); ?>">
+                        <form method="POST" action="<?php echo base_url('requests/complete_partial/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4 text-center">
                                 <?php $remaining = $req['quantity_requested'] - $req['quantity_served']; ?>
                                 <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(34,197,94,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
@@ -425,17 +424,17 @@
                             <div class="col-6">
                                 <label class="small fw-semibold text-secondary d-block">Status</label>
                                 <?php 
-                                    if ($req['status'] === 'Served') {
+                                    if ($req['request_status'] === 'Served') {
                                         $badge = 'bg-success-subtle text-success border border-success-subtle';
-                                    } elseif ($req['status'] === 'Partially Served') {
+                                    } elseif ($req['request_status'] === 'Partially Served') {
                                         $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
-                                    } elseif ($req['status'] === 'Rejected') {
+                                    } elseif ($req['request_status'] === 'Rejected') {
                                         $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
                                     } else {
                                         $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
                                     }
                                 ?>
-                                <span class="badge <?php echo $badge; ?>"><?php echo $req['status']; ?></span>
+                                <span class="badge <?php echo $badge; ?>"><?php echo $req['request_status']; ?></span>
                             </div>
                             <div class="col-12"><hr class="my-1"></div>
                             <div class="col-6">
@@ -508,43 +507,43 @@
     <?php endforeach; ?>
 <?php endif; ?>
 
-<!-- Single Delete Confirmation Modals (Admin only) -->
-<?php if (is_admin_role() && !empty($requests)): ?>
-    <?php foreach ($requests as $req): ?>
-        <div class="modal fade" id="deleteSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="deleteSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                    <div class="modal-header border-bottom px-4">
-                        <h5 class="modal-title fw-bold text-dark" id="deleteSingleModalLabel_<?php echo $req['request_id']; ?>">
-                            Delete Supply Request
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form method="POST" action="<?php echo base_url('supply_requests/delete/' . $req['request_id']); ?>">
-                        <div class="modal-body px-4 py-4 text-center">
-                            <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
-                                <i class="fa-solid fa-triangle-exclamation" style="font-size:1.6rem; color:#ef4444;"></i>
+        <!-- Archive Confirmation Modals (Admin only) -->
+        <?php if (is_admin_role() && !empty($requests)): ?>
+            <?php foreach ($requests as $req): ?>
+                <div class="modal fade" id="archiveSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="archiveSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                            <div class="modal-header border-bottom px-4">
+                                <h5 class="modal-title fw-bold text-dark" id="archiveSingleModalLabel_<?php echo $req['request_id']; ?>">
+                                    Archive Supply Request
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <h5 class="fw-semibold text-dark mb-2">Are you sure?</h5>
-                            <p class="text-muted small mb-0">
-                                You are about to permanently delete supply request <strong>#<?php echo $req['request_id']; ?></strong>.<br>
-                                Item: <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> (<?php echo htmlspecialchars($req['item_code']); ?>)<br>
-                                Requested by: <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)<br>
-                                This action <strong>cannot be undone</strong>.
-                            </p>
+                            <form method="POST" action="<?php echo base_url('requests/archive/' . $req['request_id']); ?>">
+                                <div class="modal-body px-4 py-4 text-center">
+                                    <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+                                        <i class="fa-regular fa-folder-open" style="font-size:1.6rem; color:#ef4444;"></i>
+                                    </div>
+                                    <h5 class="fw-semibold text-dark mb-2">Archive this request?</h5>
+                                    <p class="text-muted small mb-0">
+                                        You are about to archive supply request <strong>#<?php echo $req['request_id']; ?></strong>.<br>
+                                        Item: <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> (<?php echo htmlspecialchars($req['item_code']); ?>)<br>
+                                        Requested by: <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)<br>
+                                        It can be restored later.
+                                    </p>
+                                </div>
+                                <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center gap-3">
+                                    <button type="button" class="btn btn-light rounded-2 px-4 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background:#dc2626; border:none;">
+                                         Archive
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center gap-3">
-                            <button type="button" class="btn btn-light rounded-2 px-4 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background:#ef4444; border:none;">
-                                <i class="fa-solid fa-trash-can me-1"></i> Confirm Delete
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
-        </div>
-    <?php endforeach; ?>
-<?php endif; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
 
 <?php if (session()->get('role') === 'encoder'): ?>
 <!-- ===================== NEW SUPPLY REQUEST MODAL ===================== -->
@@ -563,7 +562,7 @@
             </div>
 
             <!-- Form -->
-            <form method="POST" action="<?php echo base_url('supply_requests/create'); ?>" id="supplyRequestForm">
+            <form method="POST" action="<?php echo base_url('requests/create'); ?>" id="supplyRequestForm">
                 <div class="modal-body px-4 py-4">
 
                     <!-- Validation Errors -->

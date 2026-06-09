@@ -53,6 +53,7 @@
         <table class="table table-custom table-hover w-100" id="usersTable">
             <thead>
                 <tr>
+                    <th style="display:none;">ID</th>
                     <th style="width: 15%">Username</th>
                     <th style="width: 25%">Name</th>
                     <th style="width: 12%">Role</th>
@@ -73,26 +74,31 @@
                         $is_self = ((int)$u['id'] === (int)$current_user_id);
                     ?>
                     <tr>
+                        <!-- Hidden ID -->
+                        <td style="display:none;"><?php echo $u['id']; ?></td>
                         <!-- Username -->
                         <td>
-                            <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                            <span class="text-dark" style="font-size: 0.9rem;">
                                 <?php echo htmlspecialchars($u['username']); ?>
                             </span>
                         </td>
 
                         <!-- Name Only -->
                         <td>
-                            <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                            <span class="text-dark" style="font-size: 0.9rem;">
                                 <?php echo htmlspecialchars($u['full_name']); ?>
                             </span>
                         </td>
 
                         <!-- Role -->
-                        <td>
-                            <?php 
-                                $r = strtolower($u['role']);
-                                if ($r === 'dev'):
-                            ?>
+                        <td data-order="<?php
+                            $r = strtolower($u['role']);
+                            if ($r === 'dev') echo 0;
+                            elseif ($r === 'admin' || $r === 'administrator') echo 1;
+                            elseif ($r === 'encoder') echo 2;
+                            else echo 3;
+                        ?>">
+                            <?php if ($r === 'dev'): ?>
                                 <span class="badge rounded-2 px-2 py-1 small fw-semibold"
                                       style="background:#f3e8ff; color:#7c3aed; border:1px solid #d8b4fe;">
                                     DEV
@@ -117,7 +123,7 @@
 
                         <!-- Department -->
                         <td>
-                            <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                            <span class="text-dark" style="font-size: 0.9rem;">
                                 <?php if (!empty($u['department_name'])): ?>
                                     <?php echo htmlspecialchars($u['department_name']); ?>
                                 <?php elseif (in_array(strtolower($u['role']), ['admin', 'dev', 'administrator'])): ?>
@@ -145,7 +151,7 @@
 
                         <!-- Last Login -->
                         <td>
-                            <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                            <span class="text-dark" style="font-size: 0.9rem;">
                                 <?php echo !empty($u['last_login']) ? date('M j, Y g:i A', strtotime($u['last_login'])) : '—'; ?>
                             </span>
                         </td>

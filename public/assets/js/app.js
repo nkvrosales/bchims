@@ -258,7 +258,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [],
+            order: [[0, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -273,7 +273,8 @@ $(document).ready(function() {
                 zeroRecords: 'No matching user records found'
             },
             columnDefs: [
-                { orderable: false, targets: 6 } // Disable sorting on Actions column (index 6)
+                { visible: false, targets: [0] },
+                { orderable: false, targets: 7 }
             ],
             initComplete: function () {
                 // Add placeholder and clean up the search wrapper

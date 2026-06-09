@@ -79,7 +79,7 @@
                 
 
                 <li class="sidebar-item">
-                    <a href="<?php echo base_url('supply_requests'); ?>"
+                    <a href="<?php echo base_url('requests'); ?>"
                        class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
                         <i class="bi bi-file-earmark-text"></i>
                         <span>Supply Requests</span>
@@ -125,7 +125,7 @@
                 <?php endif; ?>
 
                 <li class="sidebar-item">
-                    <a href="<?php echo base_url('dashboard/audit_trail'); ?>"
+                    <a href="<?php echo base_url('audit'); ?>"
                        class="sidebar-link <?php echo (isset($title) && $title === 'Audit Trail') ? 'active' : ''; ?>" id="navAuditTrail">
                         <i class="bi bi-clipboard-data"></i>
                         <span>Audit Trail</span>

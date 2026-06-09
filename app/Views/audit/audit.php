@@ -53,12 +53,12 @@
                     <?php foreach ($logs as $log): ?>
                         <tr class="audit-log-row" data-log-id="<?php echo $log['log_id']; ?>">
                             <td data-order="<?php echo $log['created_at']; ?>">
-                                <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                                <span class="text-dark" style="font-size: 0.9rem;">
                                     <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
                                 </span>
                             </td>
                             <td>
-                                <span class="fw-semibold" style="font-size: 0.85rem;">
+                                <span class="text-dark" style="font-size: 0.85rem;">
                                     <?php echo htmlspecialchars($log['username']); ?>
                                 </span>
                             </td>
@@ -80,18 +80,18 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="text-secondary small d-block" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
+                                <span class="text-dark small d-block" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
                                     <?php echo htmlspecialchars($log['description']); ?>
                                 </span>
                             </td>
                             <?php if (is_admin_role()): ?>
                             <td>
-                                <span class="text-muted small font-monospace">
+                                <span class="text-dark small font-monospace">
                                     <?php echo htmlspecialchars($log['ip_address'] ?? '-'); ?>
                                 </span>
                             </td>
                             <td>
-                                <span class="text-muted small" style="font-size: 0.75rem; word-break: break-word;" title="<?php echo htmlspecialchars($log['user_agent'] ?? ''); ?>">
+                                <span class="text-dark small" style="font-size: 0.75rem; word-break: break-word;" title="<?php echo htmlspecialchars($log['user_agent'] ?? ''); ?>">
                                     <?php 
                                         $ua = $log['user_agent'] ?? '';
                                         echo htmlspecialchars(!empty($ua) ? (strlen($ua) > 40 ? substr($ua, 0, 40) . '...' : $ua) : '-');

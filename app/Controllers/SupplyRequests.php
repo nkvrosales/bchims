@@ -85,7 +85,7 @@ class SupplyRequests extends BaseController
                     (string)($req['department_name'] ?? ''),
                     (string)($req['item_name'] ?? ''),
                     (string)($req['item_code'] ?? ''),
-                    (string)($req['status'] ?? ''),
+                    (string)($req['request_status'] ?? ''),
                     (string)($req['notes'] ?? ''),
                     (string)($req['quantity_requested'] ?? ''),
                     (string)($req['quantity_served'] ?? ''),
@@ -109,7 +109,7 @@ class SupplyRequests extends BaseController
         $data['search']     = $search;
 
         return view('templates/header', $data)
-             . view('supply_requests/index', $data)
+             . view('requests/requests', $data)
              . view('templates/footer');
     }
 
@@ -122,7 +122,7 @@ class SupplyRequests extends BaseController
 
         if (session()->get('role') !== 'encoder') {
             session()->setFlashdata('error', 'Only encoders are permitted to submit supply requests.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $rules = [
@@ -143,7 +143,7 @@ class SupplyRequests extends BaseController
 
             if (!$item) {
                 session()->setFlashdata('error', 'The selected central supply item does not exist.');
-                return redirect()->to('supply_requests');
+                return redirect()->to('requests');
             }
 
             $userId = session()->get('user_id');
@@ -183,7 +183,7 @@ class SupplyRequests extends BaseController
                 'department_supply_id' => $deptSupplyId,
                 'quantity_requested'   => $quantity,
                 'quantity_served'      => 0,
-                'status'               => 'Pending',
+                'request_status'       => 'Pending',
                 'user_id'              => $userId,
             ];
 
@@ -219,7 +219,7 @@ class SupplyRequests extends BaseController
             session()->setFlashdata('create_request_validation_errors', $this->validator->listErrors());
         }
 
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
     /**
@@ -232,23 +232,23 @@ class SupplyRequests extends BaseController
 
         if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can serve supply requests.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         if (empty($id)) {
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $request = $this->_getRequest($id);
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        if ($request['status'] !== 'Pending') {
+        if ($request['request_status'] !== 'Pending') {
             session()->setFlashdata('error', 'This request has already been processed.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         // Fetch central supply item
@@ -258,14 +258,14 @@ class SupplyRequests extends BaseController
 
         if (!$csItem) {
             session()->setFlashdata('error', 'Associated central supply item not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $qtyRequested = (int)$request['quantity_requested'];
 
         if ($csItem['quantity_on_hand'] < $qtyRequested) {
             session()->setFlashdata('error', "Insufficient stock of '{$csItem['item_name']}' in Central Supply. Available: {$csItem['quantity_on_hand']}, Requested: {$qtyRequested}.");
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         // Get requester's department from joined request data
@@ -328,7 +328,7 @@ class SupplyRequests extends BaseController
 
         // 4. Update request to Served
         $this->requestModel->update($id, [
-            'status'               => 'Served',
+            'request_status'               => 'Served',
             'quantity_served'      => $qtyRequested,
             'department_supply_id' => $deptSupplyId,
             'served_date'          => date('Y-m-d H:i:s'),
@@ -347,7 +347,7 @@ class SupplyRequests extends BaseController
             session()->setFlashdata('success', "Request served! {$qtyRequested} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
         }
 
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
     /**
@@ -359,11 +359,11 @@ class SupplyRequests extends BaseController
 
         if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can serve supply requests.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         if (empty($id)) {
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $servedQty = (int)$this->request->getPost('served_quantity');
@@ -372,12 +372,12 @@ class SupplyRequests extends BaseController
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        if (!in_array($request['status'], ['Pending', 'Partially Served'])) {
+        if (!in_array($request['request_status'], ['Pending', 'Partially Served'])) {
             session()->setFlashdata('error', 'This request has already been processed.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $qtyRequested = (int)$request['quantity_requested'];
@@ -386,7 +386,7 @@ class SupplyRequests extends BaseController
 
         if ($servedQty <= 0 || $servedQty >= $remainingQty) {
             session()->setFlashdata('error', "Invalid partial quantity. Must be between 1 and " . ($remainingQty - 1) . ".");
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         // Fetch central supply item
@@ -396,12 +396,12 @@ class SupplyRequests extends BaseController
 
         if (!$csItem) {
             session()->setFlashdata('error', 'Associated central supply item not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         if ($csItem['quantity_on_hand'] < $servedQty) {
             session()->setFlashdata('error', "Insufficient stock. Available: {$csItem['quantity_on_hand']}, Trying to serve: {$servedQty}.");
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         // Get requester's department from joined request data
@@ -481,7 +481,7 @@ class SupplyRequests extends BaseController
 
         // 4. Update request
         $updateData = [
-            'status'               => 'Partially Served',
+            'request_status'               => 'Partially Served',
             'quantity_served'      => $qtyServed + $servedQty,
             'department_supply_id' => $deptSupplyId,
             'partial_date'         => date('Y-m-d H:i:s'),
@@ -507,7 +507,7 @@ class SupplyRequests extends BaseController
             session()->setFlashdata('success', "Partially served! {$servedQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
         }
 
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
     /**
@@ -519,26 +519,26 @@ class SupplyRequests extends BaseController
 
         if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can reject supply requests.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         if (empty($id)) {
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $request = $this->_getRequest($id);
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        if ($request['status'] !== 'Pending') {
+        if ($request['request_status'] !== 'Pending') {
             session()->setFlashdata('error', 'This request has already been processed.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        if ($this->requestModel->update($id, ['status' => 'Rejected', 'cancelled_date' => date('Y-m-d H:i:s')])) {
+        if ($this->requestModel->update($id, ['request_status' => 'Rejected', 'cancelled_date' => date('Y-m-d H:i:s')])) {
             $this->auditModel->log_activity(
                 'REJECT_SUPPLY_REQUEST',
                 'Supply Requests',
@@ -549,7 +549,7 @@ class SupplyRequests extends BaseController
             session()->setFlashdata('error', 'An error occurred while rejecting the request.');
         }
 
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
     /**
@@ -561,23 +561,23 @@ class SupplyRequests extends BaseController
 
         if (!is_admin_role()) {
             session()->setFlashdata('error', 'Only administrators can complete supply requests.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         if (empty($id)) {
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $request = $this->_getRequest($id);
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        if ($request['status'] !== 'Partially Served') {
+        if ($request['request_status'] !== 'Partially Served') {
             session()->setFlashdata('error', 'Only partially served requests can be completed.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $qtyRequested = (int)$request['quantity_requested'];
@@ -586,7 +586,7 @@ class SupplyRequests extends BaseController
 
         if ($remainingQty <= 0) {
             session()->setFlashdata('error', 'This request is already fully served.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         // Fetch central supply item
@@ -596,12 +596,12 @@ class SupplyRequests extends BaseController
 
         if (!$csItem) {
             session()->setFlashdata('error', 'Associated central supply item not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         if ($csItem['quantity_on_hand'] < $remainingQty) {
             session()->setFlashdata('error', "Insufficient stock to complete the request. Available: {$csItem['quantity_on_hand']}, Needed: {$remainingQty}.");
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         // Get requester's department
@@ -682,7 +682,7 @@ class SupplyRequests extends BaseController
 
         // 4. Update request to Served and clear notes
         $this->requestModel->update($id, [
-            'status'               => 'Served',
+            'request_status'               => 'Served',
             'quantity_served'      => $qtyRequested,
             'department_supply_id' => $deptSupplyId,
             'served_date'          => date('Y-m-d H:i:s'),
@@ -703,7 +703,7 @@ class SupplyRequests extends BaseController
             session()->setFlashdata('success', "Request completed! Remaining {$remainingQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
         }
 
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
     /**
@@ -711,124 +711,102 @@ class SupplyRequests extends BaseController
      * Must remove supply rows (FK: supply.request_id -> request.request_id) before
      * deleting the request, and then clean up orphaned department_supply rows.
      */
-    public function delete($id = null)
+    public function archive($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
         if (!is_admin_role()) {
-            session()->setFlashdata('error', 'Only administrators can delete supply requests.');
-            return redirect()->to('supply_requests');
+            session()->setFlashdata('error', 'Only administrators can archive supply requests.');
+            return redirect()->to('requests');
         }
 
         if (empty($id)) {
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
         $request = $this->_getRequest($id);
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        $db = \Config\Database::connect();
-        $db->transStart();
+        $this->requestModel->update($id, ['status' => 0]);
 
-        // 1. Collect department_supply_id(s) linked via supply rows for this request
-        $supplyRows = $db->table('supply')->where('request_id', $id)->get()->getResultArray();
-        $deptSupplyIds = array_unique(array_column($supplyRows, 'department_supply_id'));
+        $this->auditModel->log_activity(
+            'ARCHIVE_SUPPLY_REQUEST',
+            'Supply Requests',
+            "Archived supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'"
+        );
+        session()->setFlashdata('success', 'Supply request archived successfully.');
 
-        // 2. Delete supply rows first (FK: supply.request_id -> request)
-        $db->table('supply')->where('request_id', $id)->delete();
-
-        // 3. Delete the request itself
-        $this->requestModel->delete($id);
-
-        // 4. Clean up orphaned department_supply rows (ones no longer referenced by any request or supply)
-        foreach ($deptSupplyIds as $dsId) {
-            $stillReferenced = $db->table('request')->where('department_supply_id', $dsId)->countAllResults();
-            $stillInSupply   = $db->table('supply')->where('department_supply_id', $dsId)->countAllResults();
-            if ($stillReferenced === 0 && $stillInSupply === 0) {
-                $db->table('department_supply')->where('department_supply_id', $dsId)->delete();
-            }
-        }
-
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            session()->setFlashdata('error', 'An error occurred while deleting the request. Please try again.');
-        } else {
-            $this->auditModel->log_activity(
-                'DELETE_SUPPLY_REQUEST',
-                'Supply Requests',
-                "Deleted supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'"
-            );
-            session()->setFlashdata('success', 'Supply request deleted successfully.');
-        }
-
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
-    /**
-     * Bulk-delete selected supply requests (Admin only).
-     * Deletes supply rows first to satisfy FK constraints, then the requests.
-     */
-    public function delete_selected()
+    public function restore($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
         if (!is_admin_role()) {
-            session()->setFlashdata('error', 'Only administrators can delete supply requests.');
-            return redirect()->to('supply_requests');
+            session()->setFlashdata('error', 'Only administrators can restore supply requests.');
+            return redirect()->to('requests');
+        }
+
+        if (empty($id)) {
+            return redirect()->to('requests');
+        }
+
+        $request = $this->_getRequest($id);
+
+        if (!$request) {
+            session()->setFlashdata('error', 'Supply request not found.');
+            return redirect()->to('requests');
+        }
+
+        $this->requestModel->update($id, ['status' => 1]);
+
+        $this->auditModel->log_activity(
+            'RESTORE_SUPPLY_REQUEST',
+            'Supply Requests',
+            "Restored supply request #{$id} from {$request['requester_full_name']}."
+        );
+        session()->setFlashdata('success', 'Supply request restored successfully.');
+
+        return redirect()->to('requests');
+    }
+
+    /**
+     * Bulk-archive selected supply requests (Admin only).
+     */
+    public function archive_selected()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (!is_admin_role()) {
+            session()->setFlashdata('error', 'Only administrators can archive supply requests.');
+            return redirect()->to('requests');
         }
 
         $ids = $this->request->getPost('request_ids');
         if (empty($ids) || !is_array($ids)) {
             session()->setFlashdata('error', 'No supply requests selected.');
-            return redirect()->to('supply_requests');
+            return redirect()->to('requests');
         }
 
-        $db = \Config\Database::connect();
-        $db->transStart();
-
-        $allDeptSupplyIds = [];
-
+        $count = 0;
         foreach ($ids as $id) {
-            // Collect department_supply_ids before deletion
-            $supplyRows = $db->table('supply')->where('request_id', $id)->get()->getResultArray();
-            foreach ($supplyRows as $row) {
-                $allDeptSupplyIds[] = $row['department_supply_id'];
-            }
-            // Delete supply rows (FK: supply.request_id -> request)
-            $db->table('supply')->where('request_id', $id)->delete();
-            // Delete the request
-            $this->requestModel->delete($id);
+            $this->requestModel->update($id, ['status' => 0]);
+            $count++;
         }
 
-        // Clean up orphaned department_supply rows
-        foreach (array_unique($allDeptSupplyIds) as $dsId) {
-            $stillReferenced = $db->table('request')->where('department_supply_id', $dsId)->countAllResults();
-            $stillInSupply   = $db->table('supply')->where('department_supply_id', $dsId)->countAllResults();
-            if ($stillReferenced === 0 && $stillInSupply === 0) {
-                $db->table('department_supply')->where('department_supply_id', $dsId)->delete();
-            }
-        }
+        $this->auditModel->log_activity(
+            'BULK_ARCHIVE_SUPPLY_REQUESTS',
+            'Supply Requests',
+            "Bulk archived {$count} supply request(s)."
+        );
+        session()->setFlashdata('success', "Successfully archived {$count} supply request(s).");
 
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            session()->setFlashdata('error', 'An error occurred while deleting selected requests.');
-        } else {
-            $count = count($ids);
-            $this->auditModel->log_activity(
-                'BULK_DELETE_SUPPLY_REQUESTS',
-                'Supply Requests',
-                "Bulk deleted {$count} supply request(s)."
-            );
-            session()->setFlashdata('success', "Successfully deleted {$count} supply request(s).");
-        }
-
-        return redirect()->to('supply_requests');
+        return redirect()->to('requests');
     }
 
     /**

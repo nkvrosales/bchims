@@ -57,10 +57,10 @@
                 <?php if (!empty($categories)): ?>
                     <?php foreach ($categories as $category): ?>
                         <tr>
-                            <td class="fw-bold text-dark" style="font-size: 0.875rem;">
+                            <td class="fw text-dark" style="font-size: 0.875rem;">
                                 <?php echo htmlspecialchars($category['category_code']); ?>
                             </td>
-                            <td class="fw-bold text-dark">
+                            <td class="fw text-dark">
                                 <?php echo !empty($category['category_description']) ? htmlspecialchars($category['category_description']) : 'N/A'; ?>
                             </td>
                             <td class="text-end">

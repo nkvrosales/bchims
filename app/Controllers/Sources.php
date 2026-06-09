@@ -50,7 +50,7 @@ class Sources extends BaseController
             ->findAll();
 
         return view('templates/header', $data)
-             . view('sources/index', $data)
+             . view('sources/sources', $data)
              . view('templates/footer');
     }
 

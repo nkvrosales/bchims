@@ -12,7 +12,7 @@ class SupplyRequestModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['department_supply_id', 'quantity_requested', 'quantity_served', 'status', 'request_date', 'served_date', 'partial_date', 'cancelled_date', 'closed_date', 'user_id', 'notes'];
+    protected $allowedFields    = ['department_supply_id', 'quantity_requested', 'quantity_served', 'request_status', 'request_date', 'served_date', 'partial_date', 'cancelled_date', 'closed_date', 'user_id', 'notes', 'status'];
 
     protected $useTimestamps = false;
 

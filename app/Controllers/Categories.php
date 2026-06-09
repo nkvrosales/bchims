@@ -50,7 +50,7 @@ class Categories extends BaseController
             ->findAll();
 
         return view('templates/header', $data)
-             . view('categories/index', $data)
+             . view('categories/categories', $data)
              . view('templates/footer');
     }
 

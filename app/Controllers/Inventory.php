@@ -127,7 +127,7 @@ class Inventory extends BaseController
             ->getResultArray();
 
         return view('templates/header', $data)
-             . view('inventory/index', $data)
+             . view('inventory/inventory', $data)
              . view('templates/footer');
     }
 
@@ -262,7 +262,7 @@ class Inventory extends BaseController
                     'department_supply_id' => $deptSupplyId,
                     'quantity_requested'   => $quantity,
                     'quantity_served'      => $quantity,
-                    'status'               => 'Manually Added',
+                    'request_status'               => 'Manually Added',
                 ]);
                 $reqId = $db->insertID();
 

@@ -60,7 +60,7 @@
 
     <!-- Supply Requests -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('supply_requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Supply Requests</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_requests; ?></h3>
@@ -77,7 +77,7 @@
                 <h5 class="card-title-styled">
                     <span>Recent Supply Requests</span>
                 </h5>
-                <a href="<?php echo base_url('supply_requests'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
+                <a href="<?php echo base_url('requests'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
                     <span>View All</span>
                 </a>
             </div>
@@ -120,18 +120,18 @@
                                     </td>
                                     <td>
                                         <?php 
-                                            if ($req['status'] === 'Served') {
+                                            if ($req['request_status'] === 'Served') {
                                                 $badge = 'bg-success-subtle text-success border border-success-subtle';
-                                            } elseif ($req['status'] === 'Partially Served') {
+                                            } elseif ($req['request_status'] === 'Partially Served') {
                                                 $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
-                                            } elseif ($req['status'] === 'Rejected') {
+                                            } elseif ($req['request_status'] === 'Rejected') {
                                                 $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
                                             } else {
                                                 $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
                                             }
                                         ?>
                                         <span class="badge badge-action <?php echo $badge; ?>">
-                                            <?php echo $req['status']; ?>
+                                            <?php echo $req['request_status']; ?>
                                         </span>
                                     </td>
                                 </tr>
@@ -157,7 +157,7 @@
                 <h5 class="card-title-styled">
                     <span>Recent Activities</span>
                 </h5>
-                <a href="<?php echo base_url('dashboard/audit_trail'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">
+                <a href="<?php echo base_url('audit'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">
                     <span>View All</span>
                 </a>
             </div>
