@@ -38,6 +38,8 @@ $routes->group('departments', function($routes) {
     $routes->post('create', 'Departments::create');
     $routes->get('edit/(:num)', 'Departments::edit/$1');
     $routes->post('edit/(:num)', 'Departments::edit/$1');
+    $routes->get('archive/(:num)', 'Departments::archive/$1');
+    $routes->get('restore/(:num)', 'Departments::restore/$1');
     $routes->get('delete/(:num)', 'Departments::delete/$1');
 });
 
@@ -56,6 +58,8 @@ $routes->group('categories', function($routes) {
     $routes->post('create', 'Categories::create');
     $routes->get('edit/(:num)', 'Categories::edit/$1');
     $routes->post('edit/(:num)', 'Categories::edit/$1');
+    $routes->get('archive/(:num)', 'Categories::archive/$1');
+    $routes->get('restore/(:num)', 'Categories::restore/$1');
     $routes->get('delete/(:num)', 'Categories::delete/$1');
 });
 

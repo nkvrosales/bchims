@@ -13,6 +13,6 @@ class CategoryModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
 
-    protected $allowedFields = ['category_code', 'category_description'];
+    protected $allowedFields = ['category_code', 'category_description', 'status'];
     protected $useTimestamps = false;
 }

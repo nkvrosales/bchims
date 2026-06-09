@@ -45,6 +45,7 @@ class Categories extends BaseController
 
         $data['title'] = 'Categories';
         $data['categories'] = $this->categoryModel
+            ->where('status', 'Active')
             ->orderBy('category_code', 'ASC')
             ->findAll();
 
@@ -146,6 +147,64 @@ class Categories extends BaseController
         session()->setFlashdata('modal_edit_id', $id);
         session()->setFlashdata('modal_errors', $this->validator->listErrors());
         return redirect()->to('categories')->withInput();
+    }
+
+    public function archive($id = null)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('categories');
+        }
+
+        $category = $this->categoryModel->find($id);
+        if (empty($category)) {
+            session()->setFlashdata('error', 'Category not found.');
+            return redirect()->to('categories');
+        }
+
+        if ($this->categoryModel->update($id, ['status' => 'Inactive'])) {
+            $this->auditModel->log_activity(
+                'ARCHIVE_CATEGORY',
+                'Categories',
+                "Archived category: {$category['category_code']}.",
+                $id
+            );
+            session()->setFlashdata('success', 'Category successfully archived.');
+        } else {
+            session()->setFlashdata('error', 'An error occurred while archiving the category.');
+        }
+
+        return redirect()->to('categories');
+    }
+
+    public function restore($id = null)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('categories');
+        }
+
+        $category = $this->categoryModel->find($id);
+        if (empty($category)) {
+            session()->setFlashdata('error', 'Category not found.');
+            return redirect()->to('categories');
+        }
+
+        if ($this->categoryModel->update($id, ['status' => 'Active'])) {
+            $this->auditModel->log_activity(
+                'RESTORE_CATEGORY',
+                'Categories',
+                "Restored category: {$category['category_code']}.",
+                $id
+            );
+            session()->setFlashdata('success', 'Category successfully restored.');
+        } else {
+            session()->setFlashdata('error', 'An error occurred while restoring the category.');
+        }
+
+        return redirect()->to('categories');
     }
 
     public function delete($id = null)

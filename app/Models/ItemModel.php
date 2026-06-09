@@ -118,7 +118,8 @@ class ItemModel extends Model
                 }
             }
 
-            return $builder->orderBy('central_supply.item_name', 'ASC')->get()->getResultArray();
+            return $builder->orderBy('central_supply.quantity = 0', 'ASC', false)
+                           ->orderBy('central_supply.item_name', 'ASC')->get()->getResultArray();
         } else {
             $builder = $this->db->table('inventory')
                                 ->select('inventory.*, inventory.inventory_id AS id, inventory.inventory_id AS inventory_id, department_supply.quantity_on_hand AS quantity, category.category_code, category.category_description, source.source_type, source.supplier_name')
@@ -147,7 +148,8 @@ class ItemModel extends Model
                 }
             }
 
-            return $builder->orderBy('inventory.item_name', 'ASC')->get()->getResultArray();
+            return $builder->orderBy('department_supply.quantity_on_hand = 0', 'ASC', false)
+                           ->orderBy('inventory.item_name', 'ASC')->get()->getResultArray();
         }
     }
 }

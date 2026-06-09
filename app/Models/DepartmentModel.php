@@ -14,7 +14,7 @@ class DepartmentModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['department_name', 'department_code'];
+    protected $allowedFields = ['department_name', 'department_code', 'status'];
 
     protected $useTimestamps = false;
 
@@ -23,7 +23,7 @@ class DepartmentModel extends Model
      */
     public function find($id = null)
     {
-        return $this->select("department_id AS id, department_name AS name, department_code AS code, NULL AS created_at")
+        return $this->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
                     ->where('department_id', $id)
                     ->first();
     }
@@ -33,7 +33,18 @@ class DepartmentModel extends Model
      */
     public function get_departments()
     {
-        return $this->select("department_id AS id, department_name AS name, department_code AS code, NULL AS created_at")
+        return $this->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
+                    ->where('status', 'Active')
+                    ->orderBy('department_name', 'ASC')
+                    ->findAll();
+    }
+
+    /**
+     * Get all departments including inactive (for admin restore view).
+     */
+    public function get_all_departments()
+    {
+        return $this->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
                     ->orderBy('department_name', 'ASC')
                     ->findAll();
     }

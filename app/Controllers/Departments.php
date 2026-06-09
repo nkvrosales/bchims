@@ -160,6 +160,65 @@ class Departments extends BaseController
     /**
      * Delete department record
      */
+    public function archive($id = NULL)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('departments');
+        }
+
+        $dept = $this->departmentModel->find($id);
+        if (empty($dept)) {
+            session()->setFlashdata('error', 'Department not found.');
+            return redirect()->to('departments');
+        }
+
+        if ($this->departmentModel->update($id, ['status' => 'Inactive'])) {
+            $this->auditModel->log_activity(
+                'ARCHIVE_DEPT',
+                'Departments',
+                "Archived hospital department: {$dept['name']}."
+            );
+            session()->setFlashdata('success', 'Department successfully archived.');
+        } else {
+            session()->setFlashdata('error', 'An error occurred while archiving the department.');
+        }
+
+        return redirect()->to('departments');
+    }
+
+    public function restore($id = NULL)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('departments');
+        }
+
+        $dept = $this->departmentModel->find($id);
+        if (empty($dept)) {
+            session()->setFlashdata('error', 'Department not found.');
+            return redirect()->to('departments');
+        }
+
+        if ($this->departmentModel->update($id, ['status' => 'Active'])) {
+            $this->auditModel->log_activity(
+                'RESTORE_DEPT',
+                'Departments',
+                "Restored hospital department: {$dept['name']}."
+            );
+            session()->setFlashdata('success', 'Department successfully restored.');
+        } else {
+            session()->setFlashdata('error', 'An error occurred while restoring the department.');
+        }
+
+        return redirect()->to('departments');
+    }
+
+    /**
+     * Delete department record (permanent)
+     */
     public function delete($id = NULL)
     {
         if ($res = $this->checkAuth()) return $res;

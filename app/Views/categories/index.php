@@ -76,9 +76,9 @@
                                             class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                             style="width: 32px; height: 32px;"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#deleteCategoryModal-<?php echo $category['category_id']; ?>"
-                                            title="Delete Category">
-                                        <i class="fa-solid fa-trash"></i>
+                                            data-bs-target="#archiveCategoryModal-<?php echo $category['category_id']; ?>"
+                                            title="Archive Category">
+                                        <i class="fa-regular fa-folder"></i>
                                     </button>
                                 </div>
                             </td>
@@ -218,18 +218,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <?php if (!empty($categories)): ?>
     <?php foreach ($categories as $category): ?>
-    <!-- ===================== DELETE CATEGORY MODAL ===================== -->
-    <div class="modal fade" id="deleteCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
-         aria-labelledby="deleteCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
+    <!-- ===================== ARCHIVE CATEGORY MODAL ===================== -->
+    <div class="modal fade" id="archiveCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
+         aria-labelledby="archiveCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <!-- Modal Header -->
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="deleteCategoryModalLabel-<?php echo $category['category_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="archiveCategoryModalLabel-<?php echo $category['category_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                            Delete Category
+                            Archive Category
                         </h5>
                     </div>
                     <button type="button"
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
 
                     <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                        Are you sure you want to permanently delete this category? This action cannot be undone and will be recorded in the system audit trail.
+                        Are you sure you want to archive this category? It will be hidden from the active list but can be restored later.
                     </p>
                 </div>
 
@@ -271,11 +271,26 @@ document.addEventListener('DOMContentLoaded', function () {
                             onmouseout="this.style.background='#fff'">
                         Cancel
                     </button>
-                    <a href="<?php echo base_url('categories/delete/' . $category['category_id']); ?>"
-                       style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(239,68,68,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                       onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'"
-                       onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(239,68,68,0.3)'">
-                        Delete Category
+                    <a href="<?php echo base_url('categories/archive/' . $category['category_id']); ?>"
+                       style="
+                               background: #ef4444;;
+                               color: #fff;
+                               border: 1px solid transparent;
+                               border-radius: 8px;
+                               padding: 0.5rem 1.5rem;
+                               font-size: 0.9rem;
+                               font-weight: 600;
+                               text-decoration: none;
+                               cursor: pointer;
+                               box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+                               transition: background 0.15s, box-shadow 0.15s;
+                               display: inline-flex;
+                               align-items: center;
+                               height: 38px;
+                           "
+                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
+                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                        Archive Category
                     </a>
                 </div>
 

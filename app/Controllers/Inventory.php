@@ -97,6 +97,7 @@ class Inventory extends BaseController
         $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status);
         $data['categories'] = \Config\Database::connect()
             ->table('category')
+            ->where('status', 'Active')
             ->orderBy('category_code', 'ASC')
             ->get()
             ->getResultArray();

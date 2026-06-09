@@ -258,6 +258,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
+            order: [],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
