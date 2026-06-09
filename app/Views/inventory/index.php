@@ -73,7 +73,7 @@
                                 <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['item_name']); ?></div>
                             </td>
                             <td>
-                                <span class="text-dark"><?php echo htmlspecialchars($item['category_code'] ?? 'N/A'); ?></span>
+                                <span class="text-dark"><?php echo htmlspecialchars($item['category_description'] ?? 'N/A'); ?></span>
                             </td>
                             <td>
                                 <span class="fw-bold fs-6 text-dark">
@@ -288,7 +288,7 @@
 
                     <div class="row g-3">
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label for="item_code" class="form-label small fw-semibold text-secondary">
                                 Item Code <span class="text-danger">*</span>
                             </label>
@@ -301,7 +301,7 @@
                                    >
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label for="item_name" class="form-label small fw-semibold text-secondary">
                                 Item Name <span class="text-danger">*</span>
                             </label>
@@ -313,38 +313,7 @@
                                    required>
                         </div>
 
-                        <div class="col-12 col-sm-6">
-                            <label for="item_category_id" class="form-label small fw-semibold text-secondary">
-                                Category <span class="text-danger">*</span>
-                            </label>
-                             <select class="form-select input-custom"
-                                     id="item_category_id"
-                                     name="category_id"
-                                     onchange="generateItemCode()"
-                                     required>
-                                <option value="" disabled selected hidden>Select Category</option>
-                                <?php foreach (($categories ?? []) as $category): ?>
-                                    <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($category['category_code'] . ' - ' . $category['category_description']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label for="item_quantity" class="form-label small fw-semibold text-secondary">
-                                Quantity <span class="text-danger">*</span>
-                            </label>
-                            <input type="number"
-                                   class="form-control input-custom"
-                                   id="item_quantity"
-                                   name="quantity"
-                                   min="0"
-                                   value="<?php echo old('quantity', '0'); ?>"
-                                   required>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label for="item_unit" class="form-label small fw-semibold text-secondary">Unit</label>
                             <select class="form-select input-custom"
                                     id="item_unit"
@@ -369,7 +338,38 @@
                             </select>
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
+                            <label for="item_quantity" class="form-label small fw-semibold text-secondary">
+                                Quantity <span class="text-danger">*</span>
+                            </label>
+                            <input type="number"
+                                   class="form-control input-custom"
+                                   id="item_quantity"
+                                   name="quantity"
+                                   min="0"
+                                   value="<?php echo old('quantity', '0'); ?>"
+                                   required>
+                        </div>
+
+                        <div class="col-12 col-sm-4">
+                            <label for="item_category_id" class="form-label small fw-semibold text-secondary">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                             <select class="form-select input-custom"
+                                     id="item_category_id"
+                                     name="category_id"
+                                     onchange="generateItemCode()"
+                                     required>
+                                <option value="" disabled selected hidden>Select Category</option>
+                                <?php foreach (($categories ?? []) as $category): ?>
+                                    <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['category_description']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-sm-4">
                             <label for="item_source_type" class="form-label small fw-semibold text-secondary">
                                 Source <span class="text-danger">*</span>
                             </label>

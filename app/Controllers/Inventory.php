@@ -134,9 +134,18 @@ class Inventory extends BaseController
             'category_id' => 'required|integer',
             'source_type' => 'required|in_list[supplier,donation,old_stock]',
             'quantity'    => 'required|integer|greater_than_equal_to[0]',
+            'expiration_date'    => 'permit_empty|valid_date',
+            'manufacturing_date' => 'permit_empty|valid_date',
         ];
 
         if ($this->validate($rules)) {
+            $expiration = $this->request->getPost('expiration_date');
+            if (!empty($expiration) && $expiration < date('Y-m-d')) {
+                session()->setFlashdata('modal_mode', 'create');
+                session()->setFlashdata('modal_errors', '<li>Expiration date cannot be in the past.</li>');
+                return redirect()->to('inventory')->withInput();
+            }
+
             $db = \Config\Database::connect();
             $db->transStart();
 
@@ -307,9 +316,19 @@ class Inventory extends BaseController
             'category_id' => 'required|integer',
             'source_type' => 'required|in_list[supplier,donation,old_stock]',
             'quantity'    => 'required|integer|greater_than_equal_to[0]',
+            'expiration_date'    => 'permit_empty|valid_date',
+            'manufacturing_date' => 'permit_empty|valid_date',
         ];
 
         if ($this->validate($rules)) {
+            $expiration = $this->request->getPost('expiration_date');
+            if (!empty($expiration) && $expiration < date('Y-m-d')) {
+                session()->setFlashdata('modal_mode', 'edit');
+                session()->setFlashdata('modal_edit_id', $id);
+                session()->setFlashdata('modal_errors', '<li>Expiration date cannot be in the past.</li>');
+                return redirect()->to('inventory')->withInput();
+            }
+
             $db = \Config\Database::connect();
             $db->transStart();
 
