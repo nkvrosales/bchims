@@ -66,10 +66,11 @@ class SupplyRequests extends BaseController
             $categories = $this->db->table('category')
                                    ->orderBy('category_code', 'ASC')
                                    ->get()->getResultArray();
-            // Fetch in-stock Central Supply items for the request dropdown
+            // Fetch in-stock Central Supply items for the request dropdown (one per item name)
             $items = $this->db->table('central_supply')
-                              ->select('central_supply_id AS id, item_code, item_name AS name, quantity_on_hand AS quantity, category_id')
+                              ->select('MAX(central_supply_id) AS id, item_name AS name, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id')
                               ->where('quantity_on_hand >', 0)
+                              ->groupBy('item_name')
                               ->orderBy('item_name', 'ASC')
                               ->get()->getResultArray();
         }
@@ -330,6 +331,7 @@ class SupplyRequests extends BaseController
             'status'               => 'Served',
             'quantity_served'      => $qtyRequested,
             'department_supply_id' => $deptSupplyId,
+            'served_date'          => date('Y-m-d H:i:s'),
         ]);
 
         $db->transComplete();
@@ -482,13 +484,13 @@ class SupplyRequests extends BaseController
             'status'               => 'Partially Served',
             'quantity_served'      => $qtyServed + $servedQty,
             'department_supply_id' => $deptSupplyId,
+            'partial_date'         => date('Y-m-d H:i:s'),
         ];
         if ($notes !== '') {
             $existingNotes = $request['notes'] ?? '';
-            $ts = date('Y-m-d H:i');
             $updateData['notes'] = $existingNotes !== ''
-                ? $existingNotes . "\n--- Partial serve ({$ts}): {$notes}"
-                : "Partial serve ({$ts}): {$notes}";
+                ? $existingNotes . "\n---\n" . $notes
+                : $notes;
         }
         $this->requestModel->update($id, $updateData);
 
@@ -536,7 +538,7 @@ class SupplyRequests extends BaseController
             return redirect()->to('supply_requests');
         }
 
-        if ($this->requestModel->update($id, ['status' => 'Rejected'])) {
+        if ($this->requestModel->update($id, ['status' => 'Rejected', 'cancelled_date' => date('Y-m-d H:i:s')])) {
             $this->auditModel->log_activity(
                 'REJECT_SUPPLY_REQUEST',
                 'Supply Requests',
@@ -678,11 +680,14 @@ class SupplyRequests extends BaseController
             ]);
         }
 
-        // 4. Update request to Served and set quantity_served to full requested amount
+        // 4. Update request to Served and clear notes
         $this->requestModel->update($id, [
             'status'               => 'Served',
             'quantity_served'      => $qtyRequested,
             'department_supply_id' => $deptSupplyId,
+            'served_date'          => date('Y-m-d H:i:s'),
+            'closed_date'          => date('Y-m-d H:i:s'),
+            'notes'                => null,
         ]);
 
         $db->transComplete();

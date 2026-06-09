@@ -128,7 +128,7 @@ class Inventory extends BaseController
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
         $rules = [
-            'item_code'   => 'required|alpha_dash|max_length[50]',
+            'item_code'   => 'permit_empty|alpha_dash|max_length[50]',
             'name'        => 'required|max_length[150]',
             'category_id' => 'required|integer',
             'source_type' => 'required|in_list[supplier,donation,old_stock]',
@@ -139,14 +139,21 @@ class Inventory extends BaseController
             $db = \Config\Database::connect();
             $db->transStart();
 
-            $itemCode   = strtoupper($this->request->getPost('item_code'));
+            $categoryId = (int)$this->request->getPost('category_id');
+            
+            // Auto-generate item code if not provided
+            $itemCode = strtoupper($this->request->getPost('item_code'));
+            if (empty($itemCode)) {
+                $itemCode = $this->itemModel->generate_item_code($categoryId);
+            }
+            
             $itemName   = $this->request->getPost('name');
             $quantity   = (int)$this->request->getPost('quantity');
-            $categoryId = (int)$this->request->getPost('category_id');
             $sourceId   = $this->resolveSourceId($this->request->getPost('source_type'));
             $batchNum   = $this->request->getPost('batch_num') ?: null;
             $lotNum     = $this->request->getPost('lot_num')   ?: null;
             $expiration = $this->request->getPost('expiration_date') ?: null;
+            $manufacturingDate = $this->request->getPost('manufacturing_date') ?: null;
             $unit       = $this->request->getPost('unit') ?: null;
 
             if ($isAdmin) {
@@ -158,6 +165,7 @@ class Inventory extends BaseController
                     'batch_num'        => $batchNum,
                     'lot_num'          => $lotNum,
                     'expiration_date'  => $expiration,
+                    'manufacturing_date' => $manufacturingDate,
                     'unit'             => $unit,
                     'quantity'         => $quantity,
                     'quantity_on_hand' => $quantity,
@@ -175,6 +183,7 @@ class Inventory extends BaseController
                     'batch_num'       => $batchNum,
                     'lot_num'         => $lotNum,
                     'expiration_date' => $expiration,
+                    'manufacturing_date' => $manufacturingDate,
                     'unit'            => $unit,
                     'quantity'        => $quantity,
                     'category_id'     => $categoryId,
@@ -191,6 +200,7 @@ class Inventory extends BaseController
                         'batch_num'        => $batchNum,
                         'lot_num'          => $lotNum,
                         'expiration_date'  => $expiration,
+                        'manufacturing_date' => $manufacturingDate,
                         'unit'             => $unit,
                         'quantity'         => 0,
                         'quantity_on_hand' => 0,
@@ -310,6 +320,7 @@ class Inventory extends BaseController
                 'batch_num'       => $this->request->getPost('batch_num') ?: null,
                 'lot_num'         => $this->request->getPost('lot_num')   ?: null,
                 'expiration_date' => $this->request->getPost('expiration_date') ?: null,
+                'manufacturing_date' => $this->request->getPost('manufacturing_date') ?: null,
                 'unit'            => $this->request->getPost('unit') ?: null,
                 'quantity'        => (int)$this->request->getPost('quantity'),
             ];
@@ -361,6 +372,31 @@ class Inventory extends BaseController
             session()->setFlashdata('modal_edit_id', $id);
             session()->setFlashdata('modal_errors', $this->validator->listErrors());
             return redirect()->to('inventory')->withInput();
+        }
+    }
+
+    /**
+     * Generate next item code for a category (AJAX endpoint)
+     */
+    public function generate_item_code()
+    {
+        // Skip auth check for AJAX to avoid redirect issues
+        if (!session()->get('logged_in')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Not logged in']);
+        }
+
+        $categoryId = $this->request->getPost('category_id');
+        
+        if (empty($categoryId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Category ID is required']);
+        }
+
+        $itemCode = $this->itemModel->generate_item_code((int)$categoryId);
+        
+        if ($itemCode) {
+            return $this->response->setJSON(['success' => true, 'item_code' => $itemCode]);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to generate item code']);
         }
     }
 

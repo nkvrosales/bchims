@@ -28,7 +28,7 @@
 <div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
     <div class="card-header-styled mb-4">
         <h5 class="card-title-styled">
-            <span>Log Database History</span>
+            <span>Audit Log</span>
         </h5>
         <!-- Container for DataTable Buttons Injection -->
         <div id="tableActionsContainer" class="d-flex align-items-center gap-2"></div>
@@ -38,20 +38,21 @@
         <table class="table table-custom table-hover w-100" id="auditLogsTable">
             <thead>
                 <tr>
-                    <th style="width: 5%">#</th>
-                    <th style="width: 18%">Date/Time</th>
-                    <th style="width: 12%">User</th>
-                    <th style="width: 12%">Action</th>
+                    <th style="width: 14%">Date/Time</th>
+                    <th style="width: 10%">User</th>
+                    <th style="width: 10%">Action</th>
                     <th>Description</th>
+                    <?php if (is_admin_role()): ?>
+                        <th style="width: 10%">IP Address</th>
+                        <th style="width: 12%">Device</th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
                 <?php if (!empty($logs)): ?>
-                    <?php $count = 1; ?>
                     <?php foreach ($logs as $log): ?>
                         <tr class="audit-log-row" data-log-id="<?php echo $log['log_id']; ?>">
-                            <td><span class="text-muted small"><?php echo $count++; ?></span></td>
-                            <td>
+                            <td data-order="<?php echo $log['created_at']; ?>">
                                 <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
                                     <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
                                 </span>
@@ -83,6 +84,21 @@
                                     <?php echo htmlspecialchars($log['description']); ?>
                                 </span>
                             </td>
+                            <?php if (is_admin_role()): ?>
+                            <td>
+                                <span class="text-muted small font-monospace">
+                                    <?php echo htmlspecialchars($log['ip_address'] ?? '-'); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-muted small" style="font-size: 0.75rem; word-break: break-word;" title="<?php echo htmlspecialchars($log['user_agent'] ?? ''); ?>">
+                                    <?php 
+                                        $ua = $log['user_agent'] ?? '';
+                                        echo htmlspecialchars(!empty($ua) ? (strlen($ua) > 40 ? substr($ua, 0, 40) . '...' : $ua) : '-');
+                                    ?>
+                                </span>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

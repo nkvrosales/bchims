@@ -352,7 +352,7 @@
                                               id="partial_notes_<?php echo $req['request_id']; ?>" 
                                               name="partial_notes" 
                                               rows="3" 
-                                              placeholder="Optional notes about this partial serve..."></textarea>
+                                              placeholder="Details about this partial serve."></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-end">
@@ -412,7 +412,7 @@
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                     <div class="modal-header border-bottom px-4">
                         <h5 class="modal-title fw-bold text-dark" id="viewModalLabel_<?php echo $req['request_id']; ?>">
-                            <i class="bi bi-search me-2"></i>Request Details
+                            Request Details
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -486,6 +486,15 @@
                             <div class="col-6">
                                 <label class="small fw-semibold text-secondary d-block">Closed Date</label>
                                 <span class="text-dark small"><?php echo date('M d, Y h:i A', strtotime($req['closed_date'])); ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($req['notes'])): ?>
+                            <div class="col-12"><hr class="my-1"></div>
+                            <div class="col-12">
+                                <label class="small fw-semibold text-secondary d-block mb-1">Notes</label>
+                                <div class="bg-light rounded-3 p-3 border" style="white-space: pre-line; font-size: 0.95rem; color: #1f2937; line-height: 1.6;">
+                                    <?php echo htmlspecialchars($req['notes']); ?>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>

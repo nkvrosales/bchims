@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class AuditModel extends Model
 {
-    protected $table      = 'user_log';
+    protected $table      = 'audit_log';
     protected $primaryKey = 'user_log_id';
 
     protected $useAutoIncrement = true;
@@ -14,7 +14,7 @@ class AuditModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['user_id', 'action_type', 'action_description'];
+    protected $allowedFields = ['user_id', 'action_type', 'action_description', 'ip_address', 'user_agent'];
 
     protected $useTimestamps = false;
 
@@ -41,7 +41,9 @@ class AuditModel extends Model
         $data = array(
             'user_id'            => $user_id,
             'action_type'        => strtoupper($action),
-            'action_description' => $description
+            'action_description' => $description,
+            'ip_address'         => \Config\Services::request()->getIPAddress(),
+            'user_agent'         => \Config\Services::request()->getUserAgent()->getAgentString(),
         );
 
         return $this->insert($data);
@@ -52,11 +54,11 @@ class AuditModel extends Model
      */
     public function get_audit_logs($filters = array())
     {
-        $builder = $this->select("user_log.*, user_log.user_log_id AS log_id, user_log.action_type AS action, user_log.action_description AS description, user_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username")
-                        ->join('user', 'user.user_id = user_log.user_id', 'left');
+        $builder = $this->select("audit_log.*, audit_log.user_log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
+                        ->join('user', 'user.user_id = audit_log.user_id', 'left');
 
         if (!is_admin_role()) {
-            $builder = $builder->where('user_log.user_id', session()->get('user_id'));
+            $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
         }
 
         if (!empty($filters['start_date'])) {
@@ -86,11 +88,11 @@ class AuditModel extends Model
      */
     public function get_recent_logs($limit = 5)
     {
-        $builder = $this->select("user_log.*, user_log.user_log_id AS log_id, user_log.action_type AS action, user_log.action_description AS description, user_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username")
-                        ->join('user', 'user.user_id = user_log.user_id', 'left');
+        $builder = $this->select("audit_log.*, audit_log.user_log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
+                        ->join('user', 'user.user_id = audit_log.user_id', 'left');
                         
         if (!is_admin_role()) {
-            $builder = $builder->where('user_log.user_id', session()->get('user_id'));
+            $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
         }
         return $builder->orderBy('action_date', 'DESC')->findAll($limit);
     }

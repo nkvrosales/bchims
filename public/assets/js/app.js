@@ -178,7 +178,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[0, 'asc']], // Order by # index increment column
+            order: [[0, 'desc']], // Order by Date/Time descending (newest first)
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',

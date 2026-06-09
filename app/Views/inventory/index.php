@@ -123,6 +123,7 @@
                                            "unit" => $item["unit"] ?? "",
                                            "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
                                            "expiration_date" => $item["expiration_date"] ?? "",
+                                           "manufacturing_date" => $item["manufacturing_date"] ?? "",
                                            "batch_num" => $item["batch_num"] ?? "",
                                            "lot_num" => $item["lot_num"] ?? "",
                                        ]); ?>)'
@@ -297,7 +298,7 @@
                                    name="item_code"
                                    style="text-transform: uppercase;"
                                    value="<?php echo old('item_code'); ?>"
-                                   required>
+                                   >
                         </div>
 
                         <div class="col-12 col-sm-6">
@@ -316,11 +317,12 @@
                             <label for="item_category_id" class="form-label small fw-semibold text-secondary">
                                 Category <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select input-custom"
-                                    id="item_category_id"
-                                    name="category_id"
-                                    required>
-                                <option value="">Select Category</option>
+                             <select class="form-select input-custom"
+                                     id="item_category_id"
+                                     name="category_id"
+                                     onchange="generateItemCode()"
+                                     required>
+                                <option value="" disabled selected hidden>Select Category</option>
                                 <?php foreach (($categories ?? []) as $category): ?>
                                     <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($category['category_code'] . ' - ' . $category['category_description']); ?>
@@ -344,11 +346,27 @@
 
                         <div class="col-12 col-sm-6">
                             <label for="item_unit" class="form-label small fw-semibold text-secondary">Unit</label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="item_unit"
-                                   name="unit"
-                                   value="<?php echo old('unit'); ?>">
+                            <select class="form-select input-custom"
+                                    id="item_unit"
+                                    name="unit">
+                                <option value="" disabled selected hidden>Select Unit</option>
+                                <option value="pcs" <?php echo (old('unit') === 'pcs') ? 'selected' : ''; ?>>Pieces (pcs)</option>
+                                <option value="box" <?php echo (old('unit') === 'box') ? 'selected' : ''; ?>>Box</option>
+                                <option value="pack" <?php echo (old('unit') === 'pack') ? 'selected' : ''; ?>>Pack</option>
+                                <option value="bottle" <?php echo (old('unit') === 'bottle') ? 'selected' : ''; ?>>Bottle</option>
+                                <option value="vial" <?php echo (old('unit') === 'vial') ? 'selected' : ''; ?>>Vial</option>
+                                <option value="ampoule" <?php echo (old('unit') === 'ampoule') ? 'selected' : ''; ?>>Ampoule</option>
+                                <option value="tube" <?php echo (old('unit') === 'tube') ? 'selected' : ''; ?>>Tube</option>
+                                <option value="syringe" <?php echo (old('unit') === 'syringe') ? 'selected' : ''; ?>>Syringe</option>
+                                <option value="kit" <?php echo (old('unit') === 'kit') ? 'selected' : ''; ?>>Kit</option>
+                                <option value="set" <?php echo (old('unit') === 'set') ? 'selected' : ''; ?>>Set</option>
+                                <option value="liter" <?php echo (old('unit') === 'liter') ? 'selected' : ''; ?>>Liter (L)</option>
+                                <option value="ml" <?php echo (old('unit') === 'ml') ? 'selected' : ''; ?>>Milliliter (ml)</option>
+                                <option value="kg" <?php echo (old('unit') === 'kg') ? 'selected' : ''; ?>>Kilogram (kg)</option>
+                                <option value="g" <?php echo (old('unit') === 'g') ? 'selected' : ''; ?>>Gram (g)</option>
+                                <option value="mg" <?php echo (old('unit') === 'mg') ? 'selected' : ''; ?>>Milligram (mg)</option>
+                                <option value="unit" <?php echo (old('unit') === 'unit') ? 'selected' : ''; ?>>Unit</option>
+                            </select>
                         </div>
 
                         <div class="col-12 col-sm-6">
@@ -359,7 +377,7 @@
                                     id="item_source_type"
                                     name="source_type"
                                     required>
-                                <option value="">Select Source</option>
+                                <option value="" disabled selected hidden>Select Source</option>
                                 <option value="supplier" <?php echo (old('source_type') === 'supplier') ? 'selected' : ''; ?>>Supplier</option>
                                 <option value="donation" <?php echo (old('source_type') === 'donation') ? 'selected' : ''; ?>>Donation</option>
                                 <option value="old_stock" <?php echo (old('source_type') === 'old_stock') ? 'selected' : ''; ?>>Old Stock</option>
@@ -373,6 +391,15 @@
                                    id="item_expiration_date"
                                    name="expiration_date"
                                    value="<?php echo old('expiration_date'); ?>">
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label for="item_manufacturing_date" class="form-label small fw-semibold text-secondary">Manufacturing Date</label>
+                            <input type="date"
+                                   class="form-control input-custom"
+                                   id="item_manufacturing_date"
+                                   name="manufacturing_date"
+                                   value="<?php echo old('manufacturing_date'); ?>">
                         </div>
 
                         <div class="col-12 col-sm-6">
@@ -433,6 +460,7 @@ function openItemModal(mode, data) {
         document.getElementById('item_unit').value = data.unit || '';
         document.getElementById('item_source_type').value = data.source_type || 'supplier';
         document.getElementById('item_expiration_date').value = data.expiration_date || '';
+        document.getElementById('item_manufacturing_date').value = data.manufacturing_date || '';
         document.getElementById('item_batch_num').value = data.batch_num || '';
         document.getElementById('item_lot_num').value = data.lot_num || '';
     } else {
@@ -446,10 +474,20 @@ function openItemModal(mode, data) {
         document.getElementById('item_unit').value = '';
         document.getElementById('item_source_type').value = '';
         document.getElementById('item_expiration_date').value = '';
+        document.getElementById('item_manufacturing_date').value = '';
         document.getElementById('item_batch_num').value = '';
         document.getElementById('item_lot_num').value = '';
     }
-    new bootstrap.Modal(document.getElementById('itemModal')).show();
+    
+    var modal = new bootstrap.Modal(document.getElementById('itemModal'));
+    modal.show();
+    
+    // Auto-generate item code after modal is shown (for create mode)
+    if (mode === 'create') {
+        setTimeout(function() {
+            generateItemCode();
+        }, 100);
+    }
 }
 
 <?php if ($modal_mode === 'edit' && $modal_edit_id): ?>
@@ -463,6 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
         unit: '<?php echo addslashes(old('unit', '')); ?>',
         source_type: '<?php echo addslashes(old('source_type', 'supplier')); ?>',
         expiration_date: '<?php echo addslashes(old('expiration_date', '')); ?>',
+        manufacturing_date: '<?php echo addslashes(old('manufacturing_date', '')); ?>',
         batch_num: '<?php echo addslashes(old('batch_num', '')); ?>',
         lot_num: '<?php echo addslashes(old('lot_num', '')); ?>'
     });
@@ -476,11 +515,38 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('item_unit').value = '<?php echo addslashes(old('unit', '')); ?>';
     document.getElementById('item_source_type').value = '<?php echo addslashes(old('source_type', '')); ?>';
     document.getElementById('item_expiration_date').value = '<?php echo addslashes(old('expiration_date', '')); ?>';
+    document.getElementById('item_manufacturing_date').value = '<?php echo addslashes(old('manufacturing_date', '')); ?>';
     document.getElementById('item_batch_num').value = '<?php echo addslashes(old('batch_num', '')); ?>';
     document.getElementById('item_lot_num').value = '<?php echo addslashes(old('lot_num', '')); ?>';
     new bootstrap.Modal(document.getElementById('itemModal')).show();
 });
 <?php endif; ?>
+
+// Auto-generate item code via AJAX when category is selected
+function generateItemCode() {
+    var categorySelect = document.getElementById('item_category_id');
+    var itemCodeField = document.getElementById('item_code');
+    
+    if (!categorySelect || !itemCodeField) return;
+    
+    var categoryId = categorySelect.value;
+    if (!categoryId) return;
+
+    var formData = new FormData();
+    formData.append('category_id', categoryId);
+    
+    fetch('<?php echo base_url('inventory/generate_item_code'); ?>', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success && data.item_code) {
+            itemCodeField.value = data.item_code;
+        }
+    })
+    .catch(function() {});
+}
 </script>
 
 <!-- ===================== DELETE ITEM MODALS ===================== -->

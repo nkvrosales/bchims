@@ -29,6 +29,7 @@ $routes->group('inventory', function($routes) {
     $routes->get('edit/(:num)', 'Inventory::edit/$1');
     $routes->post('edit/(:num)', 'Inventory::edit/$1');
     $routes->get('delete/(:num)', 'Inventory::delete/$1');
+    $routes->post('generate_item_code', 'Inventory::generate_item_code');
 });
 
 $routes->group('departments', function($routes) {

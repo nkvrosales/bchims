@@ -14,9 +14,64 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
+    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
 
     protected $useTimestamps = false;
+
+    /**
+     * Generate auto item code based on category code and current date
+     * Format: CATEGORY-YYYY-MM-NNNN (e.g., MED-2026-06-0001)
+     */
+    public function generate_item_code($category_id)
+    {
+        $db = \Config\Database::connect();
+        
+        // Get category code
+        $category = $db->table('category')->where('category_id', $category_id)->get()->getRowArray();
+        if (!$category) {
+            return null;
+        }
+        
+        $categoryCode = strtoupper($category['category_code']);
+        $currentDate = date('Y-m');
+        
+        // Find the last item code for this category and month across both tables
+        $prefix = $categoryCode . '-' . $currentDate . '-';
+        $csItem = $db->table('central_supply')
+                      ->select('item_code')
+                      ->like('item_code', $prefix, 'after')
+                      ->orderBy('item_code', 'DESC')
+                      ->limit(1)
+                      ->get()
+                      ->getRowArray();
+        $invItem = $db->table('inventory')
+                       ->select('item_code')
+                       ->like('item_code', $prefix, 'after')
+                       ->orderBy('item_code', 'DESC')
+                       ->limit(1)
+                       ->get()
+                       ->getRowArray();
+
+        $lastItem = null;
+        if ($csItem && $invItem) {
+            $lastItem = $csItem['item_code'] >= $invItem['item_code'] ? $csItem : $invItem;
+        } elseif ($csItem) {
+            $lastItem = $csItem;
+        } elseif ($invItem) {
+            $lastItem = $invItem;
+        }
+
+        $sequence = 1;
+        if ($lastItem) {
+            $lastSequence = (int)substr($lastItem['item_code'], strlen($prefix));
+            $sequence = $lastSequence + 1;
+        }
+        
+        // Format sequence as 4-digit number with leading zeros
+        $sequenceFormatted = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        
+        return $categoryCode . '-' . $currentDate . '-' . $sequenceFormatted;
+    }
 
     /**
      * Dynamically target either central_supply or inventory table at runtime.
