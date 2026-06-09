@@ -438,4 +438,41 @@ $(document).ready(function() {
             }
         });
     }
+
+    // 10. JQUERY DATATABLES: SOURCES SORTING & SEARCH
+    // =========================================================================
+    const $sourcesTable = $('#sourcesTable');
+    if ($sourcesTable.length) {
+        $sourcesTable.DataTable({
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            order: [[1, 'asc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                search: "",
+                searchPlaceholder: "Search sources...",
+                lengthMenu: "Show _MENU_ sources",
+                info: 'Showing _START_ to _END_ of _TOTAL_ sources',
+                infoEmpty: 'Showing 0 to 0 of 0 sources',
+                zeroRecords: 'No sources found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 2 }
+            ],
+            initComplete: function () {
+                var $searchInput = $('#sourcesTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search sources...');
+                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $('#sourcesTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#sourcesTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
+        });
+    }
 });

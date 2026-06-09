@@ -114,6 +114,14 @@
                         <span>Departments</span>
                     </a>
                 </li>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('sources'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Sources') ? 'active' : ''; ?>" id="navSources">
+                        <i class="bi bi-truck"></i>
+                        <span>Sources</span>
+                    </a>
+                </li>
                 <?php endif; ?>
 
                 <li class="sidebar-item">

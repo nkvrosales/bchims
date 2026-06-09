@@ -114,19 +114,20 @@
                                     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                                     <button type="button"
                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                       onclick='openItemModal("edit", <?php echo json_encode([
-                                           "id" => $item["id"],
-                                           "item_code" => $item["item_code"],
-                                           "name" => $item["item_name"],
-                                           "category_id" => $item["category_id"] ?? "",
-                                           "quantity" => $item["quantity"],
-                                           "unit" => $item["unit"] ?? "",
-                                           "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
-                                           "expiration_date" => $item["expiration_date"] ?? "",
-                                           "manufacturing_date" => $item["manufacturing_date"] ?? "",
-                                           "batch_num" => $item["batch_num"] ?? "",
-                                           "lot_num" => $item["lot_num"] ?? "",
-                                       ]); ?>)'
+                                        onclick='openItemModal("edit", <?php echo json_encode([
+                                            "id" => $item["id"],
+                                            "item_code" => $item["item_code"],
+                                            "name" => $item["item_name"],
+                                            "category_id" => $item["category_id"] ?? "",
+                                            "quantity" => $item["quantity"],
+                                            "unit" => $item["unit"] ?? "",
+                                            "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
+                                            "source_name" => $item["supplier_name"] ?? "",
+                                            "expiration_date" => $item["expiration_date"] ?? "",
+                                            "manufacturing_date" => $item["manufacturing_date"] ?? "",
+                                            "batch_num" => $item["batch_num"] ?? "",
+                                            "lot_num" => $item["lot_num"] ?? "",
+                                        ]); ?>)'
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="Edit Item">
                                         <i class="bi bi-pencil-square"></i>
@@ -289,6 +290,24 @@
                     <div class="row g-3">
 
                         <div class="col-12 col-sm-4">
+                            <label for="item_category_id" class="form-label small fw-semibold text-secondary">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                             <select class="form-select input-custom"
+                                     id="item_category_id"
+                                     name="category_id"
+                                     onchange="generateItemCode()"
+                                     required>
+                                <option value="" disabled selected hidden>Select Category</option>
+                                <?php foreach (($categories ?? []) as $category): ?>
+                                    <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['category_description']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-sm-4">
                             <label for="item_code" class="form-label small fw-semibold text-secondary">
                                 Item Code <span class="text-danger">*</span>
                             </label>
@@ -313,11 +332,14 @@
                                    required>
                         </div>
 
-                        <div class="col-12 col-sm-4">
-                            <label for="item_unit" class="form-label small fw-semibold text-secondary">Unit</label>
+                        <div class="col-12 col-sm-6">
+                            <label for="item_unit" class="form-label small fw-semibold text-secondary">
+                                Unit <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select input-custom"
                                     id="item_unit"
-                                    name="unit">
+                                    name="unit"
+                                    required>
                                 <option value="" disabled selected hidden>Select Unit</option>
                                 <option value="pcs" <?php echo (old('unit') === 'pcs') ? 'selected' : ''; ?>>Pieces (pcs)</option>
                                 <option value="box" <?php echo (old('unit') === 'box') ? 'selected' : ''; ?>>Box</option>
@@ -338,7 +360,7 @@
                             </select>
                         </div>
 
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-6">
                             <label for="item_quantity" class="form-label small fw-semibold text-secondary">
                                 Quantity <span class="text-danger">*</span>
                             </label>
@@ -351,46 +373,50 @@
                                    required>
                         </div>
 
-                        <div class="col-12 col-sm-4">
-                            <label for="item_category_id" class="form-label small fw-semibold text-secondary">
-                                Category <span class="text-danger">*</span>
-                            </label>
-                             <select class="form-select input-custom"
-                                     id="item_category_id"
-                                     name="category_id"
-                                     onchange="generateItemCode()"
-                                     required>
-                                <option value="" disabled selected hidden>Select Category</option>
-                                <?php foreach (($categories ?? []) as $category): ?>
-                                    <option value="<?php echo $category['category_id']; ?>" <?php echo ((string)old('category_id') === (string)$category['category_id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($category['category_description']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-6">
                             <label for="item_source_type" class="form-label small fw-semibold text-secondary">
-                                Source <span class="text-danger">*</span>
+                                Source Type <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom"
                                     id="item_source_type"
                                     name="source_type"
+                                    onchange="toggleSourceName()"
                                     required>
-                                <option value="" disabled selected hidden>Select Source</option>
+                                <option value="" disabled selected hidden>Select Source Type</option>
                                 <option value="supplier" <?php echo (old('source_type') === 'supplier') ? 'selected' : ''; ?>>Supplier</option>
                                 <option value="donation" <?php echo (old('source_type') === 'donation') ? 'selected' : ''; ?>>Donation</option>
-                                <option value="old_stock" <?php echo (old('source_type') === 'old_stock') ? 'selected' : ''; ?>>Old Stock</option>
+                                <option value="others" <?php echo (old('source_type') === 'others') ? 'selected' : ''; ?>>Others</option>
                             </select>
                         </div>
 
+                        <div class="col-12 col-sm-6" id="sourceNameCol">
+                            <label for="item_source_name_select" class="form-label small fw-semibold text-secondary">
+                                Source <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select input-custom"
+                                    id="item_source_name_select"
+                                    name="source_name"
+                                    required>
+                                <option value="">— Select Source —</option>
+                            </select>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_source_name_text"
+                                   name="source_name"
+                                   placeholder="Type source name..."
+                                   style="display:none;">
+                        </div>
+
                         <div class="col-12 col-sm-6">
-                            <label for="item_expiration_date" class="form-label small fw-semibold text-secondary">Expiration Date</label>
+                            <label for="item_expiration_date" class="form-label small fw-semibold text-secondary">
+                                Expiration Date <span class="text-danger">*</span>
+                            </label>
                             <input type="date"
                                    class="form-control input-custom"
                                    id="item_expiration_date"
                                    name="expiration_date"
-                                   value="<?php echo old('expiration_date'); ?>">
+                                   value="<?php echo old('expiration_date'); ?>"
+                                   required>
                         </div>
 
                         <div class="col-12 col-sm-6">
@@ -445,6 +471,8 @@
 </div>
 
 <script>
+var allSources = <?php echo json_encode($sources ?? []); ?>;
+
 function openItemModal(mode, data) {
     var form = document.getElementById('itemForm');
     var label = document.getElementById('itemModalLabel');
@@ -459,6 +487,14 @@ function openItemModal(mode, data) {
         document.getElementById('item_quantity').value = data.quantity || 0;
         document.getElementById('item_unit').value = data.unit || '';
         document.getElementById('item_source_type').value = data.source_type || 'supplier';
+        toggleSourceName();
+        var sel = document.getElementById('item_source_name_select');
+        var txt = document.getElementById('item_source_name_text');
+        if (sel.style.display !== 'none') {
+            sel.value = data.source_name || '';
+        } else {
+            txt.value = data.source_name || '';
+        }
         document.getElementById('item_expiration_date').value = data.expiration_date || '';
         document.getElementById('item_manufacturing_date').value = data.manufacturing_date || '';
         document.getElementById('item_batch_num').value = data.batch_num || '';
@@ -473,6 +509,9 @@ function openItemModal(mode, data) {
         document.getElementById('item_quantity').value = '0';
         document.getElementById('item_unit').value = '';
         document.getElementById('item_source_type').value = '';
+        document.getElementById('item_source_name_select').value = '';
+        document.getElementById('item_source_name_text').value = '';
+        toggleSourceName();
         document.getElementById('item_expiration_date').value = '';
         document.getElementById('item_manufacturing_date').value = '';
         document.getElementById('item_batch_num').value = '';
@@ -490,6 +529,34 @@ function openItemModal(mode, data) {
     }
 }
 
+function toggleSourceName() {
+    var typeSelect = document.getElementById('item_source_type');
+    var sel = document.getElementById('item_source_name_select');
+    var txt = document.getElementById('item_source_name_text');
+    sel.innerHTML = '<option value="">Select Source</option>';
+    txt.value = '';
+    if (typeSelect.value === 'supplier' || typeSelect.value === 'donation') {
+        sel.style.display = '';
+        txt.style.display = 'none';
+        sel.required = true;
+        txt.required = false;
+        var filterType = typeSelect.value === 'supplier' ? 'Supplier' : 'Donation';
+        for (var i = 0; i < allSources.length; i++) {
+            if (allSources[i].source_type === filterType) {
+                var opt = document.createElement('option');
+                opt.value = allSources[i].supplier_name;
+                opt.textContent = allSources[i].supplier_name;
+                sel.appendChild(opt);
+            }
+        }
+    } else if (typeSelect.value === 'others') {
+        sel.style.display = 'none';
+        txt.style.display = '';
+        sel.required = false;
+        txt.required = true;
+    }
+}
+
 <?php if ($modal_mode === 'edit' && $modal_edit_id): ?>
 document.addEventListener('DOMContentLoaded', function () {
     openItemModal('edit', {
@@ -500,6 +567,7 @@ document.addEventListener('DOMContentLoaded', function () {
         quantity: '<?php echo addslashes(old('quantity', '0')); ?>',
         unit: '<?php echo addslashes(old('unit', '')); ?>',
         source_type: '<?php echo addslashes(old('source_type', 'supplier')); ?>',
+        source_name: '<?php echo addslashes(old('source_name', '')); ?>',
         expiration_date: '<?php echo addslashes(old('expiration_date', '')); ?>',
         manufacturing_date: '<?php echo addslashes(old('manufacturing_date', '')); ?>',
         batch_num: '<?php echo addslashes(old('batch_num', '')); ?>',
@@ -514,10 +582,19 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('item_quantity').value = '<?php echo addslashes(old('quantity', '0')); ?>';
     document.getElementById('item_unit').value = '<?php echo addslashes(old('unit', '')); ?>';
     document.getElementById('item_source_type').value = '<?php echo addslashes(old('source_type', '')); ?>';
+    toggleSourceName();
+    var sel = document.getElementById('item_source_name_select');
+    var txt = document.getElementById('item_source_name_text');
+    if (sel.style.display !== 'none') {
+        sel.value = '<?php echo addslashes(old('source_name', '')); ?>';
+    } else {
+        txt.value = '<?php echo addslashes(old('source_name', '')); ?>';
+    }
     document.getElementById('item_expiration_date').value = '<?php echo addslashes(old('expiration_date', '')); ?>';
     document.getElementById('item_manufacturing_date').value = '<?php echo addslashes(old('manufacturing_date', '')); ?>';
     document.getElementById('item_batch_num').value = '<?php echo addslashes(old('batch_num', '')); ?>';
     document.getElementById('item_lot_num').value = '<?php echo addslashes(old('lot_num', '')); ?>';
+    toggleSourceName();
     new bootstrap.Modal(document.getElementById('itemModal')).show();
 });
 <?php endif; ?>

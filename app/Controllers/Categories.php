@@ -45,7 +45,7 @@ class Categories extends BaseController
 
         $data['title'] = 'Categories';
         $data['categories'] = $this->categoryModel
-            ->where('status', 'Active')
+            ->where('status', 1)
             ->orderBy('category_code', 'ASC')
             ->findAll();
 
@@ -163,7 +163,7 @@ class Categories extends BaseController
             return redirect()->to('categories');
         }
 
-        if ($this->categoryModel->update($id, ['status' => 'Inactive'])) {
+        if ($this->categoryModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
                 'ARCHIVE_CATEGORY',
                 'Categories',
@@ -192,7 +192,7 @@ class Categories extends BaseController
             return redirect()->to('categories');
         }
 
-        if ($this->categoryModel->update($id, ['status' => 'Active'])) {
+        if ($this->categoryModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
                 'RESTORE_CATEGORY',
                 'Categories',

@@ -14,7 +14,7 @@ class UserModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['first_name', 'last_name', 'username', 'email', 'password', 'role_id', 'department_id', 'account_status'];
+    protected $allowedFields = ['first_name', 'last_name', 'username', 'email', 'password', 'role_id', 'department_id', 'status'];
 
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
@@ -29,7 +29,7 @@ class UserModel extends Model
                      ->join('departments', 'departments.department_id = user.department_id', 'left')
                      ->join('roles', 'roles.role_id = user.role_id', 'inner')
                      ->where('user.username', $username)
-                     ->where('user.account_status', 'Active')
+                     ->where('user.status', 1)
                      ->first();
 
         if ($user) {
@@ -46,7 +46,7 @@ class UserModel extends Model
      */
     public function get_users()
     {
-        return $this->select("user.user_id AS id, user.username, user.email, user.last_name, user.first_name, CONCAT(user.first_name, ' ', user.last_name) AS full_name, roles.role_name AS role, user.account_status, user.created_at, user.department_id, departments.department_name AS department_name, departments.department_code AS department_code, (user.account_status = 'Active') AS is_active, (SELECT MAX(action_date) FROM audit_log WHERE audit_log.user_id = user.user_id AND audit_log.action_type = 'LOGIN') AS last_login")
+        return $this->select("user.user_id AS id, user.username, user.email, user.last_name, user.first_name, CONCAT(user.first_name, ' ', user.last_name) AS full_name, roles.role_name AS role, user.status, user.created_at, user.department_id, departments.department_name AS department_name, departments.department_code AS department_code, (user.status = 1) AS is_active, (SELECT MAX(action_date) FROM audit_log WHERE audit_log.user_id = user.user_id AND audit_log.action_type = 'LOGIN') AS last_login")
                     ->join('departments', 'departments.department_id = user.department_id', 'left')
                     ->join('roles', 'roles.role_id = user.role_id', 'inner')
                     ->orderBy('user.last_name', 'ASC')
@@ -59,7 +59,7 @@ class UserModel extends Model
      */
     public function get_user_by_id($id)
     {
-        return $this->select("user.*, user.user_id AS id, CONCAT(user.first_name, ' ', user.last_name) AS full_name, departments.department_name AS department_name, departments.department_code AS department_code, roles.role_name AS role_name, roles.role_name AS role, (user.account_status = 'Active') AS is_active")
+        return $this->select("user.*, user.user_id AS id, CONCAT(user.first_name, ' ', user.last_name) AS full_name, departments.department_name AS department_name, departments.department_code AS department_code, roles.role_name AS role_name, roles.role_name AS role, (user.status = 1) AS is_active")
                     ->join('departments', 'departments.department_id = user.department_id', 'left')
                     ->join('roles', 'roles.role_id = user.role_id', 'inner')
                     ->where('user.user_id', $id)

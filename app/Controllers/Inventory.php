@@ -38,7 +38,7 @@ class Inventory extends BaseController
         return null;
     }
 
-    protected function resolveSourceId($sourceValue)
+    protected function resolveSourceId($sourceValue, $sourceName = null)
     {
         $db = \Config\Database::connect();
 
@@ -46,9 +46,26 @@ class Inventory extends BaseController
             case 'donation':
                 $sourceType = 'Donation';
                 break;
-            case 'old_stock':
-                $sourceType = 'Old Stock';
-                break;
+            case 'others':
+                $customName = trim($sourceName ?? '');
+                if (!empty($customName)) {
+                    $existing = $db->table('source')
+                        ->where('supplier_name', $customName)
+                        ->get()
+                        ->getRowArray();
+
+                    if (!empty($existing)) {
+                        return (int)$existing['source_id'];
+                    }
+
+                    $db->table('source')->insert([
+                        'source_type'   => 'Others',
+                        'supplier_name' => $customName,
+                        'status'        => 1,
+                    ]);
+                    return (int)$db->insertID();
+                }
+                // fall through to default if no name provided
             default:
                 $sourceType = 'Supplier';
         }
@@ -97,8 +114,15 @@ class Inventory extends BaseController
         $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status);
         $data['categories'] = \Config\Database::connect()
             ->table('category')
-            ->where('status', 'Active')
+            ->where('status', 1)
             ->orderBy('category_code', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $data['sources'] = \Config\Database::connect()
+            ->table('source')
+            ->where('status', 1)
+            ->orderBy('supplier_name', 'ASC')
             ->get()
             ->getResultArray();
 
@@ -132,9 +156,11 @@ class Inventory extends BaseController
             'item_code'   => 'permit_empty|alpha_dash|max_length[50]',
             'name'        => 'required|max_length[150]',
             'category_id' => 'required|integer',
-            'source_type' => 'required|in_list[supplier,donation,old_stock]',
+            'source_type' => 'required|in_list[supplier,donation,others]',
+            'source_name' => 'permit_empty|max_length[150]',
             'quantity'    => 'required|integer|greater_than_equal_to[0]',
-            'expiration_date'    => 'permit_empty|valid_date',
+            'unit'               => 'required',
+            'expiration_date'    => 'required|valid_date',
             'manufacturing_date' => 'permit_empty|valid_date',
         ];
 
@@ -159,7 +185,7 @@ class Inventory extends BaseController
             
             $itemName   = $this->request->getPost('name');
             $quantity   = (int)$this->request->getPost('quantity');
-            $sourceId   = $this->resolveSourceId($this->request->getPost('source_type'));
+            $sourceId   = $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name'));
             $batchNum   = $this->request->getPost('batch_num') ?: null;
             $lotNum     = $this->request->getPost('lot_num')   ?: null;
             $expiration = $this->request->getPost('expiration_date') ?: null;
@@ -314,9 +340,11 @@ class Inventory extends BaseController
             'item_code'   => 'required|alpha_dash|max_length[50]',
             'name'        => 'required|max_length[150]',
             'category_id' => 'required|integer',
-            'source_type' => 'required|in_list[supplier,donation,old_stock]',
+            'source_type' => 'required|in_list[supplier,donation,others]',
+            'source_name' => 'permit_empty|max_length[150]',
             'quantity'    => 'required|integer|greater_than_equal_to[0]',
-            'expiration_date'    => 'permit_empty|valid_date',
+            'unit'               => 'required',
+            'expiration_date'    => 'required|valid_date',
             'manufacturing_date' => 'permit_empty|valid_date',
         ];
 
@@ -336,7 +364,7 @@ class Inventory extends BaseController
                 'item_code'       => strtoupper($this->request->getPost('item_code')),
                 'item_name'       => $this->request->getPost('name'),
                 'category_id'     => (int)$this->request->getPost('category_id'),
-                'source_id'       => $this->resolveSourceId($this->request->getPost('source_type')),
+                'source_id'       => $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name')),
                 'batch_num'       => $this->request->getPost('batch_num') ?: null,
                 'lot_num'         => $this->request->getPost('lot_num')   ?: null,
                 'expiration_date' => $this->request->getPost('expiration_date') ?: null,

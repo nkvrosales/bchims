@@ -98,7 +98,7 @@ class Users extends BaseController
                 'password'       => $this->request->getPost('password'),
                 'role_id'        => $role_id,
                 'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
-                'account_status' => ($is_active === 1) ? 'Active' : 'Inactive'
+                'status'         => $is_active ? 1 : 0
             );
 
             if ($this->userModel->insert_user($insert_data)) {
@@ -114,7 +114,7 @@ class Users extends BaseController
                 $this->auditModel->log_activity(
                     'CREATE_USER',
                     'Users',
-                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$role}, department {$dept_log}, and status {$insert_data['account_status']}."
+                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$role}, department {$dept_log}, and status " . ($insert_data['status'] ? 'Active' : 'Inactive') . "."
                 );
 
                 session()->setFlashdata('success', 'User account successfully created!');
@@ -190,7 +190,7 @@ class Users extends BaseController
                 'first_name'     => $this->request->getPost('first_name'),
                 'role_id'        => $role_id,
                 'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
-                'account_status' => ($is_active === 1) ? 'Active' : 'Inactive'
+                'status'         => $is_active ? 1 : 0
             );
 
             $password = $this->request->getPost('password');
@@ -282,7 +282,7 @@ class Users extends BaseController
             return redirect()->to('users');
         }
 
-        $update_data = ['account_status' => 'Inactive'];
+        $update_data = ['status' => 0];
         if ($this->userModel->update($id, $update_data)) {
             $this->auditModel->log_activity(
                 'DEACTIVATE_USER',

@@ -63,6 +63,17 @@ $routes->group('categories', function($routes) {
     $routes->get('delete/(:num)', 'Categories::delete/$1');
 });
 
+$routes->group('sources', function($routes) {
+    $routes->get('/', 'Sources::index');
+    $routes->get('create', 'Sources::create');
+    $routes->post('create', 'Sources::create');
+    $routes->get('edit/(:num)', 'Sources::edit/$1');
+    $routes->post('edit/(:num)', 'Sources::edit/$1');
+    $routes->get('archive/(:num)', 'Sources::archive/$1');
+    $routes->get('restore/(:num)', 'Sources::restore/$1');
+    $routes->get('delete/(:num)', 'Sources::delete/$1');
+});
+
 $routes->group('supply_requests', function($routes) {
     $routes->get('/', 'SupplyRequests::index');
     $routes->post('create', 'SupplyRequests::create');

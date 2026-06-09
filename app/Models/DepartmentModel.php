@@ -34,7 +34,7 @@ class DepartmentModel extends Model
     public function get_departments()
     {
         return $this->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
-                    ->where('status', 'Active')
+                    ->where('status', 1)
                     ->orderBy('department_name', 'ASC')
                     ->findAll();
     }

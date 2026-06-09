@@ -174,7 +174,7 @@ class Departments extends BaseController
             return redirect()->to('departments');
         }
 
-        if ($this->departmentModel->update($id, ['status' => 'Inactive'])) {
+        if ($this->departmentModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
                 'ARCHIVE_DEPT',
                 'Departments',
@@ -202,7 +202,7 @@ class Departments extends BaseController
             return redirect()->to('departments');
         }
 
-        if ($this->departmentModel->update($id, ['status' => 'Active'])) {
+        if ($this->departmentModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
                 'RESTORE_DEPT',
                 'Departments',
