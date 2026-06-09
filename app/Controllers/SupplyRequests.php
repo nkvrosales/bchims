@@ -183,6 +183,7 @@ class SupplyRequests extends BaseController
                 'quantity_requested'   => $quantity,
                 'quantity_served'      => 0,
                 'status'               => 'Pending',
+                'user_id'              => $userId,
             ];
 
             if ($this->requestModel->insert($insertData)) {
@@ -348,7 +349,7 @@ class SupplyRequests extends BaseController
     }
 
     /**
-     * Partially serve a pending supply request.
+     * Partially serve a pending or partially served supply request.
      */
     public function partial($id = null)
     {
@@ -364,6 +365,7 @@ class SupplyRequests extends BaseController
         }
 
         $servedQty = (int)$this->request->getPost('served_quantity');
+        $notes     = trim((string)$this->request->getPost('partial_notes'));
         $request   = $this->_getRequest($id);
 
         if (!$request) {
@@ -371,15 +373,17 @@ class SupplyRequests extends BaseController
             return redirect()->to('supply_requests');
         }
 
-        if ($request['status'] !== 'Pending') {
+        if (!in_array($request['status'], ['Pending', 'Partially Served'])) {
             session()->setFlashdata('error', 'This request has already been processed.');
             return redirect()->to('supply_requests');
         }
 
         $qtyRequested = (int)$request['quantity_requested'];
+        $qtyServed    = (int)$request['quantity_served'];
+        $remainingQty = $qtyRequested - $qtyServed;
 
-        if ($servedQty <= 0 || $servedQty >= $qtyRequested) {
-            session()->setFlashdata('error', "Invalid partial quantity. Must be between 1 and " . ($qtyRequested - 1) . ".");
+        if ($servedQty <= 0 || $servedQty >= $remainingQty) {
+            session()->setFlashdata('error', "Invalid partial quantity. Must be between 1 and " . ($remainingQty - 1) . ".");
             return redirect()->to('supply_requests');
         }
 
@@ -473,12 +477,20 @@ class SupplyRequests extends BaseController
             ]);
         }
 
-        // 4. Update request to Partially Served
-        $this->requestModel->update($id, [
+        // 4. Update request
+        $updateData = [
             'status'               => 'Partially Served',
-            'quantity_served'      => $servedQty,
+            'quantity_served'      => $qtyServed + $servedQty,
             'department_supply_id' => $deptSupplyId,
-        ]);
+        ];
+        if ($notes !== '') {
+            $existingNotes = $request['notes'] ?? '';
+            $ts = date('Y-m-d H:i');
+            $updateData['notes'] = $existingNotes !== ''
+                ? $existingNotes . "\n--- Partial serve ({$ts}): {$notes}"
+                : "Partial serve ({$ts}): {$notes}";
+        }
+        $this->requestModel->update($id, $updateData);
 
         $db->transComplete();
 

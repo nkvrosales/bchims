@@ -12,7 +12,7 @@ class SupplyRequestModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['department_supply_id', 'quantity_requested', 'quantity_served', 'status', 'request_date', 'served_date', 'partial_date', 'cancelled_date', 'closed_date'];
+    protected $allowedFields    = ['department_supply_id', 'quantity_requested', 'quantity_served', 'status', 'request_date', 'served_date', 'partial_date', 'cancelled_date', 'closed_date', 'user_id', 'notes'];
 
     protected $useTimestamps = false;
 
@@ -40,7 +40,7 @@ class SupplyRequestModel extends Model
         ")
         ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id', 'left')
         ->join('departments', 'departments.department_id = department_supply.department_id', 'left')
-        ->join('user', 'user.department_id = departments.department_id', 'left')
+        ->join('user', 'user.user_id = request.user_id', 'left')
         ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id', 'left')
         ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left');
 

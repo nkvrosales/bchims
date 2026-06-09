@@ -763,7 +763,22 @@ h1, h2, h3, h4, h5, h6 {
 .input-custom {
     border-radius: 0.75rem;
     padding: 0.6rem 1rem;
-    border-color: var(--border-color);
+}
+
+.modal .input-custom,
+.modal .form-control.input-custom,
+.modal .form-select.input-custom,
+.modal textarea.input-custom {
+    border-color: #e5e7eb !important;
+    border-width: 1px !important;
+}
+
+.modal .form-control.input-custom:focus,
+.modal .form-select.input-custom:focus,
+.modal textarea.input-custom:focus,
+.modal .input-custom:focus {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 0 0 0.15rem rgba(148, 163, 184, 0.18) !important;
 }
 
 .input-custom:focus {

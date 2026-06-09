@@ -162,6 +162,18 @@
                                     </div>
                                 <?php elseif (is_admin_role() && $req['status'] === 'Partially Served'): ?>
                                     <div class="d-inline-flex gap-2">
+                                        <!-- Partial Serve Again -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
+                                                title="Serve Partially">
+                                            <i class="fa-solid fa-percent"></i>
+                                            <span class="small fw-semibold">Partial</span>
+                                        </button>
+
+                                        <!-- Complete -->
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
                                                 data-bs-toggle="modal" 
@@ -172,7 +184,7 @@
                                             <span class="small fw-semibold">Complete</span>
                                         </button>
 
-                                        <!-- Delete Button Trigger -->
+                                        <!-- Delete -->
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                                 data-bs-toggle="modal" 
@@ -264,49 +276,6 @@
                 </div>
             </div>
 
-            <!-- Partial Serve Modal -->
-            <div class="modal fade" id="partialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="partialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                        <div class="modal-header border-bottom px-4">
-                            <h5 class="modal-title fw-bold text-dark" id="partialModalLabel_<?php echo $req['request_id']; ?>">Partially Serve Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="POST" action="<?php echo base_url('supply_requests/partial/' . $req['request_id']); ?>">
-                            <div class="modal-body px-4 py-4">
-                                <div class="text-center mb-3">
-                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                        <i class="fa-solid fa-percent" style="font-size: 1.5rem; color: #3b82f6;"></i>
-                                    </div>
-                                    <h6 class="fw-semibold text-dark">Specify Quantity to Serve</h6>
-                                    <p class="text-muted small mb-0">
-                                        Requested: <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>.<br>
-                                        Central Supply available: <strong><?php echo $req['item_current_stock']; ?> unit(s)</strong>.
-                                    </p>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="served_qty_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Served Quantity <span class="text-danger">*</span></label>
-                                    <input type="number" 
-                                           class="form-control input-custom" 
-                                           id="served_qty_<?php echo $req['request_id']; ?>" 
-                                           name="served_quantity" 
-                                           min="1" 
-                                           max="<?php echo min($req['quantity_requested'] - 1, $req['item_current_stock']); ?>" 
-                                           required>
-                                    
-                                </div>
-                            </div>
-                            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-end">
-                                <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #3b82f6; border: none;">
-                                     Serve Partial
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
             <!-- Reject Modal -->
             <div class="modal fade" id="rejectModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="rejectModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -331,6 +300,65 @@
                                 <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-danger rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #ef4444; border: none;">
                                     <i class="fa-solid fa-xmark me-1"></i> Reject Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($req['status'] === 'Pending' || $req['status'] === 'Partially Served'): ?>
+            <?php
+                $remaining = $req['quantity_requested'] - $req['quantity_served'];
+                $partialMax = $remaining > 0 ? $remaining - 1 : 0;
+            ?>
+            <!-- Partial Serve Modal -->
+            <div class="modal fade" id="partialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="partialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                        <div class="modal-header border-bottom px-4">
+                            <h5 class="modal-title fw-bold text-dark" id="partialModalLabel_<?php echo $req['request_id']; ?>">Partially Serve Request</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="POST" action="<?php echo base_url('supply_requests/partial/' . $req['request_id']); ?>">
+                            <div class="modal-body px-4 py-4">
+                                <div class="text-center mb-3">
+                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                        <i class="fa-solid fa-percent" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark">Specify Quantity to Serve</h6>
+                                    <p class="text-muted small mb-0">
+                                        Requested: <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>.<br>
+                                        <?php if ((int)$req['quantity_served'] > 0): ?>
+                                            Already Served: <strong><?php echo $req['quantity_served']; ?> unit(s)</strong> &mdash; Remaining: <strong><?php echo $remaining; ?> unit(s)</strong>.<br>
+                                        <?php endif; ?>
+                                        Central Supply available: <strong><?php echo $req['item_current_stock']; ?> unit(s)</strong>.
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="served_qty_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Served Quantity <span class="text-danger">*</span></label>
+                                    <input type="number" 
+                                           class="form-control input-custom" 
+                                           id="served_qty_<?php echo $req['request_id']; ?>" 
+                                           name="served_quantity" 
+                                           min="1" 
+                                           max="<?php echo min($partialMax, $req['item_current_stock']); ?>" 
+                                           required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="partial_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Details</label>
+                                    <textarea class="form-control input-custom" 
+                                              id="partial_notes_<?php echo $req['request_id']; ?>" 
+                                              name="partial_notes" 
+                                              rows="3" 
+                                              placeholder="Optional notes about this partial serve..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-end">
+                                <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #3b82f6; border: none;">
+                                     Serve Partial
                                 </button>
                             </div>
                         </form>
@@ -479,7 +507,7 @@
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                     <div class="modal-header border-bottom px-4">
                         <h5 class="modal-title fw-bold text-dark" id="deleteSingleModalLabel_<?php echo $req['request_id']; ?>">
-                            <i class="fa-solid fa-trash-can text-danger me-2"></i>Delete Supply Request
+                            Delete Supply Request
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -560,19 +588,28 @@
 
                         <!-- Select Item -->
                         <div class="col-12">
-                            <label for="modal_item_id" class="form-label small fw-semibold text-secondary">
+                            <label class="form-label small fw-semibold text-secondary">
                                 Select Item <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select input-custom" id="modal_item_id" name="item_id" required>
-                                <option value="" disabled selected hidden>Choose an item</option>
-                                <?php foreach ($items as $item): ?>
-                                    <option value="<?php echo $item['id']; ?>"
-                                            data-category="<?php echo $item['category_id']; ?>"
-                                            <?php echo old('item_id') == $item['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($item['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="item-combobox">
+                                <div class="position-relative">
+                                    <input type="text"
+                                           class="form-control input-custom"
+                                           id="modal_item_search"
+                                           placeholder="Select item"
+                                           autocomplete="off"
+                                           >
+                                    <input type="hidden" name="item_id" id="modal_item_id" value="<?php echo old('item_id'); ?>">
+                                    <i class="fa-solid fa-xmark position-absolute top-50 end-0 translate-middle-y me-3" 
+                                       id="modal_item_clear"
+                                       style="color: #9ca3af; font-size: 0.9rem; cursor: pointer; display: none;"></i>
+                                </div>
+                                <div class="item-dropdown" id="modal_item_dropdown" style="display: none;">
+                                    <div class="item-dropdown-inner">
+                                        <div class="text-muted text-center py-3 small" id="modal_item_empty">No items found</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Quantity -->
@@ -623,17 +660,107 @@
     </div>
 </div>
 
+<?php $items_json = json_encode($items); ?>
 <script>
-document.getElementById('modal_category_id')?.addEventListener('change', function() {
-    var catId = this.value;
-    var itemSelect = document.getElementById('modal_item_id');
-    for (var i = 0; i < itemSelect.options.length; i++) {
-        var opt = itemSelect.options[i];
-        if (!opt.value) continue;
-        opt.style.display = (!catId || opt.getAttribute('data-category') === catId) ? '' : 'none';
+var allItems = <?php echo $items_json; ?>;
+
+function renderItems(items) {
+    var container = document.getElementById('modal_item_dropdown');
+    var inner = container.querySelector('.item-dropdown-inner');
+    if (items.length === 0) {
+        inner.innerHTML = '<div class="text-muted text-center py-3 small">No items found</div>';
+        container.style.display = 'block';
+        return;
     }
-    itemSelect.value = '';
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+        html += '<div class="item-option" data-id="' + items[i].id + '">' +
+                '<span class="item-option-name">' + escapeHtml(items[i].name) + '</span>' +
+                '</div>';
+    }
+    inner.innerHTML = html;
+    container.style.display = 'block';
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function filterItems() {
+    var catId = document.getElementById('modal_category_id').value;
+    var query = document.getElementById('modal_item_search').value.toLowerCase();
+    var filtered = [];
+    for (var i = 0; i < allItems.length; i++) {
+        var item = allItems[i];
+        var matchCat = !catId || String(item.category_id) === catId;
+        var matchSearch = !query || item.name.toLowerCase().indexOf(query) !== -1;
+        if (matchCat && matchSearch) {
+            filtered.push(item);
+        }
+    }
+    renderItems(filtered);
+}
+
+document.getElementById('modal_category_id')?.addEventListener('change', filterItems);
+
+var searchInput = document.getElementById('modal_item_search');
+searchInput?.addEventListener('input', filterItems);
+searchInput?.addEventListener('focus', function() {
+    if (this.value) filterItems();
+    else showAllVisible();
 });
+
+document.addEventListener('click', function(e) {
+    var combo = document.querySelector('.item-combobox');
+    if (combo && !combo.contains(e.target)) {
+        document.getElementById('modal_item_dropdown').style.display = 'none';
+    }
+});
+
+document.getElementById('modal_item_dropdown')?.addEventListener('click', function(e) {
+    var option = e.target.closest('.item-option');
+    if (!option) return;
+    var id = option.getAttribute('data-id');
+    var name = option.querySelector('.item-option-name').textContent;
+    document.getElementById('modal_item_id').value = id;
+    document.getElementById('modal_item_search').value = name;
+    document.getElementById('modal_item_dropdown').style.display = 'none';
+    document.getElementById('modal_item_clear').style.display = 'block';
+});
+
+document.getElementById('modal_item_clear')?.addEventListener('click', function() {
+    document.getElementById('modal_item_id').value = '';
+    document.getElementById('modal_item_search').value = '';
+    document.getElementById('modal_item_clear').style.display = 'none';
+    document.getElementById('modal_item_search').focus();
+    showAllVisible();
+});
+
+function showAllVisible() {
+    var catId = document.getElementById('modal_category_id').value;
+    var filtered = [];
+    for (var i = 0; i < allItems.length; i++) {
+        if (!catId || String(allItems[i].category_id) === catId) {
+            filtered.push(allItems[i]);
+        }
+    }
+    renderItems(filtered);
+}
+
+<?php if (old('item_id')): ?>
+document.addEventListener('DOMContentLoaded', function () {
+    var selectedId = '<?php echo old('item_id'); ?>';
+    for (var i = 0; i < allItems.length; i++) {
+        if (String(allItems[i].id) === selectedId) {
+            document.getElementById('modal_item_search').value = allItems[i].name;
+            document.getElementById('modal_item_clear').style.display = 'block';
+            break;
+        }
+    }
+});
+<?php endif; ?>
 </script>
 
 <!-- Auto-open modal on validation failure -->
@@ -649,4 +776,46 @@ document.getElementById('modal_category_id')?.addEventListener('change', functio
 
 <style>
     #btnNewSupplyRequest:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
+
+    .item-combobox { position: relative; }
+    .item-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1055;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-top: 4px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        max-height: 220px;
+        overflow-y: auto;
+    }
+    .item-dropdown-inner { padding: 4px; }
+    .item-option {
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #1f2937;
+        transition: background 0.12s;
+    }
+    .item-option:hover { background: #f3f4f6; }
+    .item-option-name { font-weight: 500; }
+    .item-dropdown::-webkit-scrollbar { width: 6px; }
+    .item-dropdown::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    .item-dropdown::-webkit-scrollbar-track { background: transparent; }
+
+    #createRequestModal .form-control.input-custom,
+    #createRequestModal .form-select.input-custom {
+        border-color: #cbd5e1 !important;
+        box-shadow: none !important;
+    }
+
+    #createRequestModal .form-control.input-custom:focus,
+    #createRequestModal .form-select.input-custom:focus {
+        border-color: #94a3b8 !important;
+        box-shadow: 0 0 0 0.15rem rgba(148,163,184,0.18) !important;
+    }
 </style>
