@@ -160,7 +160,7 @@
                         <td class="text-end">
                             <div class="d-inline-flex gap-2">
                                 <button type="button"
-                                        class="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center rounded-2"
+                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                         style="width: 32px; height: 32px;"
                                         data-bs-toggle="modal"
                                         data-bs-target="#userModal"
@@ -204,7 +204,7 @@
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteUserModal-<?php echo $u['id']; ?>"
                                             title="Deactivate User">
-                                        <i class="fa-solid fa-trash"></i>
+                                        <i class="fa-solid fa-user-slash"></i>
                                     </button>
                                     <?php else: ?>
                                     <button type="button"

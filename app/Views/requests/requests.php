@@ -205,7 +205,7 @@
                                                 id="btnTriggerView_<?php echo $req['request_id']; ?>"
                                                 title="View Details"
                                                 style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                            <i class="bi bi-search"></i>
+                                            <i class="bi bi-eye"></i>
                                         </button>
 
                                         <?php if (is_admin_role()): ?>

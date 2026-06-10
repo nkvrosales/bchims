@@ -138,7 +138,7 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2">
                                     <button type="button"
-                                       class="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center rounded-2"
+                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                         onclick='openItemModal("view", <?php echo json_encode([
                                             "id" => $item["id"],
                                             "item_code" => $item["item_code"],
