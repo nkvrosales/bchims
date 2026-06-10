@@ -315,6 +315,14 @@
                                     <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong>
                                     as <strong class="text-danger">Rejected</strong>.
                                 </p>
+                                <div class="mb-3 text-start">
+                                    <label for="reject_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Remarks</label>
+                                    <textarea class="form-control input-custom"
+                                              id="reject_notes_<?php echo $req['request_id']; ?>"
+                                              name="reject_notes"
+                                              rows="3"
+                                              placeholder="Remarks about this rejection."></textarea>
+                                </div>
                             </div>
                             <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                 <button type="button"

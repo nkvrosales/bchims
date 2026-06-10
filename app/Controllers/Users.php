@@ -53,7 +53,7 @@ class Users extends BaseController
         $data['departments'] = $this->departmentModel->get_departments();
 
         return view('templates/header', $data)
-             . view('users/users', $data)
+             . view('users', $data)
              . view('templates/footer');
     }
 

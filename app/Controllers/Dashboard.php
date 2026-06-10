@@ -112,7 +112,7 @@ class Dashboard extends BaseController
         $data['logs']  = $this->auditModel->get_audit_logs();
 
         return view('templates/header', $data)
-             . view('audit/audit', $data)
+             . view('audit', $data)
              . view('templates/footer');
     }
 

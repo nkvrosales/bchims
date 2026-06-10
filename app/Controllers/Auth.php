@@ -36,7 +36,7 @@ class Auth extends BaseController
 
         if (!$this->validate($rules)) {
             // Either initial page load (GET) or validation failed (POST)
-            return view('auth/login');
+            return view('login');
         } else {
             // Validation passed, verify credentials
             $username = $this->request->getPost('username');

@@ -130,7 +130,7 @@ class SupplyRequests extends BaseController
         $data['batches_by_code'] = $batchesByCode;
 
         return view('templates/header', $data)
-             . view('requests/requests', $data)
+             . view('requests', $data)
              . view('templates/footer');
     }
 
@@ -577,7 +577,14 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        if ($this->requestModel->update($id, ['request_status' => 'Rejected', 'cancelled_date' => date('Y-m-d H:i:s')])) {
+        $notes = trim((string) $this->request->getPost('reject_notes'));
+
+        $updateData = ['request_status' => 'Rejected', 'cancelled_date' => date('Y-m-d H:i:s')];
+        if ($notes !== '') {
+            $updateData['notes'] = $notes;
+        }
+
+        if ($this->requestModel->update($id, $updateData)) {
             $this->auditModel->log_activity(
                 'REJECT_SUPPLY_REQUEST',
                 'Supply Requests',

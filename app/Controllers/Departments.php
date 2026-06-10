@@ -46,7 +46,7 @@ class Departments extends BaseController
         $data['departments'] = $this->departmentModel->get_departments();
 
         return view('templates/header', $data)
-             . view('departments/departments', $data)
+             . view('departments', $data)
              . view('templates/footer');
     }
 

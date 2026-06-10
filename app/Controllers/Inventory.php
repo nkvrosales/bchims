@@ -128,7 +128,7 @@ class Inventory extends BaseController
             ->getResultArray();
 
         return view('templates/header', $data)
-             . view('inventory/inventory', $data)
+             . view('inventory', $data)
              . view('templates/footer');
     }
 
