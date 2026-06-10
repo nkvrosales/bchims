@@ -297,4 +297,39 @@ class Users extends BaseController
 
         return redirect()->to('users');
     }
+
+    public function activate($id = NULL)
+    {
+        if ($res = $this->checkAdmin()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('users');
+        }
+
+        $current_admin_id = session()->get('user_id');
+        if ((int)$id === (int)$current_admin_id) {
+            session()->setFlashdata('error', 'Critical Safeguard: You cannot activate your own account using this action.');
+            return redirect()->to('users');
+        }
+
+        $user = $this->userModel->get_user_by_id($id);
+        if (empty($user)) {
+            session()->setFlashdata('error', 'User not found.');
+            return redirect()->to('users');
+        }
+
+        if ($this->userModel->update($id, ['status' => 1])) {
+            $this->auditModel->log_activity(
+                'ACTIVATE_USER',
+                'Users',
+                "Activated user account: {$user['username']} ({$user['last_name']}, {$user['first_name']}) with role {$user['role']}."
+            );
+
+            session()->setFlashdata('success', 'User account successfully activated!');
+        } else {
+            session()->setFlashdata('error', 'An error occurred while activating the account.');
+        }
+
+        return redirect()->to('users');
+    }
 }

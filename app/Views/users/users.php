@@ -160,6 +160,24 @@
                         <td class="text-end">
                             <div class="d-inline-flex gap-2">
                                 <button type="button"
+                                        class="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center rounded-2"
+                                        style="width: 32px; height: 32px;"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#userModal"
+                                        data-id="<?php echo $u['id']; ?>"
+                                        data-username="<?php echo htmlspecialchars($u['username']); ?>"
+                                        data-first-name="<?php echo htmlspecialchars($u['first_name']); ?>"
+                                        data-last-name="<?php echo htmlspecialchars($u['last_name']); ?>"
+                                        data-email="<?php echo htmlspecialchars($u['email'] ?? ''); ?>"
+                                        data-role="<?php echo htmlspecialchars(strtolower($u['role'])); ?>"
+                                        data-department-id="<?php echo htmlspecialchars($u['department_id'] ?? ''); ?>"
+                                        data-is-active="<?php echo htmlspecialchars($u['is_active']); ?>"
+                                        data-is-self="<?php echo $is_self ? 'true' : 'false'; ?>"
+                                        onclick="setupUserModal('view', this.dataset)"
+                                        title="View User">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button"
                                         class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                         style="width: 32px; height: 32px;"
                                         data-bs-toggle="modal"
@@ -179,6 +197,7 @@
                                 </button>
 
                                 <?php if ((int)$u['id'] !== (int)$current_user_id): ?>
+                                    <?php if ((int)$u['is_active'] === 1): ?>
                                     <button type="button"
                                             class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                             style="width: 32px; height: 32px;"
@@ -187,11 +206,21 @@
                                             title="Deactivate User">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
+                                    <?php else: ?>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
+                                            style="width: 32px; height: 32px;"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#activateUserModal-<?php echo $u['id']; ?>"
+                                            title="Activate User">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     <button type="button"
                                             class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center rounded-2"
                                             style="width: 32px; height: 32px; padding: 0 !important;"
-                                            title="You cannot delete yourself"
+                                            title="You cannot modify yourself"
                                             disabled>
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
@@ -408,104 +437,97 @@
         $initials = strtoupper(substr($u['first_name'], 0, 1)) . strtoupper(substr($u['last_name'], 0, 1));
         $color = $avatar_palette[ord(strtoupper($u['last_name'][0] ?? 'A')) % count($avatar_palette)];
     ?>
-        <!-- ===================== DELETE CONFIRMATION MODAL (User: @<?php echo htmlspecialchars($u['username']); ?>) ===================== -->
+        <!-- ===================== STATUS TOGGLE MODAL (User: @<?php echo htmlspecialchars($u['username']); ?>) ===================== -->
         <?php if (!$is_self): ?>
-        <div class="modal fade" id="deleteUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="deleteUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-
-                    <!-- Modal Header -->
-                    <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                        <h5 class="modal-title fw-bold mb-0" id="deleteUserModalLabel-<?php echo $u['id']; ?>"
-                            style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                            Deactivate User Account
-                        </h5>
-                        <button type="button"
-                                class="btn-close btn-close-dark"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                                style="opacity: 0.6;"></button>
-                    </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body px-4 py-3">
-                        <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div style="
-                                    width: 44px; height: 44px; border-radius: 50%;
-                                    background: <?php echo $color; ?>;
-                                    color: #fff;
-                                    display: flex; align-items: center; justify-content: center;
-                                    font-size: 0.85rem; font-weight: 700;
-                                    flex-shrink: 0;
-                                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                ">
-                                    <?php echo $initials; ?>
-                                </div>
-                                <div>
-                                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                                        <?php echo htmlspecialchars($u['full_name']); ?>
+            <?php if ((int)$u['is_active'] === 1): ?>
+            <div class="modal fade" id="deleteUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="deleteUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                        <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                            <h5 class="modal-title fw-bold mb-0" id="deleteUserModalLabel-<?php echo $u['id']; ?>"
+                                style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                                Deactivate User Account
+                            </h5>
+                            <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
+                        </div>
+                        <div class="modal-body px-4 py-3">
+                            <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="width: 44px; height: 44px; border-radius: 50%; background: <?php echo $color; ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <?php echo $initials; ?>
                                     </div>
-                                    <div class="text-muted small">
-                                        @<?php echo htmlspecialchars($u['username']); ?> &middot; <?php echo ucfirst($u['role']); ?>
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                            <?php echo htmlspecialchars($u['full_name']); ?>
+                                        </div>
+                                        <div class="text-muted small">
+                                            @<?php echo htmlspecialchars($u['username']); ?> &middot; <?php echo ucfirst($u['role']); ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                Are you sure you want to deactivate this user account? The user will be marked as <strong>Inactive</strong> and will no longer be able to log in.
+                            </p>
                         </div>
-                        
-                        <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                            Are you sure you want to deactivate this user account? The user will be marked as <strong>Inactive</strong> and will no longer be able to log in. This action will be recorded in the system audit trail.
-                        </p>
+                        <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
+                            <button type="button" data-bs-dismiss="modal"
+                                    style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                    onmouseover="this.style.background='#f9fafb'"
+                                    onmouseout="this.style.background='#fff'">Cancel</button>
+                            <a href="<?php echo base_url('users/delete/' . $u['id']); ?>"
+                               style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                               onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
+                               onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">Deactivate Account</a>
+                        </div>
                     </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                        <button type="button"
-                                data-bs-dismiss="modal"
-                                style="
-                                    background: #fff;
-                                    color: #374151;
-                                    border: 1px solid #d1d5db;
-                                    border-radius: 8px;
-                                    padding: 0.5rem 1.5rem;
-                                    font-size: 0.9rem;
-                                    font-weight: 500;
-                                    cursor: pointer;
-                                    transition: background 0.15s, border-color 0.15s;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    height: 38px;
-                                "
-                                onmouseover="this.style.background='#f9fafb'"
-                                onmouseout="this.style.background='#fff'">
-                            Cancel
-                        </button>
-                        <a href="<?php echo base_url('users/delete/' . $u['id']); ?>"
-                           style="
-                               background: #ef4444;;
-                               color: #fff;
-                               border: 1px solid transparent;
-                               border-radius: 8px;
-                               padding: 0.5rem 1.5rem;
-                               font-size: 0.9rem;
-                               font-weight: 600;
-                               text-decoration: none;
-                               cursor: pointer;
-                               box-shadow: 0 2px 8px rgba(245,158,11,0.3);
-                               transition: background 0.15s, box-shadow 0.15s;
-                               display: inline-flex;
-                               align-items: center;
-                               height: 38px;
-                           "
-                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
-                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
-                            Deactivate Account
-                        </a>
-                    </div>
-
                 </div>
             </div>
-        </div>
+            <?php else: ?>
+            <div class="modal fade" id="activateUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="activateUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                        <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                            <h5 class="modal-title fw-bold mb-0" id="activateUserModalLabel-<?php echo $u['id']; ?>"
+                                style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                                Activate User Account
+                            </h5>
+                            <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
+                        </div>
+                        <div class="modal-body px-4 py-3">
+                            <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="width: 44px; height: 44px; border-radius: 50%; background: <?php echo $color; ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <?php echo $initials; ?>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                            <?php echo htmlspecialchars($u['full_name']); ?>
+                                        </div>
+                                        <div class="text-muted small">
+                                            @<?php echo htmlspecialchars($u['username']); ?> &middot; <?php echo ucfirst($u['role']); ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                Are you sure you want to activate this user account? The user will be marked as <strong>Active</strong> and will be able to log in again.
+                            </p>
+                        </div>
+                        <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
+                            <button type="button" data-bs-dismiss="modal"
+                                    style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                    onmouseover="this.style.background='#f9fafb'"
+                                    onmouseout="this.style.background='#fff'">Cancel</button>
+                            <a href="<?php echo base_url('users/activate/' . $u['id']); ?>"
+                               style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                               onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                               onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">Activate Account</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         <?php endif; ?>
 
     <?php endforeach; ?>
@@ -540,22 +562,29 @@
             modalTitle.textContent = 'Add New User';
             form.action = '<?php echo base_url('users/create'); ?>';
             submitBtn.textContent = 'Add User';
+            submitBtn.style.display = '';
             
             labelPassword.innerHTML = 'Password <span class="text-danger">*</span>';
             passwordInput.required = true;
             passwordInput.placeholder = '';
+            passwordInput.disabled = false;
             
             statusContainer.style.display = 'none';
             statusSelect.required = false;
             
             // Populate fields
             document.getElementById('modal_first_name').value = data.firstName || '';
+            document.getElementById('modal_first_name').disabled = false;
             document.getElementById('modal_last_name').value = data.lastName || '';
+            document.getElementById('modal_last_name').disabled = false;
             document.getElementById('modal_username').value = data.username || '';
+            document.getElementById('modal_username').disabled = false;
             document.getElementById('modal_email').value = data.email || '';
+            document.getElementById('modal_email').disabled = false;
             passwordInput.value = '';
             roleSelect.value = data.role || '';
             document.getElementById('modal_department_id').value = data.departmentId || '';
+            document.getElementById('modal_department_id').disabled = false;
             statusSelect.value = '1';
             
             roleSelect.disabled = false;
@@ -567,21 +596,28 @@
             modalTitle.textContent = 'Edit User Account';
             form.action = '<?php echo base_url('users/edit'); ?>/' + data.id;
             submitBtn.textContent = 'Save Account';
+            submitBtn.style.display = '';
             
             labelPassword.textContent = 'New Password';
             passwordInput.required = false;
             passwordInput.placeholder = 'Leave blank to keep current';
+            passwordInput.disabled = false;
             
             statusContainer.style.display = 'block';
             statusSelect.required = true;
             
             // Populate fields
             document.getElementById('modal_first_name').value = data.firstName || '';
+            document.getElementById('modal_first_name').disabled = false;
             document.getElementById('modal_last_name').value = data.lastName || '';
+            document.getElementById('modal_last_name').disabled = false;
             document.getElementById('modal_username').value = data.username || '';
+            document.getElementById('modal_username').disabled = false;
             document.getElementById('modal_email').value = data.email || '';
+            document.getElementById('modal_email').disabled = false;
             passwordInput.value = '';
             document.getElementById('modal_department_id').value = data.departmentId || '';
+            document.getElementById('modal_department_id').disabled = false;
             
             const isSelf = data.isSelf === 'true' || data.isSelf === true;
             if (isSelf) {
@@ -616,6 +652,38 @@
                 statusSelect.disabled = false;
                 if (statusSelfInfo) statusSelfInfo.style.display = 'none';
             }
+        } else if (mode === 'view') {
+            modalTitle.textContent = 'View User';
+            form.action = '#';
+            submitBtn.style.display = 'none';
+            
+            labelPassword.textContent = 'Password';
+            passwordInput.required = false;
+            passwordInput.placeholder = '';
+            passwordInput.disabled = true;
+            
+            statusContainer.style.display = 'block';
+            statusSelect.required = false;
+            statusSelect.disabled = true;
+            
+            document.getElementById('modal_first_name').value = data.firstName || '';
+            document.getElementById('modal_last_name').value = data.lastName || '';
+            document.getElementById('modal_username').value = data.username || '';
+            document.getElementById('modal_email').value = data.email || '';
+            passwordInput.value = '';
+            document.getElementById('modal_department_id').value = data.departmentId || '';
+            roleSelect.value = data.role || '';
+            roleSelect.disabled = true;
+            statusSelect.value = data.isActive !== undefined ? data.isActive : '1';
+            
+            document.getElementById('modal_first_name').disabled = true;
+            document.getElementById('modal_last_name').disabled = true;
+            document.getElementById('modal_username').disabled = true;
+            document.getElementById('modal_email').disabled = true;
+            document.getElementById('modal_department_id').disabled = true;
+            
+            if (roleSelfInfo) roleSelfInfo.style.display = 'none';
+            if (statusSelfInfo) statusSelfInfo.style.display = 'none';
         }
     }
 
@@ -625,6 +693,13 @@
         form.querySelectorAll('.self-hidden-input').forEach(el => el.remove());
         document.getElementById('modal_role').disabled = false;
         document.getElementById('modal_is_active').disabled = false;
+        document.getElementById('modal_password').disabled = false;
+        document.getElementById('modal_first_name').disabled = false;
+        document.getElementById('modal_last_name').disabled = false;
+        document.getElementById('modal_username').disabled = false;
+        document.getElementById('modal_email').disabled = false;
+        document.getElementById('modal_department_id').disabled = false;
+        document.getElementById('btnSubmitUser').style.display = '';
         
         var toggleBtn = document.getElementById('toggleCreatePassword');
         if (toggleBtn) toggleBtn.style.display = 'none';

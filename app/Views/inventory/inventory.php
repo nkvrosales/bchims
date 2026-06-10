@@ -55,11 +55,13 @@
             <thead>
                 <tr>
                     <th style="width: 14%">Code</th>
-                    <th style="width: 30%">Name</th>
-                    <th style="width: 16%">Category</th>
-                    <th style="width: 12%">Quantity</th>
-                    <th style="width: 16%">Stock Status</th>
-                    <th style="width: 12%" class="text-end">Actions</th>
+                    <th style="width: 22%">Name</th>
+                    <th style="width: 14%">Category</th>
+                    <th style="width: 10%">Total Qty</th>
+                    <th style="width: 10%">Served</th>
+                    <th style="width: 10%">In Stock</th>
+                    <th style="width: 12%">Stock Status</th>
+                    <th style="width: 8%" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -77,7 +79,23 @@
                             </td>
                             <td>
                                 <span class="fs-6 text-dark">
-                                    <?php echo (int)$item['quantity']; ?>
+                                    <?php echo (int)$item['total_quantity']; ?>
+                                    <?php if (!empty($item['unit'])): ?>
+                                        <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
+                                    <?php endif; ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fs-6 text-dark">
+                                    <?php
+                                        $served = (int)$item['total_quantity'] - (int)$item['quantity_on_hand'];
+                                        echo max(0, $served);
+                                    ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fs-6 text-dark">
+                                    <?php echo (int)$item['quantity_on_hand']; ?>
                                     <?php if (!empty($item['unit'])): ?>
                                         <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
                                     <?php endif; ?>
@@ -85,7 +103,7 @@
                             </td>
                             <td>
                                 <?php
-                                    $stockQty = isset($item['quantity_on_hand']) ? (int)$item['quantity_on_hand'] : (int)$item['quantity'];
+                                    $stockQty = (int)$item['quantity_on_hand'];
                                     if ($stockQty === 0) {
                                         $badge  = 'bg-danger-subtle text-danger border border-danger-subtle';
                                         $status = 'Out of Stock';
@@ -104,12 +122,24 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2">
                                     <button type="button"
-                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                       data-bs-toggle="modal"
-                                       data-bs-target="#viewItemModal<?php echo $item['id']; ?>"
+                                       class="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center rounded-2"
+                                        onclick='openItemModal("view", <?php echo json_encode([
+                                            "id" => $item["id"],
+                                            "item_code" => $item["item_code"],
+                                            "name" => $item["item_name"],
+                                            "category_id" => $item["category_id"] ?? "",
+                                            "quantity" => $item["quantity"],
+                                            "unit" => $item["unit"] ?? "",
+                                            "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
+                                            "source_name" => $item["supplier_name"] ?? "",
+                                            "expiration_date" => $item["expiration_date"] ?? "",
+                                            "manufacturing_date" => $item["manufacturing_date"] ?? "",
+                                            "batch_num" => $item["batch_num"] ?? "",
+                                            "lot_num" => $item["lot_num"] ?? "",
+                                        ]); ?>)'
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="View Item">
-                                        <i class="bi bi-search"></i>
+                                        <i class="bi bi-eye"></i>
                                     </button>
                                     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                                     <button type="button"
@@ -132,13 +162,13 @@
                                        title="Edit Item">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
-                                    <a href="<?php echo base_url('inventory/delete/' . $item['id']); ?>" 
+                                    <a href="<?php echo base_url('inventory/archive/' . $item['id']); ?>"
                                        class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        data-bs-toggle="modal"
-                                       data-bs-target="#deleteItemModal<?php echo $item['id']; ?>"
-                                       title="Delete Item">
-                                        <i class="fa-solid fa-trash"></i>
+                                       data-bs-target="#archiveItemModal<?php echo $item['id']; ?>"
+                                       title="Archive Item">
+                                        <i class="fa-regular fa-folder"></i>
                                     </a>
                                     <?php endif; ?>
                                 </div>
@@ -151,109 +181,7 @@
     </div>
 </div>
 
-<!-- ===================== VIEW ITEM MODALS ===================== -->
-<?php if (!empty($items)): ?>
-    <?php foreach ($items as $item): ?>
-        <?php
-            $viewStockQty = isset($item['quantity_on_hand']) ? (int)$item['quantity_on_hand'] : (int)$item['quantity'];
-            if ($viewStockQty === 0) {
-                $viewBadge  = 'bg-danger-subtle text-danger border border-danger-subtle';
-                $viewStatus = 'Out of Stock';
-            } elseif ($viewStockQty <= 10) {
-                $viewBadge  = 'bg-warning-subtle text-warning border border-warning-subtle';
-                $viewStatus = 'Low Stock';
-            } else {
-                $viewBadge  = 'bg-success-subtle text-success border border-success-subtle';
-                $viewStatus = 'In Stock';
-            }
-        ?>
-        <div class="modal fade" id="viewItemModal<?php echo $item['id']; ?>" tabindex="-1" aria-labelledby="viewItemModalLabel<?php echo $item['id']; ?>" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-
-                    <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                        <div class="d-flex align-items-center">
-                            <h5 class="modal-title fw-bold mb-0" id="viewItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.4rem; letter-spacing: 0;">
-                                Stock Details
-                            </h5>
-                        </div>
-                        <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
-                    </div>
-
-                    <div class="modal-body px-4 py-4">
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Item Code</div>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['item_code']); ?></div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Product Name</div>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['item_name']); ?></div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Category</div>
-                                <div class="fw-semibold text-dark">
-                                    <?php echo htmlspecialchars($item['category_code'] ?? 'N/A'); ?>
-                                    <?php if (!empty($item['category_description'])): ?>
-                                        <span class="text-muted fw-normal">- <?php echo htmlspecialchars($item['category_description']); ?></span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Quantity</div>
-                                <div class="fw-semibold text-dark">
-                                    <?php echo $viewStockQty; ?>
-                                    <?php if (!empty($item['unit'])): ?>
-                                        <span class="text-muted fw-normal">(<?php echo htmlspecialchars($item['unit']); ?>)</span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Stock Status</div>
-                                <span class="badge badge-action <?php echo $viewBadge; ?>"><?php echo $viewStatus; ?></span>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Batch No.</div>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['batch_num'] ?? 'N/A'); ?></div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Lot No.</div>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['lot_num'] ?? 'N/A'); ?></div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Expiration Date</div>
-                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['expiration_date'] ?? 'N/A'); ?></div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div class="small fw-semibold text-secondary mb-1">Source</div>
-                                <div class="fw-semibold text-dark">
-                                    <?php echo htmlspecialchars($item['source_type'] ?? 'N/A'); ?>
-                                    <?php if (!empty($item['supplier_name'])): ?>
-                                        <span class="text-muted fw-normal">- <?php echo htmlspecialchars($item['supplier_name']); ?></span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                        <button type="button"
-                                data-bs-dismiss="modal"
-                                style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
-                                onmouseover="this.style.background='#f9fafb'"
-                                onmouseout="this.style.background='#fff'">
-                            Close
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    <?php endforeach; ?>
-<?php endif; ?>
-<!-- ============================================================= -->
-
-<!-- ===================== SINGLE ITEM MODAL (Add/Edit) ===================== -->
+<!-- ===================== SINGLE ITEM MODAL (Add/Edit/View) ===================== -->
 <div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
@@ -477,10 +405,44 @@ function openItemModal(mode, data) {
     var form = document.getElementById('itemForm');
     var label = document.getElementById('itemModalLabel');
     var btn = document.getElementById('itemFormSubmitBtn');
-    if (mode === 'edit') {
+    var fields = ['item_code','item_name','item_category_id','item_quantity','item_unit','item_source_type','item_expiration_date','item_manufacturing_date','item_batch_num','item_lot_num'];
+    function disableFields(disabled) {
+        fields.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.disabled = disabled;
+        });
+        document.getElementById('item_source_name_select').disabled = disabled;
+        document.getElementById('item_source_name_text').disabled = disabled;
+    }
+    if (mode === 'view') {
+        form.action = '#';
+        label.textContent = 'View Item';
+        btn.style.display = 'none';
+        disableFields(true);
+        document.getElementById('item_code').value = data.item_code || '';
+        document.getElementById('item_name').value = data.name || '';
+        document.getElementById('item_category_id').value = data.category_id || '';
+        document.getElementById('item_quantity').value = data.quantity || 0;
+        document.getElementById('item_unit').value = data.unit || '';
+        document.getElementById('item_source_type').value = data.source_type || 'supplier';
+        toggleSourceName();
+        var sel = document.getElementById('item_source_name_select');
+        var txt = document.getElementById('item_source_name_text');
+        if (sel.style.display !== 'none') {
+            sel.value = data.source_name || '';
+        } else {
+            txt.value = data.source_name || '';
+        }
+        document.getElementById('item_expiration_date').value = data.expiration_date || '';
+        document.getElementById('item_manufacturing_date').value = data.manufacturing_date || '';
+        document.getElementById('item_batch_num').value = data.batch_num || '';
+        document.getElementById('item_lot_num').value = data.lot_num || '';
+    } else if (mode === 'edit') {
         form.action = '<?php echo base_url('inventory/edit'); ?>/' + data.id;
         label.textContent = 'Edit Item';
         btn.textContent = 'Update Item';
+        btn.style.display = '';
+        disableFields(false);
         document.getElementById('item_code').value = data.item_code || '';
         document.getElementById('item_name').value = data.name || '';
         document.getElementById('item_category_id').value = data.category_id || '';
@@ -503,6 +465,8 @@ function openItemModal(mode, data) {
         form.action = '<?php echo base_url('inventory/create'); ?>';
         label.textContent = 'Add New Item';
         btn.textContent = 'Add Item';
+        btn.style.display = '';
+        disableFields(false);
         document.getElementById('item_code').value = '';
         document.getElementById('item_name').value = '';
         document.getElementById('item_category_id').value = '';
@@ -599,6 +563,14 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 <?php endif; ?>
 
+// Reset modal state on close
+document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', function () {
+    var form = document.getElementById('itemForm');
+    form.reset();
+    form.querySelectorAll('[disabled]').forEach(function(el) { el.disabled = false; });
+    document.getElementById('itemFormSubmitBtn').style.display = '';
+});
+
 // Auto-generate item code via AJAX when category is selected
 function generateItemCode() {
     var categorySelect = document.getElementById('item_category_id');
@@ -626,48 +598,53 @@ function generateItemCode() {
 }
 </script>
 
-<!-- ===================== DELETE ITEM MODALS ===================== -->
+<!-- ===================== ARCHIVE ITEM MODALS ===================== -->
 <?php if (!empty($items)): ?>
     <?php foreach ($items as $item): ?>
-        <div class="modal fade" id="deleteItemModal<?php echo $item['id']; ?>" tabindex="-1" aria-labelledby="deleteItemModalLabel<?php echo $item['id']; ?>" aria-hidden="true">
+        <div class="modal fade" id="archiveItemModal<?php echo $item['id']; ?>" tabindex="-1" aria-labelledby="archiveItemModalLabel<?php echo $item['id']; ?>" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-
                     <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                         <div class="d-flex align-items-center">
                             <div>
-                                <h5 class="modal-title fw-bold mb-0" id="deleteItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.25rem; letter-spacing: 0;">
-                                    Delete Item
+                                <h5 class="modal-title fw-bold mb-0" id="archiveItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.25rem; letter-spacing: 0;">
+                                    Archive Item
                                 </h5>
                             </div>
                         </div>
                         <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                     </div>
-
                     <div class="modal-body px-4 py-4">
-                        <p class="mb-2 text-secondary">Are you sure you want to delete this inventory item?</p>
-                        <div class="border rounded-3 p-3 bg-light">
-                            <div class="fw-semibold text-dark"><?php echo htmlspecialchars($item['item_name']); ?></div>
-                            <div class="small text-muted">Code: <?php echo htmlspecialchars($item['item_code']); ?></div>
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fa-solid fa-box" style="color: #b91c1c; font-size: 0.875rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                        <?php echo htmlspecialchars($item['item_name']); ?>
+                                    </div>
+                                    <div class="text-muted small">Code: <?php echo htmlspecialchars($item['item_code']); ?></div>
+                                </div>
+                            </div>
                         </div>
+                        <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to archive this inventory item?</p>
                     </div>
-
-                    <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
+                    <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                         <button type="button"
                                 data-bs-dismiss="modal"
-                                style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
+                                style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                 onmouseover="this.style.background='#f9fafb'"
                                 onmouseout="this.style.background='#fff'">
                             Cancel
                         </button>
-                        <a href="<?php echo base_url('inventory/delete/' . $item['id']); ?>"
-                           style="background: #dc2626; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; box-shadow: 0 2px 8px rgba(220,38,38,0.24); transition: background 0.15s, box-shadow 0.15s;"
-                           onmouseover="this.style.background='#b91c1c';this.style.boxShadow='0 4px 12px rgba(220,38,38,0.32)'"
-                           onmouseout="this.style.background='#dc2626';this.style.boxShadow='0 2px 8px rgba(220,38,38,0.24)'">
-                            Delete Item
+                        <a href="<?php echo base_url('inventory/archive/' . $item['id']); ?>"
+                           style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
+                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                            Archive Item
                         </a>
                     </div>
-
                 </div>
             </div>
         </div>

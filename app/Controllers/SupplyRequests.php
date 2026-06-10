@@ -279,7 +279,6 @@ class SupplyRequests extends BaseController
         $db->table('central_supply')
            ->where('central_supply_id', $csItem['central_supply_id'])
            ->update([
-               'quantity'         => $csItem['quantity'] - $qtyRequested,
                'quantity_on_hand' => $csItem['quantity_on_hand'] - $qtyRequested,
            ]);        // 2. Find the pre-created supply record for this request
         $supplyRec = $db->table('supply')
@@ -415,7 +414,6 @@ class SupplyRequests extends BaseController
         $db->table('central_supply')
            ->where('central_supply_id', $csItem['central_supply_id'])
            ->update([
-               'quantity'         => $csItem['quantity'] - $servedQty,
                'quantity_on_hand' => $csItem['quantity_on_hand'] - $servedQty,
            ]);
 
@@ -616,7 +614,6 @@ class SupplyRequests extends BaseController
         $db->table('central_supply')
            ->where('central_supply_id', $csItem['central_supply_id'])
            ->update([
-               'quantity'         => $csItem['quantity'] - $remainingQty,
                'quantity_on_hand' => $csItem['quantity_on_hand'] - $remainingQty,
            ]);
 

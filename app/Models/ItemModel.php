@@ -14,7 +14,7 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id'];
+    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id', 'status'];
 
     protected $useTimestamps = false;
 
@@ -102,7 +102,8 @@ class ItemModel extends Model
                                 ->select('central_supply.item_name')
                                 ->select('MAX(central_supply.unit) AS unit')
                                 ->select('SUM(central_supply.quantity) AS quantity')
-                                ->select('MAX(central_supply.quantity_on_hand) AS quantity_on_hand')
+                                ->select('SUM(central_supply.quantity) AS total_quantity')
+                                ->select('SUM(central_supply.quantity_on_hand) AS quantity_on_hand')
                                 ->select('MAX(central_supply.category_id) AS category_id')
                                 ->select('MAX(central_supply.source_id) AS source_id')
                                 ->select('MAX(central_supply.expiration_date) AS expiration_date')
@@ -121,19 +122,21 @@ class ItemModel extends Model
                                    ->groupEnd();
             }
 
+            $builder = $builder->where('central_supply.status', 1);
+
             $builder = $builder->groupBy('central_supply.item_code, central_supply.item_name');
 
             if (!empty($stock_status)) {
                 if ($stock_status === 'low_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity) <= 10 AND SUM(central_supply.quantity) > 0', null, false);
+                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) <= 10 AND SUM(central_supply.quantity_on_hand) > 0', null, false);
                 } elseif ($stock_status === 'out_of_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity) = 0', null, false);
+                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) = 0', null, false);
                 } elseif ($stock_status === 'in_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity) > 10', null, false);
+                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) > 10', null, false);
                 }
             }
 
-            return $builder->orderBy('SUM(central_supply.quantity) = 0', 'ASC', false)
+            return $builder->orderBy('SUM(central_supply.quantity_on_hand) = 0', 'ASC', false)
                            ->orderBy('central_supply.item_name', 'ASC')->get()->getResultArray();
         } else {
             $builder = $this->db->table('inventory')
@@ -155,7 +158,8 @@ class ItemModel extends Model
                                 ->join('category', 'category.category_id = inventory.category_id', 'left')
                                 ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
                                 ->join('source', 'source.source_id = central_supply.source_id', 'left')
-                                ->where('department_supply.department_id', $department_id);
+                                 ->where('department_supply.department_id', $department_id)
+                                 ->where('inventory.status', 1);
 
             if (!empty($search)) {
                 $builder = $builder->groupStart()

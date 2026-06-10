@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
 
                     <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                        Are you sure you want to archive this category? It will be hidden from the active list but can be restored later.
+                        Are you sure you want to archive this category?
                     </p>
                 </div>
 

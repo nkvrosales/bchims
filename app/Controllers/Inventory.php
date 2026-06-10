@@ -110,6 +110,7 @@ class Inventory extends BaseController
         $data['department_context'] = $isAdmin ? 'Central Supply' : ($user['department_name'] ?? 'Central Supplies');
         $data['department_name'] = $isAdmin ? 'Central Supply' : ($user['department_name'] ?? 'Local');
         $data['stock_status'] = $stock_status;
+        $data['show_archived'] = false;
 
         $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status);
         $data['categories'] = \Config\Database::connect()
@@ -449,7 +450,113 @@ class Inventory extends BaseController
     }
 
     /**
-     * Delete an inventory item
+     * Archive an inventory item (set status = 0)
+     */
+    public function archive($id = NULL)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('inventory');
+        }
+
+        $role = session()->get('role');
+        if (strtolower((string) $role) === 'viewer') {
+            session()->setFlashdata('error', 'You do not have permission to archive inventory items.');
+            return redirect()->to('inventory');
+        }
+
+        $userId = session()->get('user_id');
+        $user = $this->userModel->get_user_by_id($userId);
+        $role = session()->get('role');
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
+
+        $this->itemModel->set_table($isAdmin ? 'central_supply' : 'inventory');
+        $item = $this->itemModel->find($id);
+
+        if (empty($item)) {
+            session()->setFlashdata('error', 'Item not found.');
+            return redirect()->to('inventory');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $this->itemModel->update($id, ['status' => 0]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            session()->setFlashdata('error', 'An error occurred while archiving the item.');
+        } else {
+            $this->auditModel->log_activity(
+                'ARCHIVE_ITEM',
+                'Inventory',
+                "Archived inventory item: {$item['item_name']} (Code: {$item['item_code']}).",
+                $id
+            );
+
+            session()->setFlashdata('success', 'Item successfully archived!');
+        }
+
+        return redirect()->to('inventory');
+    }
+
+    /**
+     * Restore an archived inventory item (set status = 1)
+     */
+    public function restore($id = NULL)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('inventory');
+        }
+
+        $role = session()->get('role');
+        if (strtolower((string) $role) === 'viewer') {
+            session()->setFlashdata('error', 'You do not have permission to restore inventory items.');
+            return redirect()->to('inventory');
+        }
+
+        $userId = session()->get('user_id');
+        $user = $this->userModel->get_user_by_id($userId);
+        $role = session()->get('role');
+        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
+
+        $this->itemModel->set_table($isAdmin ? 'central_supply' : 'inventory');
+        $item = $this->itemModel->find($id);
+
+        if (empty($item)) {
+            session()->setFlashdata('error', 'Item not found.');
+            return redirect()->to('inventory');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $this->itemModel->update($id, ['status' => 1]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            session()->setFlashdata('error', 'An error occurred while restoring the item.');
+        } else {
+            $this->auditModel->log_activity(
+                'RESTORE_ITEM',
+                'Inventory',
+                "Restored inventory item: {$item['item_name']} (Code: {$item['item_code']}).",
+                $id
+            );
+
+            session()->setFlashdata('success', 'Item successfully restored!');
+        }
+
+        return redirect()->to('inventory');
+    }
+
+    /**
+     * Permanently delete an inventory item
      */
     public function delete($id = NULL)
     {

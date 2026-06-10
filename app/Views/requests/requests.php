@@ -512,30 +512,45 @@
             <?php foreach ($requests as $req): ?>
                 <div class="modal fade" id="archiveSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="archiveSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                            <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="archiveSingleModalLabel_<?php echo $req['request_id']; ?>">
-                                    Archive Supply Request
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <h5 class="modal-title fw-bold mb-0" id="archiveSingleModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                                        Archive Supply Request
+                                    </h5>
+                                </div>
+                                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/archive/' . $req['request_id']); ?>">
-                                <div class="modal-body px-4 py-4 text-center">
-                                    <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
-                                        <i class="fa-regular fa-folder-open" style="font-size:1.6rem; color:#ef4444;"></i>
+                                <div class="modal-body px-4 py-4">
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fa-solid fa-file-circle-exclamation" style="color: #b91c1c; font-size: 0.875rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    #<?php echo $req['request_id']; ?> - <?php echo htmlspecialchars($req['item_name']); ?>
+                                                </div>
+                                                <div class="text-muted small">Code: <?php echo htmlspecialchars($req['item_code']); ?> &middot; Requested by: <?php echo htmlspecialchars($req['requester_full_name']); ?> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h5 class="fw-semibold text-dark mb-2">Archive this request?</h5>
-                                    <p class="text-muted small mb-0">
-                                        You are about to archive supply request <strong>#<?php echo $req['request_id']; ?></strong>.<br>
-                                        Item: <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> (<?php echo htmlspecialchars($req['item_code']); ?>)<br>
-                                        Requested by: <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)<br>
-                                        It can be restored later.
-                                    </p>
+                                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to archive this supply request?</p>
                                 </div>
-                                <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center gap-3">
-                                    <button type="button" class="btn btn-light rounded-2 px-4 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-danger rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background:#dc2626; border:none;">
-                                         Archive
+                                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                    <button type="button"
+                                            data-bs-dismiss="modal"
+                                            style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#f9fafb'"
+                                            onmouseout="this.style.background='#fff'">
+                                        Cancel
+                                    </button>
+                                    <button type="submit"
+                                            style="background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
+                                            onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                                        Archive Supply Request
                                     </button>
                                 </div>
                             </form>

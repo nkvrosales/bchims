@@ -28,6 +28,8 @@ $routes->group('inventory', function($routes) {
     $routes->post('create', 'Inventory::create');
     $routes->get('edit/(:num)', 'Inventory::edit/$1');
     $routes->post('edit/(:num)', 'Inventory::edit/$1');
+    $routes->get('archive/(:num)', 'Inventory::archive/$1');
+    $routes->get('restore/(:num)', 'Inventory::restore/$1');
     $routes->get('delete/(:num)', 'Inventory::delete/$1');
     $routes->post('generate_item_code', 'Inventory::generate_item_code');
 });
@@ -50,6 +52,7 @@ $routes->group('users', function($routes) {
     $routes->get('edit/(:num)', 'Users::edit/$1');
     $routes->post('edit/(:num)', 'Users::edit/$1');
     $routes->get('delete/(:num)', 'Users::delete/$1');
+    $routes->get('activate/(:num)', 'Users::activate/$1');
 });
 
 $routes->group('categories', function($routes) {

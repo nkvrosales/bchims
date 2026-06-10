@@ -97,16 +97,16 @@
                         <?php if (!empty($recent_requests)): ?>
                             <?php foreach ($recent_requests as $req): ?>
                                 <tr>
-                                    <td class="font-monospace fw-bold" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    <td class="text-dark" style="font-size: 0.85rem; color: var(--text-secondary);">
                                         #<?php echo $req['request_id']; ?>
                                     </td>
                                     <td>
-                                        <span class="text-dark fw-medium" style="font-size: 0.88rem;">
+                                        <span class="text-dark" style="font-size: 0.88rem;">
                                             <?php echo date('M d, Y h:i A', strtotime($req['request_date'])); ?>
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="fw-semibold text-dark" style="font-size: 0.88rem;">
+                                        <span class="text-dark" style="font-size: 0.88rem;">
                                             <?php echo htmlspecialchars($req['department_name']); ?>
                                         </span>
                                     </td>
@@ -178,14 +178,14 @@
                             <?php $count = 1; ?>
                             <?php foreach ($recent_logs as $log): ?>
                                 <tr>
-                                    <td><span class="text-muted small"><?php echo $count++; ?></span></td>
+                                    <td><span class="text-dark"><?php echo $count++; ?></span></td>
                                     <td>
-                                        <span class="fw-semibold text-dark" style="font-size: 0.9rem;">
+                                        <span class="text-dark" style="font-size: 0.9rem;">
                                             <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="fw-semibold" style="font-size: 0.85rem;">
+                                        <span class="text-dark" style="font-size: 0.85rem;">
                                             <?php echo htmlspecialchars($log['username']); ?>
                                         </span>
                                     </td>
@@ -207,7 +207,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="text-secondary small d-block" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
+                                        <span class="text-dark" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
                                             <?php echo htmlspecialchars($log['description']); ?>
                                         </span>
                                     </td>
