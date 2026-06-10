@@ -27,6 +27,27 @@ $(document).ready(function() {
         toggleMobileSidebar();
     });
 
+    // Close mobile sidebar when any sidebar nav link is tapped (mobile only)
+    $sidebar.find('.sidebar-link').on('click', function() {
+        if ($(window).width() < 992 && $sidebar.hasClass('show')) {
+            toggleMobileSidebar();
+        }
+    });
+
+    // Swipe-to-close: track touch start X position on sidebar
+    var touchStartX = 0;
+    document.getElementById('sidebarPanel')?.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('sidebarPanel')?.addEventListener('touchend', function(e) {
+        var touchEndX = e.changedTouches[0].clientX;
+        var swipeDistance = touchStartX - touchEndX;
+        // Swipe left >= 60px closes the sidebar
+        if (swipeDistance >= 60 && $(window).width() < 992 && $sidebar.hasClass('show')) {
+            toggleMobileSidebar();
+        }
+    }, { passive: true });
+
     // Close mobile sidebar on window resize if larger than MD break point
     $(window).on('resize', function() {
         if ($(window).width() >= 992) {
@@ -194,7 +215,7 @@ $(document).ready(function() {
             initComplete: function () {
                 var $searchInput = $('#auditLogsTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search logs...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#auditLogsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#auditLogsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             },
@@ -280,7 +301,7 @@ $(document).ready(function() {
                 // Add placeholder and clean up the search wrapper
                 var $searchInput = $('#usersTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search users...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 // Remove the stray label margin
                 $('#usersTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#usersTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
@@ -319,7 +340,7 @@ $(document).ready(function() {
             initComplete: function () {
                 var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search requests...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#supplyRequestsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#supplyRequestsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
@@ -357,7 +378,7 @@ $(document).ready(function() {
             initComplete: function () {
                 var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search inventory...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#inventoryTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#inventoryTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
@@ -395,7 +416,7 @@ $(document).ready(function() {
             initComplete: function () {
                 var $searchInput = $('#categoriesTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search categories...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#categoriesTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#categoriesTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
@@ -433,7 +454,7 @@ $(document).ready(function() {
             initComplete: function () {
                 var $searchInput = $('#departmentsTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search departments...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#departmentsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#departmentsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
@@ -470,7 +491,7 @@ $(document).ready(function() {
             initComplete: function () {
                 var $searchInput = $('#sourcesTable_wrapper .dataTables_filter input');
                 $searchInput.attr('placeholder', 'Search sources...');
-                $searchInput.css({ 'min-width': '220px', 'width': '220px' });
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#sourcesTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#sourcesTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
