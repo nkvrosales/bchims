@@ -205,7 +205,7 @@
                                             data-bs-target="#deleteUserModal-<?php echo $u['id']; ?>"
                                             title="Deactivate User">
                                         <i class="fa-solid fa-user-slash"></i>
-                                    </button>
+                                        </button>
                                     <?php else: ?>
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
@@ -214,7 +214,7 @@
                                             data-bs-target="#activateUserModal-<?php echo $u['id']; ?>"
                                             title="Activate User">
                                         <i class="fa-solid fa-rotate-left"></i>
-                                    </button>
+                                        </button>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <button type="button"
@@ -453,9 +453,6 @@
                         <div class="modal-body px-4 py-3">
                             <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div style="width: 44px; height: 44px; border-radius: 50%; background: <?php echo $color; ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                        <?php echo $initials; ?>
-                                    </div>
                                     <div>
                                         <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                             <?php echo htmlspecialchars($u['full_name']); ?>
@@ -467,7 +464,7 @@
                                 </div>
                             </div>
                             <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                                Are you sure you want to deactivate this user account? The user will be marked as <strong>Inactive</strong> and will no longer be able to log in.
+                                Are you sure you want to deactivate this user account?
                             </p>
                         </div>
                         <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
@@ -497,9 +494,6 @@
                         <div class="modal-body px-4 py-3">
                             <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div style="width: 44px; height: 44px; border-radius: 50%; background: <?php echo $color; ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                        <?php echo $initials; ?>
-                                    </div>
                                     <div>
                                         <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                             <?php echo htmlspecialchars($u['full_name']); ?>
@@ -511,7 +505,7 @@
                                 </div>
                             </div>
                             <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                                Are you sure you want to activate this user account? The user will be marked as <strong>Active</strong> and will be able to log in again.
+                                Are you sure you want to activate this user account?
                             </p>
                         </div>
                         <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">

@@ -183,9 +183,9 @@
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        data-bs-toggle="modal"
                                        data-bs-target="#archiveItemModal<?php echo $item['id']; ?>"
-                                       title="Archive Item">
-                                        <i class="fa-regular fa-folder"></i>
-                                    </a>
+                                         title="Archive Item">
+                                         <i class="fa-regular fa-folder"></i>
+                                     </a>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -633,9 +633,6 @@ function generateItemCode() {
                     <div class="modal-body px-4 py-4">
                         <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
                             <div class="d-flex align-items-center gap-3">
-                                <div style="width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <i class="fa-solid fa-box" style="color: #b91c1c; font-size: 0.875rem;"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                         <?php echo htmlspecialchars($item['item_name']); ?>

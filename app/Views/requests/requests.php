@@ -155,8 +155,8 @@
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
                                                 id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
-                                                title="Archive Request"
-                                                style="width: 32px; height: 32px; padding: 0;">
+                                        title="Archive Request"
+                                        style="width: 32px; height: 32px; padding: 0;">
                                             <i class="fa-regular fa-folder"></i>
                                         </button>
                                     </div>
@@ -193,7 +193,7 @@
                                                 title="Archive Request"
                                                 style="width: 32px; height: 32px; padding: 0;">
                                             <i class="fa-regular fa-folder"></i>
-                                        </button>
+                                            </button>
                                     </div>
                                 <?php elseif ($req['request_status'] !== 'Pending'): ?>
                                     <div class="d-inline-flex gap-2">
@@ -214,14 +214,23 @@
                                                     class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"                                                    data-bs-toggle="modal" 
                                                     data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
-                                                    title="Archive Request"
-                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                                <i class="fa-regular fa-folder"></i>
-                                            </button>
+                                        title="Archive Request"
+                                        style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="fa-regular fa-folder"></i>
+                                        </button>
                                         <?php endif; ?>
                                     </div>
                                 <?php else: ?>
-                                    <small class="text-warning fw-semibold">Pending Admin</small>
+                                    <div class="d-inline-flex gap-2">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
+                                                title="View Details"
+                                                style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -376,12 +385,12 @@
                                 </div>
                                 <?php endif; ?>
                                 <div class="mb-3">
-                                    <label for="partial_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Details</label>
-                                    <textarea class="form-control input-custom" 
+                                    <label for="partial_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Remarks</label>
+                                    <textarea class="form-control input-custom"
                                               id="partial_notes_<?php echo $req['request_id']; ?>" 
                                               name="partial_notes" 
                                               rows="3" 
-                                              placeholder="Details about this partial serve."></textarea>
+                                              placeholder="Remarks about this partial serve."></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
@@ -503,9 +512,8 @@
                                 <span class="text-dark"><?php echo htmlspecialchars($req['department_name'] ?? 'N/A'); ?></span>
                             </div>
                             <div class="col-12">
-                                <label class="small fw-semibold text-secondary d-block">Item Name & Code</label>
+                                <label class="small fw-semibold text-secondary d-block">Item Name</label>
                                 <span class="text-dark fw-medium"><?php echo htmlspecialchars($req['item_name'] ?? 'N/A'); ?></span>
-                                <small class="text-muted d-block">(<?php echo htmlspecialchars($req['item_code'] ?? 'N/A'); ?>)</small>
                             </div>
                             <div class="col-6">
                                 <label class="small fw-semibold text-secondary d-block">Requested Quantity</label>
@@ -786,7 +794,11 @@ function filterItems() {
     renderItems(filtered);
 }
 
-document.getElementById('modal_category_id')?.addEventListener('change', filterItems);
+document.getElementById('modal_category_id')?.addEventListener('change', function() {
+    document.getElementById('modal_item_id').value = '';
+    document.getElementById('modal_item_search').value = '';
+    filterItems();
+});
 
 var searchInput = document.getElementById('modal_item_search');
 searchInput?.addEventListener('input', filterItems);

@@ -83,7 +83,7 @@
                                             data-bs-target="#archiveDeptModal-<?php echo $dept['id']; ?>"
                                             title="Archive Department">
                                         <i class="fa-regular fa-folder"></i>
-                                    </button>
+                                        </button>
                                 </div>
                             </td>
                         </tr>
@@ -250,9 +250,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="modal-body px-4 py-4">
                     <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fa-solid fa-hospital-user" style="color: #0369a1; font-size: 0.875rem;"></i>
-                            </div>
                             <div>
                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                     <?php echo htmlspecialchars($dept['name']); ?>
