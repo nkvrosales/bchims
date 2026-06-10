@@ -50,6 +50,10 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
+        if (strtolower((string) session()->get('role')) === 'viewer') {
+            return redirect()->to('dashboard');
+        }
+
         $userId = session()->get('user_id');
         $user   = $this->userModel->get_user_by_id($userId);
         $role   = session()->get('role');
@@ -73,6 +77,22 @@ class SupplyRequests extends BaseController
                               ->groupBy('item_name')
                               ->orderBy('item_name', 'ASC')
                               ->get()->getResultArray();
+        }
+
+        // Fetch all available central_supply batches for batch selection in serve modals
+        $batches = $this->db->table('central_supply')
+                            ->select('central_supply_id, item_code, item_name, batch_num, lot_num, expiration_date, quantity_on_hand, unit')
+                            ->where('status', 1)
+                            ->where('quantity_on_hand >', 0)
+                            ->orderBy('item_code, expiration_date', 'ASC')
+                            ->get()->getResultArray();
+        $batchesByCode = [];
+        foreach ($batches as $b) {
+            $name = $b['item_name'];
+            if (!isset($batchesByCode[$name])) {
+                $batchesByCode[$name] = [];
+            }
+            $batchesByCode[$name][] = $b;
         }
 
         if ($search !== '') {
@@ -107,6 +127,7 @@ class SupplyRequests extends BaseController
         $data['items']      = $items;
         $data['categories'] = $categories;
         $data['search']     = $search;
+        $data['batches_by_code'] = $batchesByCode;
 
         return view('templates/header', $data)
              . view('requests/requests', $data)
@@ -251,9 +272,10 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        // Fetch central supply item
+        // Fetch central supply item (use selected batch if provided)
+        $selectedCsId = (int)$this->request->getPost('central_supply_id') ?: (int)$request['central_supply_id'];
         $csItem = $this->db->table('central_supply')
-                           ->where('central_supply_id', $request['central_supply_id'])
+                           ->where('central_supply_id', $selectedCsId)
                            ->get()->getRowArray();
 
         if (!$csItem) {
@@ -313,14 +335,18 @@ class SupplyRequests extends BaseController
             }
 
             // Update supply record quantity and details
+            $supplyUpdate = [
+                'quantity' => $qtyRequested,
+                'batch_num' => $csItem['batch_num'],
+                'lot_num' => $csItem['lot_num'],
+                'expiration_date' => $csItem['expiration_date'],
+            ];
+            if ((int)$supplyRec['central_supply_id'] !== $selectedCsId) {
+                $supplyUpdate['central_supply_id'] = $selectedCsId;
+            }
             $db->table('supply')
                ->where('supply_id', $supplyRec['supply_id'])
-               ->update([
-                   'quantity' => $qtyRequested,
-                   'batch_num' => $csItem['batch_num'],
-                   'lot_num' => $csItem['lot_num'],
-                   'expiration_date' => $csItem['expiration_date'],
-               ]);
+               ->update($supplyUpdate);
         } else {
             $deptSupplyId = null;
         }
@@ -388,9 +414,10 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        // Fetch central supply item
+        // Fetch central supply item (use selected batch if provided)
+        $selectedCsId = (int)$this->request->getPost('central_supply_id') ?: (int)$request['central_supply_id'];
         $csItem = $this->db->table('central_supply')
-                           ->where('central_supply_id', $request['central_supply_id'])
+                           ->where('central_supply_id', $selectedCsId)
                            ->get()->getRowArray();
 
         if (!$csItem) {
@@ -412,7 +439,7 @@ class SupplyRequests extends BaseController
 
         // 1. Deduct from central_supply
         $db->table('central_supply')
-           ->where('central_supply_id', $csItem['central_supply_id'])
+           ->where('central_supply_id', $selectedCsId)
            ->update([
                'quantity_on_hand' => $csItem['quantity_on_hand'] - $servedQty,
            ]);
@@ -431,7 +458,6 @@ class SupplyRequests extends BaseController
                 'expiration_date' => $csItem['expiration_date'],
                 'quantity'        => $servedQty,
                 'category_id'     => $csItem['category_id'],
-                'source_id'       => $csItem['source_id'],
             ]);
             $invId = $db->insertID();
         } else {
@@ -475,6 +501,21 @@ class SupplyRequests extends BaseController
                 'quantity'             => $servedQty,
                 'category_id'          => $csItem['category_id'],
             ]);
+        }
+
+        // Update the supply record for this request (batch selection may have changed)
+        $existingSupply = $db->table('supply')->where('request_id', $id)->get()->getRowArray();
+        if ($existingSupply) {
+            $supplyUpdate = [
+                'batch_num'       => $csItem['batch_num'],
+                'lot_num'         => $csItem['lot_num'],
+                'expiration_date' => $csItem['expiration_date'],
+                'quantity'        => ($existingSupply['quantity'] ?? 0) + $servedQty,
+            ];
+            if ((int)$existingSupply['central_supply_id'] !== $selectedCsId) {
+                $supplyUpdate['central_supply_id'] = $selectedCsId;
+            }
+            $db->table('supply')->where('supply_id', $existingSupply['supply_id'])->update($supplyUpdate);
         }
 
         // 4. Update request
@@ -587,9 +628,10 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        // Fetch central supply item
+        // Fetch central supply item (use selected batch if provided)
+        $selectedCsId = (int)$this->request->getPost('central_supply_id') ?: (int)$request['central_supply_id'];
         $csItem = $this->db->table('central_supply')
-                           ->where('central_supply_id', $request['central_supply_id'])
+                           ->where('central_supply_id', $selectedCsId)
                            ->get()->getRowArray();
 
         if (!$csItem) {
@@ -631,7 +673,6 @@ class SupplyRequests extends BaseController
                 'expiration_date' => $csItem['expiration_date'],
                 'quantity'        => $remainingQty,
                 'category_id'     => $csItem['category_id'],
-                'source_id'       => $csItem['source_id'],
             ]);
             $invId = $db->insertID();
         } else {
@@ -675,6 +716,21 @@ class SupplyRequests extends BaseController
                 'quantity'             => $remainingQty,
                 'category_id'          => $csItem['category_id'],
             ]);
+        }
+
+        // Update the supply record for this request (batch selection may have changed)
+        $existingSupply = $db->table('supply')->where('request_id', $id)->get()->getRowArray();
+        if ($existingSupply) {
+            $supplyUpdate = [
+                'batch_num'       => $csItem['batch_num'],
+                'lot_num'         => $csItem['lot_num'],
+                'expiration_date' => $csItem['expiration_date'],
+                'quantity'        => ($existingSupply['quantity'] ?? 0) + $remainingQty,
+            ];
+            if ((int)$existingSupply['central_supply_id'] !== $selectedCsId) {
+                $supplyUpdate['central_supply_id'] = $selectedCsId;
+            }
+            $db->table('supply')->where('supply_id', $existingSupply['supply_id'])->update($supplyUpdate);
         }
 
         // 4. Update request to Served and clear notes

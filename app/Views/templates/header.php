@@ -78,6 +78,7 @@
 
                 
 
+                <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('requests'); ?>"
                        class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
@@ -85,6 +86,7 @@
                         <span>Supply Requests</span>
                     </a>
                 </li>
+                <?php endif; ?>
 
                 <!-- SYSTEM Section -->
                 <li class="sidebar-section-label">SYSTEM</li>

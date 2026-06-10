@@ -146,6 +146,8 @@ class ItemModel extends Model
                                 ->select('inventory.item_name')
                                 ->select('MAX(inventory.unit) AS unit')
                                 ->select('SUM(department_supply.quantity_on_hand) AS quantity')
+                                ->select('SUM(department_supply.quantity_on_hand) AS total_quantity')
+                                ->select('SUM(department_supply.quantity_on_hand) AS quantity_on_hand')
                                 ->select('MAX(inventory.category_id) AS category_id')
                                 ->select('MAX(inventory.expiration_date) AS expiration_date')
                                 ->select('MAX(inventory.manufacturing_date) AS manufacturing_date')

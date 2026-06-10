@@ -123,7 +123,7 @@
                                                 data-bs-target="#serveModal_<?php echo $req['request_id']; ?>"
                                                 id="btnTriggerServe_<?php echo $req['request_id']; ?>"
                                                 title="Serve Request">
-                                            <i class="fa-solid fa-check"></i>
+                                            <i class="bi bi-check-circle"></i>
                                             <span class="small fw-semibold">Serve</span>
                                         </button>
 
@@ -134,7 +134,7 @@
                                                 data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
                                                 id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
                                                 title="Serve Partially">
-                                            <i class="fa-solid fa-percent"></i>
+                                            <i class="fa-solid fa-circle-half-stroke"></i>
                                             <span class="small fw-semibold">Partial</span>
                                         </button>
 
@@ -169,7 +169,7 @@
                                                 data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
                                                 id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
                                                 title="Serve Partially">
-                                            <i class="fa-solid fa-percent"></i>
+                                            <i class="fa-solid fa-circle-half-stroke"></i>
                                             <span class="small fw-semibold">Partial</span>
                                         </button>
 
@@ -180,7 +180,7 @@
                                                 data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>"
                                                 id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>"
                                                 title="Complete Partially Served Request">
-                                            <i class="fa-solid fa-check-double"></i>
+                                            <i class="bi bi-check-circle"></i>
                                             <span class="small fw-semibold">Complete</span>
                                         </button>
 
@@ -237,37 +237,52 @@
         <?php if ($req['request_status'] === 'Pending'): ?>
             <!-- Serve Modal -->
             <div class="modal fade" id="serveModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="serveModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                         <div class="modal-header border-bottom px-4">
                             <h5 class="modal-title fw-bold text-dark" id="serveModalLabel_<?php echo $req['request_id']; ?>">Serve Supply Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                         </div>
                         <form method="POST" action="<?php echo base_url('requests/serve/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4 text-center">
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(34,197,94,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i class="fa-solid fa-boxes-packing" style="font-size: 1.5rem; color: #22c55e;"></i>
-                                </div>
                                 <h5 class="fw-semibold text-dark mb-2">Confirm Full Serve</h5>
                                 <p class="text-muted small mb-3">
                                     Transfer <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
                                     to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).
                                 </p>
-                                <div class="d-flex justify-content-center gap-3 small">
+                                <div class="d-flex justify-content-center gap-3 small mb-3">
                                     <div class="text-center">
                                         <div class="fw-bold text-dark"><?php echo $req['quantity_requested']; ?></div>
                                         <div class="text-muted">Requested</div>
                                     </div>
-                                    <div class="text-center">
-                                        <div class="fw-bold text-success"><?php echo $req['item_current_stock']; ?></div>
-                                        <div class="text-muted">In Stock</div>
-                                    </div>
                                 </div>
+                                <?php if (isset($batches_by_code[$req['item_name']]) && count($batches_by_code[$req['item_name']]) > 1): ?>
+                                <div class="mb-3 text-start">
+                                    <label for="serve_batch_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
+                                    <select class="form-select input-custom" id="serve_batch_<?php echo $req['request_id']; ?>" name="central_supply_id" required>
+                                        <option value="" disabled selected hidden>Select Inventory</option>
+                                        <?php foreach ($batches_by_code[$req['item_name']] as $batch): ?>
+                                        <option value="<?php echo $batch['central_supply_id']; ?>" <?php echo ((int)$batch['central_supply_id'] === (int)$req['central_supply_id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($batch['item_code']); ?> &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center">
-                                <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #22c55e; border: none;">
-                                    <i class="fa-solid fa-check me-1"></i> Serve Supplies
+                            <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                <button type="button"
+                                        data-bs-dismiss="modal"
+                                        style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#f9fafb'"
+                                        onmouseout="this.style.background='#fff'">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                                        onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                                    Serve Supplies
                                 </button>
                             </div>
                         </form>
@@ -281,13 +296,10 @@
                     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                         <div class="modal-header border-bottom px-4">
                             <h5 class="modal-title fw-bold text-dark" id="rejectModalLabel_<?php echo $req['request_id']; ?>">Reject Supply Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                         </div>
                         <form method="POST" action="<?php echo base_url('requests/reject/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4 text-center">
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i class="fa-solid fa-ban" style="font-size: 1.5rem; color: #ef4444;"></i>
-                                </div>
                                 <h5 class="fw-semibold text-dark mb-2">Reject This Request?</h5>
                                 <p class="text-muted small mb-0">
                                     This will mark request <strong>#<?php echo $req['request_id']; ?></strong> from
@@ -295,10 +307,19 @@
                                     as <strong class="text-danger">Rejected</strong>.
                                 </p>
                             </div>
-                            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center">
-                                <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-danger rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #ef4444; border: none;">
-                                    <i class="fa-solid fa-xmark me-1"></i> Reject Request
+                            <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                <button type="button"
+                                        data-bs-dismiss="modal"
+                                        style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#f9fafb'"
+                                        onmouseout="this.style.background='#fff'">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
+                                        onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                                    Reject Request
                                 </button>
                             </div>
                         </form>
@@ -314,29 +335,25 @@
             ?>
             <!-- Partial Serve Modal -->
             <div class="modal fade" id="partialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="partialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                         <div class="modal-header border-bottom px-4">
                             <h5 class="modal-title fw-bold text-dark" id="partialModalLabel_<?php echo $req['request_id']; ?>">Partially Serve Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                         </div>
                         <form method="POST" action="<?php echo base_url('requests/partial/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4">
                                 <div class="text-center mb-3">
-                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                        <i class="fa-solid fa-percent" style="font-size: 1.5rem; color: #3b82f6;"></i>
-                                    </div>
                                     <h6 class="fw-semibold text-dark">Specify Quantity to Serve</h6>
                                     <p class="text-muted small mb-0">
                                         Requested: <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>.<br>
                                         <?php if ((int)$req['quantity_served'] > 0): ?>
                                             Already Served: <strong><?php echo $req['quantity_served']; ?> unit(s)</strong> &mdash; Remaining: <strong><?php echo $remaining; ?> unit(s)</strong>.<br>
                                         <?php endif; ?>
-                                        Central Supply available: <strong><?php echo $req['item_current_stock']; ?> unit(s)</strong>.
                                     </p>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="served_qty_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Served Quantity <span class="text-danger">*</span></label>
+                                    <label for="served_qty_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Serve Quantity <span class="text-danger">*</span></label>
                                     <input type="number" 
                                            class="form-control input-custom" 
                                            id="served_qty_<?php echo $req['request_id']; ?>" 
@@ -345,6 +362,19 @@
                                            max="<?php echo min($partialMax, $req['item_current_stock']); ?>" 
                                            required>
                                 </div>
+                                <?php if (isset($batches_by_code[$req['item_name']]) && count($batches_by_code[$req['item_name']]) > 1): ?>
+                                <div class="mb-3">
+                                    <label for="partial_batch_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
+                                    <select class="form-select input-custom" id="partial_batch_<?php echo $req['request_id']; ?>" name="central_supply_id" required>
+                                        <option value="" disabled selected hidden>Select Inventory</option>
+                                        <?php foreach ($batches_by_code[$req['item_name']] as $batch): ?>
+                                        <option value="<?php echo $batch['central_supply_id']; ?>" <?php echo ((int)$batch['central_supply_id'] === (int)$req['central_supply_id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($batch['item_code']); ?> &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php endif; ?>
                                 <div class="mb-3">
                                     <label for="partial_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Details</label>
                                     <textarea class="form-control input-custom" 
@@ -354,10 +384,19 @@
                                               placeholder="Details about this partial serve."></textarea>
                                 </div>
                             </div>
-                            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-end">
-                                <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #3b82f6; border: none;">
-                                     Serve Partial
+                            <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                <button type="button"
+                                        data-bs-dismiss="modal"
+                                        style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#f9fafb'"
+                                        onmouseout="this.style.background='#fff'">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                                        onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                                    Serve Partial
                                 </button>
                             </div>
                         </form>
@@ -369,7 +408,7 @@
         <?php if ($req['request_status'] === 'Partially Served'): ?>
             <!-- Complete Partial Serve Modal -->
             <div class="modal fade" id="completePartialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="completePartialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                         <div class="modal-header border-bottom px-4">
                             <h5 class="modal-title fw-bold text-dark" id="completePartialModalLabel_<?php echo $req['request_id']; ?>">Complete Partially Served Request</h5>
@@ -378,21 +417,39 @@
                         <form method="POST" action="<?php echo base_url('requests/complete_partial/' . $req['request_id']); ?>">
                             <div class="modal-body px-4 py-4 text-center">
                                 <?php $remaining = $req['quantity_requested'] - $req['quantity_served']; ?>
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(34,197,94,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i class="fa-solid fa-check-double" style="font-size: 1.5rem; color: #22c55e;"></i>
-                                </div>
                                 <h5 class="fw-semibold text-dark mb-2">Serve Remaining Quantity</h5>
                                 <p class="text-muted small mb-3">
                                     This request has already been partially served.<br>
                                     Requested: <strong><?php echo $req['quantity_requested']; ?></strong> unit(s), Already Served: <strong><?php echo $req['quantity_served']; ?></strong> unit(s).<br>
                                     Remaining to serve: <strong><?php echo $remaining; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
-                                    Central Supply available: <strong><?php echo $req['item_current_stock']; ?></strong> unit(s).
                                 </p>
+                                <?php if (isset($batches_by_code[$req['item_name']]) && count($batches_by_code[$req['item_name']]) > 1): ?>
+                                <div class="mb-3 text-start">
+                                    <label for="complete_batch_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
+                                    <select class="form-select input-custom" id="complete_batch_<?php echo $req['request_id']; ?>" name="central_supply_id" required>
+                                        <option value="" disabled selected hidden>Select Inventory</option>
+                                        <?php foreach ($batches_by_code[$req['item_name']] as $batch): ?>
+                                        <option value="<?php echo $batch['central_supply_id']; ?>" <?php echo ((int)$batch['central_supply_id'] === (int)$req['central_supply_id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($batch['item_code']); ?> &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center">
-                                <button type="button" class="btn btn-light rounded-2 px-3 py-2 fw-medium text-secondary border" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success rounded-2 px-4 py-2 fw-bold text-white shadow-sm" style="background: #22c55e; border: none;">
-                                     Complete Request
+                            <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                <button type="button"
+                                        data-bs-dismiss="modal"
+                                        style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#f9fafb'"
+                                        onmouseout="this.style.background='#fff'">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                        onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                                        onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                                    Complete Request
                                 </button>
                             </div>
                         </form>
@@ -413,7 +470,7 @@
                         <h5 class="modal-title fw-bold text-dark" id="viewModalLabel_<?php echo $req['request_id']; ?>">
                             Request Details
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                     </div>
                     <div class="modal-body px-4 py-4">
                         <div class="row g-3">
@@ -498,8 +555,14 @@
                             <?php endif; ?>
                         </div>
                     </div>
-                    <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-center">
-                        <button type="button" class="btn btn-secondary rounded-2 px-4 py-2 fw-medium text-white" data-bs-dismiss="modal">Close</button>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                        <button type="button"
+                                data-bs-dismiss="modal"
+                                style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                onmouseover="this.style.background='#f9fafb'"
+                                onmouseout="this.style.background='#fff'">
+                            Close
+                        </button>
                     </div>
                 </div>
             </div>
@@ -525,9 +588,6 @@
                                 <div class="modal-body px-4 py-4">
                                     <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
                                         <div class="d-flex align-items-center gap-3">
-                                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <i class="fa-solid fa-file-circle-exclamation" style="color: #b91c1c; font-size: 0.875rem;"></i>
-                                            </div>
                                             <div>
                                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                                     #<?php echo $req['request_id']; ?> - <?php echo htmlspecialchars($req['item_name']); ?>
@@ -541,13 +601,13 @@
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                     <button type="button"
                                             data-bs-dismiss="modal"
-                                            style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                            style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">
                                         Cancel
                                     </button>
                                     <button type="submit"
-                                            style="background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                            style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
                                             onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
                                         Archive Supply Request
@@ -661,18 +721,18 @@
                     </div><!-- /.row -->
                 </div><!-- /.modal-body -->
 
-                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                     <button type="button"
                             data-bs-dismiss="modal"
-                            style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
+                            style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                             onmouseover="this.style.background='#f9fafb'"
                             onmouseout="this.style.background='#fff'">
                         Cancel
                     </button>
                     <button type="submit"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.4)'"
-                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(34,197,94,0.3)'"
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'"
                             id="btnSubmitSupplyRequest">
                         Submit Request
                     </button>

@@ -368,7 +368,7 @@
                             <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department</label>
                             <select class="form-select input-custom" id="modal_department_id" name="department_id" required>
                                 <option value="" disabled selected hidden>Select Department</option>
-                                <option value="0">Administrator</option>
+                                <option value="0" id="optAdminDept">Administrator</option>
                                 <?php if (!empty($departments)): ?>
                                     <?php foreach ($departments as $d): ?>
                                         <option value="<?php echo $d['id']; ?>">
@@ -685,6 +685,8 @@
             if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             if (statusSelfInfo) statusSelfInfo.style.display = 'none';
         }
+
+        toggleAdminDept();
     }
 
     document.getElementById('userModal')?.addEventListener('hidden.bs.modal', function () {
@@ -734,6 +736,17 @@
             icon.classList.add('fa-eye');
         }
     });
+
+    function toggleAdminDept() {
+        var role = document.getElementById('modal_role').value;
+        var opt = document.getElementById('optAdminDept');
+        if (opt) {
+            opt.style.display = (!role || role === 'encoder' || role === 'viewer') ? 'none' : '';
+        }
+    }
+
+    document.getElementById('modal_role')?.addEventListener('change', toggleAdminDept);
+    document.addEventListener('DOMContentLoaded', toggleAdminDept);
 </script>
 
 <!-- Auto-open modal on validation failure -->

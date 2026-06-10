@@ -1,3 +1,4 @@
+<?php $isAdmin = !in_array(strtolower((string) session()->get('role')), ['viewer', 'encoder'], true); ?>
 <!-- Page Title Section -->
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -57,9 +58,13 @@
                     <th style="width: 14%">Code</th>
                     <th style="width: 22%">Name</th>
                     <th style="width: 14%">Category</th>
+                    <?php if ($isAdmin): ?>
                     <th style="width: 10%">Total Qty</th>
                     <th style="width: 10%">Served</th>
                     <th style="width: 10%">In Stock</th>
+                    <?php else: ?>
+                    <th style="width: 15%">Qty</th>
+                    <?php endif; ?>
                     <th style="width: 12%">Stock Status</th>
                     <th style="width: 8%" class="text-end">Actions</th>
                 </tr>
@@ -77,6 +82,7 @@
                             <td>
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_description'] ?? 'N/A'); ?></span>
                             </td>
+                            <?php if ($isAdmin): ?>
                             <td>
                                 <span class="fs-6 text-dark">
                                     <?php echo (int)$item['total_quantity']; ?>
@@ -101,6 +107,16 @@
                                     <?php endif; ?>
                                 </span>
                             </td>
+                            <?php else: ?>
+                            <td>
+                                <span class="fs-6 text-dark">
+                                    <?php echo (int)$item['quantity_on_hand']; ?>
+                                    <?php if (!empty($item['unit'])): ?>
+                                        <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
+                                    <?php endif; ?>
+                                </span>
+                            </td>
+                            <?php endif; ?>
                             <td>
                                 <?php
                                     $stockQty = (int)$item['quantity_on_hand'];
