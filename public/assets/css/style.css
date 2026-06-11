@@ -200,9 +200,9 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     flex-direction: column;
     position: fixed;
-    height: 100vh;
+    height: calc(100vh - 70px);
     left: 0;
-    top: 0;
+    top: 70px;
     z-index: 101;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
     box-shadow: 4px 0 24px 0 rgba(15, 23, 42, 0.04);
@@ -210,17 +210,6 @@ h1, h2, h3, h4, h5, h6 {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-}
-
-
-.sidebar-header {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    padding: 0 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    white-space: nowrap;
-    overflow: hidden;
 }
 
 .sidebar-brand {
@@ -260,6 +249,8 @@ h1, h2, h3, h4, h5, h6 {
     color: #94a3b8;
     padding: 0.8rem 1rem 0.4rem;
     display: block;
+    transition: opacity 0.2s ease, max-height 0.2s ease, padding 0.2s ease, margin 0.2s ease;
+    max-height: 30px;
 }
 
 .sidebar-item {
@@ -283,10 +274,18 @@ h1, h2, h3, h4, h5, h6 {
     user-select: none;
 }
 
+.sidebar-link span {
+    opacity: 1;
+    width: auto;
+    transition: opacity 0.2s ease, width 0.2s ease;
+    display: inline-block;
+}
+
 .sidebar-link i {
     font-size: 1.2rem;
     width: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .sidebar-link:hover {
@@ -345,7 +344,8 @@ h1, h2, h3, h4, h5, h6 {
 .main-panel {
     flex-grow: 1;
     margin-left: var(--sidebar-width);
-    min-height: 100vh;
+    margin-top: 70px;
+    min-height: calc(100vh - 70px);
     display: flex;
     flex-direction: column;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -353,7 +353,6 @@ h1, h2, h3, h4, h5, h6 {
     min-width: 0;
     max-width: 100%;
 }
-
 
 /* Top Navbar */
 .top-navbar {
@@ -363,13 +362,45 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
-    position: sticky;
+    padding: 0 1.5rem 0 1.25rem;
+    position: fixed;
     top: 0;
-    z-index: 98;
+    left: 0;
+    right: 0;
+    z-index: 102;
     /* Contain horizontal layout without clipping dropdown children */
     min-width: 0;
     overflow: visible;
+}
+
+/* Collapsed sidebar layout states */
+.app-wrapper.collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+.app-wrapper.collapsed .main-panel {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+.app-wrapper.collapsed .sidebar-link span {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.app-wrapper.collapsed .sidebar-section-label {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    overflow: hidden;
+    margin: 0;
+}
+
+.app-wrapper.collapsed .sidebar-link {
+    justify-content: center;
+    gap: 0;
 }
 
 
@@ -561,26 +592,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-action-btn {
-    border: none;
-    background: none;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
     color: var(--text-secondary);
-    font-size: 1.25rem;
+    font-size: 0.95rem;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s;
-    /* Ensure adequate touch target */
-    min-width: 44px;
-    min-height: 44px;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.4rem;
+    transition: all 0.2s ease;
+    min-width: 32px;
+    min-height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .navbar-action-btn:hover {
-    background-color: var(--bg-primary);
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
     color: var(--text-primary);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
 }
 
 /* Main Content Area */
@@ -747,6 +780,9 @@ h1, h2, h3, h4, h5, h6 {
     .sidebar {
         left: calc(-1 * var(--sidebar-width));
         box-shadow: none;
+        top: 0;
+        height: 100vh;
+        z-index: 1050;
     }
     .sidebar.show {
         left: 0;
@@ -755,8 +791,23 @@ h1, h2, h3, h4, h5, h6 {
 
     /* Main panel takes full width */
     .main-panel {
-        margin-left: 0;
+        margin-left: 0 !important;
+        margin-top: 70px;
         width: 100%;
+    }
+
+    .app-wrapper.collapsed .sidebar {
+        width: var(--sidebar-width) !important;
+    }
+    .app-wrapper.collapsed .sidebar-link span {
+        opacity: 1 !important;
+        width: auto !important;
+        overflow: visible !important;
+    }
+    .app-wrapper.collapsed .sidebar-section-label {
+        opacity: 1 !important;
+        max-height: 30px !important;
+        padding: 0.8rem 1rem 0.4rem !important;
     }
 
     /* Dimmed overlay behind open sidebar */

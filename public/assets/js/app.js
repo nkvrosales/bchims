@@ -11,26 +11,39 @@ $(document).ready(function() {
     // =========================================================================
     const $sidebar = $('#sidebarPanel');
     const $overlay = $('#sidebarOverlay');
-    const $mobileToggle = $('#sidebarToggleMobile');
+    const $toggleBtn = $('#sidebarToggle');
+    const $wrapper = $('.app-wrapper');
 
-    function toggleMobileSidebar() {
-        $sidebar.toggleClass('show');
-        $overlay.toggleClass('show');
+    function toggleSidebar() {
+        if ($(window).width() >= 992) {
+            // Desktop toggle: collapse / expand
+            $wrapper.toggleClass('collapsed');
+            
+            // Set cookie for layout persistence
+            const isCollapsed = $wrapper.hasClass('collapsed');
+            document.cookie = "sidebar_collapsed=" + isCollapsed + "; path=/; max-age=" + (30 * 24 * 60 * 60);
+        } else {
+            // Mobile toggle: slide-in / slide-out
+            $sidebar.toggleClass('show');
+            $overlay.toggleClass('show');
+        }
     }
 
-    $mobileToggle.on('click', function(e) {
+    $toggleBtn.on('click', function(e) {
         e.stopPropagation();
-        toggleMobileSidebar();
+        toggleSidebar();
     });
 
     $overlay.on('click', function() {
-        toggleMobileSidebar();
+        $sidebar.removeClass('show');
+        $overlay.removeClass('show');
     });
 
     // Close mobile sidebar when any sidebar nav link is tapped (mobile only)
     $sidebar.find('.sidebar-link').on('click', function() {
         if ($(window).width() < 992 && $sidebar.hasClass('show')) {
-            toggleMobileSidebar();
+            $sidebar.removeClass('show');
+            $overlay.removeClass('show');
         }
     });
 
@@ -44,7 +57,8 @@ $(document).ready(function() {
         var swipeDistance = touchStartX - touchEndX;
         // Swipe left >= 60px closes the sidebar
         if (swipeDistance >= 60 && $(window).width() < 992 && $sidebar.hasClass('show')) {
-            toggleMobileSidebar();
+            $sidebar.removeClass('show');
+            $overlay.removeClass('show');
         }
     }, { passive: true });
 

@@ -238,7 +238,7 @@
 
 <!-- ===================== USER MODAL ===================== -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
             <!-- Modal Header -->
