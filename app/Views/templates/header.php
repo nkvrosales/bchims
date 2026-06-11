@@ -126,7 +126,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard'); ?>" 
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Dashboard') ? 'active' : ''; ?>" id="navDashboard">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Dashboard') ? 'active' : ''; ?>" id="navDashboard" title="Dashboard">
                         <i class="bi bi-grid"></i>
                         <span>Dashboard</span>
                     </a>
@@ -134,7 +134,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('inventory'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Inventory', 'Add Item', 'Edit Item'])) ? 'active' : ''; ?>" id="navInventory">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Inventory', 'Add Item', 'Edit Item'])) ? 'active' : ''; ?>" id="navInventory" title="Inventory">
                         <i class="bi bi-box-seam"></i>
                         <span>Inventory</span>
                     </a>
@@ -143,7 +143,7 @@
                 <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('requests'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
                         <i class="bi bi-file-earmark-text"></i>
                         <span>Requests</span>
                     </a>
@@ -156,7 +156,7 @@
                 <?php if (is_admin_role()): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('users'); ?>" 
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['User Management', 'Add User', 'Edit User'])) ? 'active' : ''; ?>" id="navUsers">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['User Management', 'Add User', 'Edit User'])) ? 'active' : ''; ?>" id="navUsers" title="Users">
                         <i class="bi bi-people"></i>
                         <span>Users</span>
                     </a>
@@ -164,7 +164,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('categories'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Categories', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Categories', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories" title="Categories">
                         <i class="bi bi-tags"></i>
                         <span>Categories</span>
                     </a>
@@ -172,7 +172,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('departments'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Departments') ? 'active' : ''; ?>" id="navDepartments">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Departments') ? 'active' : ''; ?>" id="navDepartments" title="Departments">
                         <i class="bi bi-building"></i>
                         <span>Departments</span>
                     </a>
@@ -180,7 +180,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('sources'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Sources') ? 'active' : ''; ?>" id="navSources">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Sources') ? 'active' : ''; ?>" id="navSources" title="Sources">
                         <i class="bi bi-truck"></i>
                         <span>Sources</span>
                     </a>
@@ -189,7 +189,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('audit'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Audit Trail') ? 'active' : ''; ?>" id="navAuditTrail">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Audit Trail') ? 'active' : ''; ?>" id="navAuditTrail" title="Audit Trail">
                         <i class="bi bi-clock-history"></i>
                         <span>Audit Trail</span>
                     </a>
@@ -197,7 +197,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('dashboard/profile'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Profile Settings') ? 'active' : ''; ?>" id="navSettings">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Profile Settings') ? 'active' : ''; ?>" id="navSettings" title="Settings">
                         <i class="bi bi-gear"></i>
                         <span>Settings</span>
                     </a>
