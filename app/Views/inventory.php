@@ -301,6 +301,13 @@
                                 <option value="g" <?php echo (old('unit') === 'g') ? 'selected' : ''; ?>>Gram (g)</option>
                                 <option value="mg" <?php echo (old('unit') === 'mg') ? 'selected' : ''; ?>>Milligram (mg)</option>
                                 <option value="unit" <?php echo (old('unit') === 'unit') ? 'selected' : ''; ?>>Unit</option>
+                                <option value="tank" <?php echo (old('unit') === 'tank') ? 'selected' : ''; ?>>Tank</option>
+                                <option value="roll" <?php echo (old('unit') === 'roll') ? 'selected' : ''; ?>>Roll</option>
+                                <option value="tray" <?php echo (old('unit') === 'tray') ? 'selected' : ''; ?>>Tray</option>
+                                <option value="bag" <?php echo (old('unit') === 'bag') ? 'selected' : ''; ?>>Bag</option>
+                                <option value="gallon" <?php echo (old('unit') === 'gallon') ? 'selected' : ''; ?>>Gallon</option>
+                                <option value="cartridge" <?php echo (old('unit') === 'cartridge') ? 'selected' : ''; ?>>Cartridge</option>
+                                <option value="pouch" <?php echo (old('unit') === 'pouch') ? 'selected' : ''; ?>>Pouch</option>
                             </select>
                         </div>
 

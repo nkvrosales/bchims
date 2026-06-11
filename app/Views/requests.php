@@ -639,14 +639,14 @@
 <?php if (session()->get('role') === 'encoder'): ?>
 <!-- ===================== NEW SUPPLY REQUEST MODAL ===================== -->
 <div class="modal fade" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: visible; background: #fff;">
 
             <!-- Modal Header -->
-            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem; background: #fff;">
                 <div class="d-flex align-items-center">
                     <h5 class="modal-title fw-bold mb-0" id="createRequestModalLabel" style="color: #0f172a; font-size: 1.25rem; letter-spacing: -0.01em;">
-                        Supply Request
+                        Create Supply Request
                     </h5>
                 </div>
                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
@@ -654,11 +654,11 @@
 
             <!-- Form -->
             <form method="POST" action="<?php echo base_url('requests/create'); ?>" id="supplyRequestForm">
-                <div class="modal-body px-4 py-4">
+                <div class="modal-body px-4 py-4" style="overflow: visible;">
 
                     <!-- Validation Errors -->
                     <?php if ($create_errors = session()->getFlashdata('create_request_validation_errors')): ?>
-                    <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
+                    <div class="alert alert-danger border-0 rounded-3 mb-4 py-3 shadow-sm">
                         <div class="d-flex align-items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation mt-1"></i>
                             <div>
@@ -669,75 +669,44 @@
                     </div>
                     <?php endif; ?>
 
-                    <div class="row g-3">
-                        <!-- Select Category -->
-                        <div class="col-12">
-                            <label for="modal_category_id" class="form-label small fw-semibold text-secondary">
-                                Category
-                            </label>
-                            <select class="form-select input-custom" id="modal_category_id">
-                                <option value="">All Categories</option>
-                                <?php foreach (($categories ?? []) as $cat): ?>
-                                    <option value="<?php echo $cat['category_id']; ?>">
-                                        <?php echo htmlspecialchars($cat['category_code'] . ' - ' . $cat['category_description']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                    <!-- Column Labels for Desktop/Tablet -->
+                    <div class="row g-3 mb-2 d-none d-md-flex">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold text-secondary">Category</label>
                         </div>
-
-                        <!-- Select Item -->
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-secondary">
-                                Select Item <span class="text-danger">*</span>
-                            </label>
-                            <div class="item-combobox">
-                                <div class="position-relative">
-                                    <input type="text"
-                                           class="form-control input-custom"
-                                           id="modal_item_search"
-                                           placeholder="Select item"
-                                           autocomplete="off"
-                                           >
-                                    <input type="hidden" name="item_id" id="modal_item_id" value="<?php echo old('item_id'); ?>">
-                                    <i class="fa-solid fa-xmark position-absolute top-50 end-0 translate-middle-y me-3" 
-                                       id="modal_item_clear"
-                                       style="color: #9ca3af; font-size: 0.9rem; cursor: pointer; display: none;"></i>
-                                </div>
-                                <div class="item-dropdown" id="modal_item_dropdown" style="display: none;">
-                                    <div class="item-dropdown-inner">
-                                        <div class="text-muted text-center py-3 small" id="modal_item_empty">No items found</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
                         </div>
-
-                        <!-- Quantity -->
-                        <div class="col-12">
-                            <label for="modal_quantity" class="form-label small fw-semibold text-secondary">
-                                Requested Quantity <span class="text-danger">*</span>
-                            </label>
-                            <input type="number"
-                                   class="form-control input-custom"
-                                   id="modal_quantity"
-                                   name="quantity"
-                                   min="1"
-                                   value="<?php echo old('quantity', '1'); ?>"
-                                   required>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
                         </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold text-secondary">Action</label>
+                        </div>
+                    </div>
 
-                        <!-- Notes -->
+                    <!-- Dynamic Request Items Rows -->
+                    <div id="request-items-container" class="d-flex flex-column gap-1">
+                        <!-- Rows will be dynamically appended here via JS -->
+                    </div>
+
+                    <!-- Details/Notes -->
+                    <div class="row mt-3">
                         <div class="col-12">
                             <label for="modal_notes" class="form-label small fw-semibold text-secondary">Details</label>
                             <textarea class="form-control input-custom"
                                       id="modal_notes"
                                       name="notes"
                                       rows="3"
+                                      placeholder="Details..."
+                                      style="resize: none; background: #fff; border-radius: 8px; border-color: #cbd5e1 !important;"
                                       ><?php echo old('notes'); ?></textarea>
                         </div>
-                    </div><!-- /.row -->
+                    </div>
+
                 </div><!-- /.modal-body -->
 
-                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2" style="background: #fff;">
                     <button type="button"
                             data-bs-dismiss="modal"
                             style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -754,116 +723,220 @@
                     </button>
                 </div>
             </form>
-
-        </div>
-    </div>
-</div>
-
 <?php $items_json = json_encode($items); ?>
+<?php $categories_json = json_encode($categories); ?>
 <script>
 var allItems = <?php echo $items_json; ?>;
+var categories = <?php echo $categories_json; ?>;
 
-function renderItems(items) {
-    var container = document.getElementById('modal_item_dropdown');
-    var inner = container.querySelector('.item-dropdown-inner');
-    if (items.length === 0) {
-        inner.innerHTML = '<div class="text-muted text-center py-3 small">No items found</div>';
-        container.style.display = 'block';
-        return;
-    }
-    var html = '';
-    for (var i = 0; i < items.length; i++) {
-        html += '<div class="item-option" data-id="' + items[i].id + '">' +
-                '<span class="item-option-name">' + escapeHtml(items[i].name) + '</span>' +
-                '</div>';
-    }
-    inner.innerHTML = html;
-    container.style.display = 'block';
-}
-
-function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-}
-
-function filterItems() {
-    var catId = document.getElementById('modal_category_id').value;
-    var query = document.getElementById('modal_item_search').value.toLowerCase();
-    var filtered = [];
-    for (var i = 0; i < allItems.length; i++) {
-        var item = allItems[i];
-        var matchCat = !catId || String(item.category_id) === catId;
-        var matchSearch = !query || item.name.toLowerCase().indexOf(query) !== -1;
-        if (matchCat && matchSearch) {
-            filtered.push(item);
-        }
-    }
-    renderItems(filtered);
-}
-
-document.getElementById('modal_category_id')?.addEventListener('change', function() {
-    document.getElementById('modal_item_id').value = '';
-    document.getElementById('modal_item_search').value = '';
-    filterItems();
-});
-
-var searchInput = document.getElementById('modal_item_search');
-searchInput?.addEventListener('input', filterItems);
-searchInput?.addEventListener('focus', function() {
-    if (this.value) filterItems();
-    else showAllVisible();
-});
-
-document.addEventListener('click', function(e) {
-    var combo = document.querySelector('.item-combobox');
-    if (combo && !combo.contains(e.target)) {
-        document.getElementById('modal_item_dropdown').style.display = 'none';
-    }
-});
-
-document.getElementById('modal_item_dropdown')?.addEventListener('click', function(e) {
-    var option = e.target.closest('.item-option');
-    if (!option) return;
-    var id = option.getAttribute('data-id');
-    var name = option.querySelector('.item-option-name').textContent;
-    document.getElementById('modal_item_id').value = id;
-    document.getElementById('modal_item_search').value = name;
-    document.getElementById('modal_item_dropdown').style.display = 'none';
-    document.getElementById('modal_item_clear').style.display = 'block';
-});
-
-document.getElementById('modal_item_clear')?.addEventListener('click', function() {
-    document.getElementById('modal_item_id').value = '';
-    document.getElementById('modal_item_search').value = '';
-    document.getElementById('modal_item_clear').style.display = 'none';
-    document.getElementById('modal_item_search').focus();
-    showAllVisible();
-});
-
-function showAllVisible() {
-    var catId = document.getElementById('modal_category_id').value;
-    var filtered = [];
-    for (var i = 0; i < allItems.length; i++) {
-        if (!catId || String(allItems[i].category_id) === catId) {
-            filtered.push(allItems[i]);
-        }
-    }
-    renderItems(filtered);
-}
-
-<?php if (old('item_id')): ?>
 document.addEventListener('DOMContentLoaded', function () {
-    var selectedId = '<?php echo old('item_id'); ?>';
-    for (var i = 0; i < allItems.length; i++) {
-        if (String(allItems[i].id) === selectedId) {
-            document.getElementById('modal_item_search').value = allItems[i].name;
-            document.getElementById('modal_item_clear').style.display = 'block';
-            break;
+    var container = document.getElementById('request-items-container');
+
+    if (container) {
+        // Add the initial row
+        addNewRow();
+    }
+
+    function addNewRow() {
+        var rowId = 'row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        var rowHtml = `
+        <div class="request-item-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle" id="${rowId}">
+            <!-- Category select -->
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
+                <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
+                    <option value="">All Categories</option>
+                    ${categories.map(c => `<option value="${c.category_id}">${escapeHtml(c.category_code + ' - ' + c.category_description)}</option>`).join('')}
+                </select>
+            </div>
+
+            <!-- Item search combobox -->
+            <div class="col-12 col-md-5">
+                <label class="form-label small fw-semibold text-secondary d-md-none">Item Name <span class="text-danger">*</span></label>
+                <div class="item-combobox">
+                    <div class="position-relative">
+                        <input type="text" class="form-control input-custom row-item-search" placeholder="Select Item" autocomplete="off" style="border-radius: 8px; border-color: #cbd5e1; height: 42px; padding-right: 30px;" required>
+                        <input type="hidden" name="item_id[]" class="row-item-id">
+                        <i class="fa-solid fa-xmark position-absolute top-50 end-0 translate-middle-y me-3 row-item-clear" style="color: #9ca3af; font-size: 0.9rem; cursor: pointer; display: none;"></i>
+                    </div>
+                    <div class="item-dropdown row-item-dropdown" style="display: none;">
+                        <div class="item-dropdown-inner">
+                            <div class="text-muted text-center py-3 small row-item-empty">No items found</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qty -->
+            <div class="col-12 col-md-2">
+                <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
+                <input type="number" class="form-control input-custom row-quantity-input" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
+            </div>
+
+            <!-- Add/Remove Actions -->
+            <div class="col-12 col-md-2 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
+                <button type="button" class="btn btn-add-row d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    <span>ADD</span>
+                </button>
+                <button type="button" class="btn-remove-row btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0 ms-2" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
+                    <i class="fa-regular fa-trash-can"></i> <span>Remove</span>
+                </button>
+            </div>
+        </div>`;
+        
+        container.insertAdjacentHTML('beforeend', rowHtml);
+        var newRow = document.getElementById(rowId);
+
+        setupRowEvents(newRow);
+        updateRemoveButtons();
+    }
+
+    function setupRowEvents(row) {
+        var catSelect = row.querySelector('.row-category-select');
+        var searchInput = row.querySelector('.row-item-search');
+        var hiddenInput = row.querySelector('.row-item-id');
+        var clearBtn = row.querySelector('.row-item-clear');
+        var dropdown = row.querySelector('.row-item-dropdown');
+
+        // Reset item when category changes
+        catSelect.addEventListener('change', function() {
+            hiddenInput.value = '';
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            filterAndRender(row);
+        });
+
+        // Filter on input
+        searchInput.addEventListener('input', function() {
+            filterAndRender(row);
+        });
+
+        // Show dropdown on focus
+        searchInput.addEventListener('focus', function() {
+            filterAndRender(row);
+        });
+
+        // Clear button action
+        clearBtn.addEventListener('click', function() {
+            hiddenInput.value = '';
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            searchInput.focus();
+            filterAndRender(row);
+        });
+
+        // ADD button action
+        row.querySelector('.btn-add-row').addEventListener('click', function() {
+            addNewRow();
+        });
+
+        // Remove button action
+        row.querySelector('.btn-remove-row').addEventListener('click', function() {
+            row.remove();
+            updateRemoveButtons();
+        });
+    }
+
+    function filterAndRender(row) {
+        var catSelect = row.querySelector('.row-category-select');
+        var searchInput = row.querySelector('.row-item-search');
+        var dropdown = row.querySelector('.row-item-dropdown');
+        var inner = dropdown.querySelector('.item-dropdown-inner');
+
+        var catId = catSelect.value;
+        var query = searchInput.value.toLowerCase();
+
+        var filtered = allItems.filter(item => {
+            var matchCat = !catId || String(item.category_id) === catId;
+            var matchSearch = !query || item.name.toLowerCase().indexOf(query) !== -1;
+            return matchCat && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+            inner.innerHTML = '<div class="text-muted text-center py-3 small">No items found</div>';
+        } else {
+            var html = '';
+            filtered.forEach(item => {
+                html += `<div class="item-option" data-id="${item.id}" style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: #1f2937; transition: background 0.12s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                    <span class="item-option-name" style="font-weight: 500;">${escapeHtml(item.name)}</span>
+                </div>`;
+            });
+            inner.innerHTML = html;
+
+            // Add click events to options
+            var options = inner.querySelectorAll('.item-option');
+            options.forEach(opt => {
+                opt.addEventListener('click', function() {
+                    var id = this.getAttribute('data-id');
+                    var name = this.querySelector('.item-option-name').textContent;
+                    
+                    row.querySelector('.row-item-id').value = id;
+                    row.querySelector('.row-item-search').value = name;
+                    row.querySelector('.row-item-clear').style.display = 'block';
+                    dropdown.style.display = 'none';
+                });
+            });
         }
+
+        dropdown.style.display = 'block';
+    }
+
+    function updateRemoveButtons() {
+        var rows = container.querySelectorAll('.request-item-row');
+        rows.forEach((row, index) => {
+            var removeBtn = row.querySelector('.btn-remove-row');
+            if (rows.length <= 1) {
+                removeBtn.style.setProperty('display', 'none', 'important');
+            } else {
+                removeBtn.style.removeProperty('display');
+            }
+        });
+    }
+
+    // Hide dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        var rows = container.querySelectorAll('.request-item-row');
+        rows.forEach(row => {
+            var combobox = row.querySelector('.item-combobox');
+            var dropdown = row.querySelector('.row-item-dropdown');
+            if (combobox && !combobox.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+
+    // Form validation on submit
+    var form = document.getElementById('supplyRequestForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var rows = container.querySelectorAll('.request-item-row');
+            var valid = true;
+            rows.forEach((row, index) => {
+                var hiddenInput = row.querySelector('.row-item-id');
+                var searchInput = row.querySelector('.row-item-search');
+                if (!hiddenInput.value) {
+                    valid = false;
+                    searchInput.classList.add('is-invalid');
+                    searchInput.style.borderColor = '#ef4444';
+                } else {
+                    searchInput.classList.remove('is-invalid');
+                    searchInput.style.borderColor = '#cbd5e1';
+                }
+            });
+
+            if (!valid) {
+                e.preventDefault();
+                alert('Please select a valid item from the dropdown list for all rows.');
+            }
+        });
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
     }
 });
-<?php endif; ?>
 </script>
 
 <!-- Auto-open modal on validation failure -->
@@ -880,36 +953,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <style>
     #btnNewSupplyRequest:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
 
-    .item-combobox { position: relative; }
-    .item-dropdown {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        z-index: 1055;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        margin-top: 4px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-        max-height: 220px;
-        overflow-y: auto;
-    }
-    .item-dropdown-inner { padding: 4px; }
-    .item-option {
-        padding: 8px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        color: #1f2937;
-        transition: background 0.12s;
-    }
-    .item-option:hover { background: #f3f4f6; }
-    .item-option-name { font-weight: 500; }
-    .item-dropdown::-webkit-scrollbar { width: 6px; }
-    .item-dropdown::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-    .item-dropdown::-webkit-scrollbar-track { background: transparent; }
-
     #createRequestModal .form-control.input-custom,
     #createRequestModal .form-select.input-custom {
         border-color: #cbd5e1 !important;
@@ -918,7 +961,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     #createRequestModal .form-control.input-custom:focus,
     #createRequestModal .form-select.input-custom:focus {
-        border-color: #94a3b8 !important;
-        box-shadow: 0 0 0 0.15rem rgba(148,163,184,0.18) !important;
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 0.15rem rgba(13,148,136,0.18) !important;
     }
+
+    .request-item-row:hover {
+        border-color: #cbd5e1 !important;
+    }
+
+    .item-combobox { position: relative; }
+    .item-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1055;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        margin-top: 4px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        max-height: 220px;
+        overflow-y: auto;
+    }
+    .item-dropdown-inner { padding: 4px; }
+    .item-dropdown::-webkit-scrollbar { width: 6px; }
+    .item-dropdown::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .item-dropdown::-webkit-scrollbar-track { background: transparent; }
 </style>

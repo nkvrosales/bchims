@@ -146,37 +146,83 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        $rules = [
-            'item_id'  => 'required|integer',
-            'quantity' => 'required|integer|greater_than[0]',
-            'notes'    => 'max_length[1000]',
-        ];
+        $itemIds = $this->request->getPost('item_id');
+        $quantities = $this->request->getPost('quantity');
+        $notes = $this->request->getPost('notes');
 
-        if ($this->validate($rules)) {
-            $centralSupplyId = (int)$this->request->getPost('item_id');
-            $quantity        = (int)$this->request->getPost('quantity');
-            $notes           = $this->request->getPost('notes');
+        if (!is_array($itemIds) || empty($itemIds)) {
+            session()->setFlashdata('error', 'You must request at least one item.');
+            return redirect()->to('requests');
+        }
+
+        // Validate notes length
+        if (strlen((string)$notes) > 1000) {
+            session()->setFlashdata('error', 'Details cannot exceed 1000 characters.');
+            session()->setFlashdata('create_request_modal_open', true);
+            return redirect()->to('requests');
+        }
+
+        // Basic validation loop
+        $errors = [];
+        $validItems = [];
+        foreach ($itemIds as $index => $itemId) {
+            $itemId = (int)$itemId;
+            $quantity = isset($quantities[$index]) ? (int)$quantities[$index] : 0;
+
+            if ($itemId <= 0) {
+                $errors[] = "Row " . ($index + 1) . ": Invalid item selected.";
+                continue;
+            }
+
+            if ($quantity <= 0) {
+                $errors[] = "Row " . ($index + 1) . ": Quantity must be greater than 0.";
+                continue;
+            }
 
             // Verify the item exists in central_supply
             $item = $this->db->table('central_supply')
-                             ->where('central_supply_id', $centralSupplyId)
+                             ->where('central_supply_id', $itemId)
                              ->get()->getRowArray();
 
             if (!$item) {
-                session()->setFlashdata('error', 'The selected central supply item does not exist.');
-                return redirect()->to('requests');
+                $errors[] = "Row " . ($index + 1) . ": The selected central supply item does not exist.";
+                continue;
             }
 
-            $userId = session()->get('user_id');
-            $user   = $this->userModel->get_user_by_id($userId);
-            $deptId = $user['department_id'] ?? null;
+            $validItems[] = [
+                'item' => $item,
+                'quantity' => $quantity,
+                'itemId' => $itemId
+            ];
+        }
+
+        if (!empty($errors)) {
+            session()->setFlashdata('create_request_modal_open', true);
+            session()->setFlashdata('create_request_validation_errors', implode('<br>', $errors));
+            return redirect()->to('requests');
+        }
+
+        $userId = session()->get('user_id');
+        $user   = $this->userModel->get_user_by_id($userId);
+        $deptId = $user['department_id'] ?? null;
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $successCount = 0;
+        $auditLogs = [];
+
+        foreach ($validItems as $v) {
+            $item = $v['item'];
+            $quantity = $v['quantity'];
+            $centralSupplyId = $v['itemId'];
 
             // 1. Get or create inventory item for the department
-            $invItem = $this->db->table('inventory')
+            $invItem = $db->table('inventory')
                                 ->where('item_code', $item['item_code'])
                                 ->get()->getRowArray();
             if (!$invItem) {
-                $this->db->table('inventory')->insert([
+                $db->table('inventory')->insert([
                     'item_code'       => $item['item_code'],
                     'item_name'       => $item['item_name'],
                     'batch_num'       => $item['batch_num'],
@@ -185,19 +231,19 @@ class SupplyRequests extends BaseController
                     'quantity'        => 0,
                     'category_id'     => $item['category_id'],
                 ]);
-                $invId = $this->db->insertID();
+                $invId = $db->insertID();
             } else {
                 $invId = $invItem['inventory_id'];
             }
 
             // 2. Create a new department_supply row for this request
-            $this->db->table('department_supply')->insert([
+            $db->table('department_supply')->insert([
                 'department_id'     => $deptId,
                 'quantity_received' => 0,
                 'quantity_used'     => 0,
                 'quantity_on_hand'  => 0,
             ]);
-            $deptSupplyId = $this->db->insertID();
+            $deptSupplyId = $db->insertID();
 
             // 3. Create the request
             $insertData = [
@@ -206,13 +252,14 @@ class SupplyRequests extends BaseController
                 'quantity_served'      => 0,
                 'request_status'       => 'Pending',
                 'user_id'              => $userId,
+                'notes'                => $notes ? $notes : null,
             ];
 
             if ($this->requestModel->insert($insertData)) {
                 $requestId = $this->requestModel->insertID();
 
                 // 4. Create a supply record for this request
-                $this->db->table('supply')->insert([
+                $db->table('supply')->insert([
                     'request_id'           => $requestId,
                     'central_supply_id'    => $centralSupplyId,
                     'department_supply_id' => $deptSupplyId,
@@ -225,19 +272,24 @@ class SupplyRequests extends BaseController
                     'category_id'          => $item['category_id'],
                 ]);
 
-                $this->auditModel->log_activity(
-                    'CREATE_SUPPLY_REQUEST',
-                    'Supply Requests',
-                    "{$user['full_name']} submitted a supply request for {$quantity} unit(s) of {$item['item_name']} (Code: {$item['item_code']}) from Central Supply."
-                );
-
-                session()->setFlashdata('success', 'Supply request submitted successfully!');
-            } else {
-                session()->setFlashdata('error', 'An error occurred while submitting your request.');
+                $auditLogs[] = "{$quantity} unit(s) of {$item['item_name']} (Code: {$item['item_code']})";
+                $successCount++;
             }
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false || $successCount === 0) {
+            session()->setFlashdata('error', 'An error occurred while submitting your requests.');
         } else {
-            session()->setFlashdata('create_request_modal_open', true);
-            session()->setFlashdata('create_request_validation_errors', $this->validator->listErrors());
+            $logMsg = "{$user['full_name']} submitted a supply request batch for: " . implode(', ', $auditLogs) . " from Central Supply.";
+            $this->auditModel->log_activity(
+                'CREATE_SUPPLY_REQUEST',
+                'Supply Requests',
+                $logMsg
+            );
+
+            session()->setFlashdata('success', 'Supply request(s) submitted successfully!');
         }
 
         return redirect()->to('requests');
