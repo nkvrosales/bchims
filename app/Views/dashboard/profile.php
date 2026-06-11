@@ -144,7 +144,6 @@
                 <!-- Submission Actions -->
                 <div class="col-12 d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2 hover-lift">
-                        <i class="fa-solid fa-save"></i>
                         <span>Save Changes</span>
                     </button>
                     <a href="<?php echo base_url('dashboard'); ?>" class="btn btn-outline-secondary d-flex align-items-center hover-lift">

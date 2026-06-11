@@ -130,6 +130,7 @@
                                             "manufacturing_date" => $item["manufacturing_date"] ?? "",
                                             "batch_num" => $item["batch_num"] ?? "",
                                             "lot_num" => $item["lot_num"] ?? "",
+                                            "remarks" => $item["remarks"] ?? "",
                                         ]); ?>)'
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="View Item">
@@ -164,6 +165,7 @@
                                             "manufacturing_date" => $item["manufacturing_date"] ?? "",
                                             "batch_num" => $item["batch_num"] ?? "",
                                             "lot_num" => $item["lot_num"] ?? "",
+                                            "remarks" => $item["remarks"] ?? "",
                                         ]); ?>)'
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        title="Edit Item">
@@ -387,6 +389,14 @@
                                    value="<?php echo old('lot_num'); ?>">
                         </div>
 
+                        <div class="col-12">
+                            <label for="item_remarks" class="form-label small fw-semibold text-secondary">Remarks</label>
+                            <textarea class="form-control input-custom"
+                                      id="item_remarks"
+                                      name="remarks"
+                                      rows="2"><?php echo old('remarks'); ?></textarea>
+                        </div>
+
                     </div>
                 </div>
 
@@ -418,7 +428,7 @@ function openItemModal(mode, data) {
     var form = document.getElementById('itemForm');
     var label = document.getElementById('itemModalLabel');
     var btn = document.getElementById('itemFormSubmitBtn');
-    var fields = ['item_code','item_name','item_category_id','item_quantity','item_unit','item_source_type','item_expiration_date','item_manufacturing_date','item_batch_num','item_lot_num'];
+    var fields = ['item_code','item_name','item_category_id','item_quantity','item_unit','item_source_type','item_expiration_date','item_manufacturing_date','item_batch_num','item_lot_num','item_remarks'];
     function disableFields(disabled) {
         fields.forEach(function(id) {
             var el = document.getElementById(id);
@@ -450,6 +460,8 @@ function openItemModal(mode, data) {
         document.getElementById('item_manufacturing_date').value = data.manufacturing_date || '';
         document.getElementById('item_batch_num').value = data.batch_num || '';
         document.getElementById('item_lot_num').value = data.lot_num || '';
+        document.getElementById('item_remarks').value = data.remarks || '';
+        document.getElementById('item_remarks').disabled = true;
     } else if (mode === 'edit') {
         form.action = '<?php echo base_url('inventory/edit'); ?>/' + data.id;
         label.textContent = 'Edit Item';
@@ -474,6 +486,8 @@ function openItemModal(mode, data) {
         document.getElementById('item_manufacturing_date').value = data.manufacturing_date || '';
         document.getElementById('item_batch_num').value = data.batch_num || '';
         document.getElementById('item_lot_num').value = data.lot_num || '';
+        document.getElementById('item_remarks').value = data.remarks || '';
+        document.getElementById('item_remarks').disabled = false;
     } else {
         form.action = '<?php echo base_url('inventory/create'); ?>';
         label.textContent = 'Add New Item';
@@ -493,6 +507,8 @@ function openItemModal(mode, data) {
         document.getElementById('item_manufacturing_date').value = '';
         document.getElementById('item_batch_num').value = '';
         document.getElementById('item_lot_num').value = '';
+        document.getElementById('item_remarks').value = '';
+        document.getElementById('item_remarks').disabled = false;
     }
     
     var modal = new bootstrap.Modal(document.getElementById('itemModal'));

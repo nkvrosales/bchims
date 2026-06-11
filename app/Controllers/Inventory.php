@@ -196,6 +196,7 @@ class Inventory extends BaseController
             $expiration = $this->request->getPost('expiration_date') ?: null;
             $manufacturingDate = $this->request->getPost('manufacturing_date') ?: null;
             $unit       = $this->request->getPost('unit') ?: null;
+            $remarks    = $this->request->getPost('remarks') ?: null;
 
             if ($isAdmin) {
                 // Insert into central_supply
@@ -212,6 +213,7 @@ class Inventory extends BaseController
                     'quantity_on_hand' => $quantity,
                     'category_id'      => $categoryId,
                     'source_id'        => $sourceId,
+                    'remarks'          => $remarks,
                 ];
                 $this->itemModel->insert($insert_data);
                 $itemId = $db->insertID();
@@ -228,6 +230,7 @@ class Inventory extends BaseController
                     'unit'            => $unit,
                     'quantity'        => $quantity,
                     'category_id'     => $categoryId,
+                    'remarks'         => $remarks,
                 ];
                 $this->itemModel->insert($insert_data);
                 $itemId = $db->insertID();
@@ -376,6 +379,7 @@ class Inventory extends BaseController
                 'manufacturing_date' => $this->request->getPost('manufacturing_date') ?: null,
                 'unit'            => $this->request->getPost('unit') ?: null,
                 'quantity'        => (int)$this->request->getPost('quantity'),
+                'remarks'         => $this->request->getPost('remarks') ?: null,
             ];
 
             if ($isAdmin) {

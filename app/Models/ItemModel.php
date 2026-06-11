@@ -14,7 +14,7 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id', 'status'];
+    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id', 'status', 'remarks'];
 
     protected $useTimestamps = false;
 
@@ -110,6 +110,7 @@ class ItemModel extends Model
                                 ->select('MAX(central_supply.manufacturing_date) AS manufacturing_date')
                                 ->select('MAX(central_supply.batch_num) AS batch_num')
                                 ->select('MAX(central_supply.lot_num) AS lot_num')
+                                ->select('MAX(central_supply.remarks) AS remarks')
                                 ->select('category.category_code, category.category_description')
                                 ->select('source.source_type, source.supplier_name')
                                 ->join('category', 'category.category_id = central_supply.category_id', 'left')
@@ -153,6 +154,7 @@ class ItemModel extends Model
                                 ->select('MAX(inventory.manufacturing_date) AS manufacturing_date')
                                 ->select('MAX(inventory.batch_num) AS batch_num')
                                 ->select('MAX(inventory.lot_num) AS lot_num')
+                                ->select('MAX(inventory.remarks) AS remarks')
                                 ->select('category.category_code, category.category_description')
                                 ->select('source.source_type, source.supplier_name')
                                 ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
