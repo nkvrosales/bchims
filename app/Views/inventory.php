@@ -43,13 +43,6 @@
 
 
 <!-- Inventory Items Table Area -->
-<div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
-    <div class="card-header-styled mb-4">
-        <h5 class="card-title-styled">
-            
-            <span>Inventory</span>
-        </h5>
-    </div>
 
     <div class="table-responsive-custom">
         <table class="table table-custom table-hover w-100" id="inventoryTable">
@@ -58,13 +51,9 @@
                     <th style="width: 14%">Code</th>
                     <th style="width: 22%">Name</th>
                     <th style="width: 14%">Category</th>
-                    <?php if ($isAdmin): ?>
-                    <th style="width: 10%">Total Qty</th>
-                    <th style="width: 10%">Served</th>
+                    <th style="width: 10%">Total Inventory</th>
+                    <th style="width: 10%"><?php echo $isAdmin ? 'Served' : 'Total Consumption'; ?></th>
                     <th style="width: 10%">In Stock</th>
-                    <?php else: ?>
-                    <th style="width: 15%">Qty</th>
-                    <?php endif; ?>
                     <th style="width: 12%">Stock Status</th>
                     <th style="width: 8%" class="text-end">Actions</th>
                 </tr>
@@ -82,7 +71,6 @@
                             <td>
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_description'] ?? 'N/A'); ?></span>
                             </td>
-                            <?php if ($isAdmin): ?>
                             <td>
                                 <span class="fs-6 text-dark">
                                     <?php echo (int)$item['total_quantity']; ?>
@@ -94,8 +82,8 @@
                             <td>
                                 <span class="fs-6 text-dark">
                                     <?php
-                                        $served = (int)$item['total_quantity'] - (int)$item['quantity_on_hand'];
-                                        echo max(0, $served);
+                                        $consumed = (int)$item['total_quantity'] - (int)$item['quantity_on_hand'];
+                                        echo max(0, $consumed);
                                     ?>
                                 </span>
                             </td>
@@ -107,16 +95,6 @@
                                     <?php endif; ?>
                                 </span>
                             </td>
-                            <?php else: ?>
-                            <td>
-                                <span class="fs-6 text-dark">
-                                    <?php echo (int)$item['quantity_on_hand']; ?>
-                                    <?php if (!empty($item['unit'])): ?>
-                                        <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
-                                    <?php endif; ?>
-                                </span>
-                            </td>
-                            <?php endif; ?>
                             <td>
                                 <?php
                                     $stockQty = (int)$item['quantity_on_hand'];
@@ -157,6 +135,19 @@
                                        title="View Item">
                                         <i class="bi bi-eye"></i>
                                     </button>
+                                     <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
+                                    <button type="button"
+                                       class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center rounded-2"
+                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
+                                       onclick='openConsumeModal(<?php echo json_encode([
+                                           "id" => $item["id"],
+                                           "item_code" => $item["item_code"],
+                                           "item_name" => $item["item_name"],
+                                       ]); ?>)'
+                                       title="Consume Item">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <?php endif; ?>
                                     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                                     <button type="button"
                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
@@ -194,7 +185,6 @@
                 <?php endif; ?>
             </tbody>
         </table>
-    </div>
 </div>
 
 <!-- ===================== SINGLE ITEM MODAL (Add/Edit/View) ===================== -->
@@ -672,8 +662,72 @@ function generateItemCode() {
 <?php endif; ?>
 <!-- ============================================================= -->
 
+<!-- ===================== CONSUME MODAL ===================== -->
+<div class="modal fade" id="consumeModal" tabindex="-1" aria-labelledby="consumeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                <h5 class="modal-title fw-bold mb-0" id="consumeModalLabel" style="color: #0f172a; font-size: 1.25rem;">
+                    Consume Item
+                </h5>
+                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
+            </div>
+            <form method="POST" action="<?php echo base_url('inventory/consume'); ?>">
+                <div class="modal-body px-4 py-4">
+                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                        <div class="fw-bold text-dark" style="font-size: 0.95rem;" id="consumeItemName"></div>
+                        <div class="text-muted small" id="consumeItemCode"></div>
+                    </div>
 
+                    <input type="hidden" name="item_name" id="consumeItemNameHidden">
+                    <input type="hidden" name="item_code" id="consumeItemCodeHidden">
 
+                    <div class="mb-3">
+                        <label for="consumeQuantity" class="form-label small fw-semibold text-secondary">
+                            Quantity to Consume <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" class="form-control input-custom" id="consumeQuantity" name="quantity" min="1" required>
+                    </div>
+
+                    <div>
+                        <label for="consumeReason" class="form-label small fw-semibold text-secondary">Reason</label>
+                        <textarea class="form-control input-custom" id="consumeReason" name="reason" rows="3" placeholder="Reason for consumption..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                    <button type="button"
+                            data-bs-dismiss="modal"
+                            style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                            onmouseover="this.style.background='#f9fafb'"
+                            onmouseout="this.style.background='#fff'">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
+                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                        Consume
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+var departmentBatches = <?php echo json_encode($department_batches ?? []); ?>;
+
+function openConsumeModal(data) {
+    document.getElementById('consumeItemName').textContent = data.item_name;
+    document.getElementById('consumeItemCode').textContent = 'Code: ' + data.item_code;
+    document.getElementById('consumeItemNameHidden').value = data.item_name;
+    document.getElementById('consumeItemCodeHidden').value = data.item_code;
+    document.getElementById('consumeQuantity').value = '';
+    document.getElementById('consumeReason').value = '';
+
+    new bootstrap.Modal(document.getElementById('consumeModal')).show();
+}
+</script>
 
 <style>
     #btnAddNewItem:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }

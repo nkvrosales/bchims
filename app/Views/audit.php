@@ -25,15 +25,6 @@
 
 
 <!-- Log Data Table Area -->
-<div class="standard-card fade-in-up" style="animation-delay: 0.2s;">
-    <div class="card-header-styled mb-4">
-        <h5 class="card-title-styled">
-            <span>Audit Log</span>
-        </h5>
-        <!-- Container for DataTable Buttons Injection -->
-        <div id="tableActionsContainer" class="d-flex align-items-center gap-2"></div>
-    </div>
-
     <div class="table-responsive-custom" id="auditTableWrapper">
         <table class="table table-custom table-hover w-100" id="auditLogsTable">
             <thead>
@@ -105,4 +96,3 @@
             </tbody>
         </table>
     </div>
-</div>

@@ -127,6 +127,10 @@ class Inventory extends BaseController
             ->get()
             ->getResultArray();
 
+        if (!$isAdmin) {
+            $data['department_batches'] = [];
+        }
+
         return view('templates/header', $data)
              . view('inventory', $data)
              . view('templates/footer');
@@ -390,9 +394,22 @@ class Inventory extends BaseController
                             ->where('department_supply.department_id', $user['department_id'])
                             ->get()->getRowArray();
                 if ($dsRow) {
-                    $db->table('department_supply')
-                       ->where('department_supply_id', $dsRow['department_supply_id'])
-                       ->update(['quantity_on_hand' => (int)$this->request->getPost('quantity')]);
+                    $newQty = (int)$this->request->getPost('quantity');
+                    $oldQty = (int)$dsRow['quantity_on_hand'];
+                    $delta = $newQty - $oldQty;
+                    if ($delta > 0) {
+                        $db->table('department_supply')
+                           ->where('department_supply_id', $dsRow['department_supply_id'])
+                           ->set('quantity_received', "quantity_received + {$delta}", false)
+                           ->set('quantity_on_hand', "quantity_on_hand + {$delta}", false)
+                           ->update();
+                    } elseif ($delta < 0) {
+                        $db->table('department_supply')
+                           ->where('department_supply_id', $dsRow['department_supply_id'])
+                           ->set('quantity_on_hand', "quantity_on_hand - " . abs($delta), false)
+                           ->set('quantity_used', "quantity_used + " . abs($delta), false)
+                           ->update();
+                    }
                 }
                 // Update supply unit
                 $db->table('supply')->where('inventory_id', $id)->update(['unit' => $update_data['unit']]);
@@ -618,6 +635,122 @@ class Inventory extends BaseController
             );
 
             session()->setFlashdata('success', 'Item successfully deleted!');
+        }
+
+        return redirect()->to('inventory');
+    }
+
+    /**
+     * Consume inventory items (decrement quantity_on_hand)
+     */
+    public function consume()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (strcasecmp($this->request->getMethod(), 'post') !== 0) {
+            return redirect()->to('inventory');
+        }
+
+        $role = session()->get('role');
+        if (strtolower((string) $role) !== 'encoder') {
+            session()->setFlashdata('error', 'You do not have permission to consume inventory.');
+            return redirect()->to('inventory');
+        }
+
+        $userId = session()->get('user_id');
+        $user = $this->userModel->get_user_by_id($userId);
+
+        $itemName = $this->request->getPost('item_name') ?: '';
+        $itemCode = $this->request->getPost('item_code') ?: '';
+        $quantity = (int)$this->request->getPost('quantity');
+        $reason = $this->request->getPost('reason') ?: '';
+
+        if ($quantity <= 0) {
+            session()->setFlashdata('error', 'Quantity must be greater than zero.');
+            return redirect()->to('inventory');
+        }
+
+        if (empty($itemName) && empty($itemCode)) {
+            session()->setFlashdata('error', 'Item not specified.');
+            return redirect()->to('inventory');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        // Find supply records matching this item for the user's department
+        $builder = $db->table('supply')
+            ->select('supply.supply_id, supply.department_supply_id, supply.central_supply_id')
+            ->select('department_supply.quantity_on_hand AS ds_qty')
+            ->join('inventory', 'inventory.inventory_id = supply.inventory_id')
+            ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id')
+            ->where('department_supply.department_id', $user['department_id'])
+            ->where('department_supply.quantity_on_hand >', 0)
+            ->where('inventory.status', 1);
+
+        if (!empty($itemCode)) {
+            $builder->where('inventory.item_code', $itemCode);
+        } else {
+            $builder->where('inventory.item_name', $itemName);
+        }
+
+        $matches = $builder->orderBy('inventory.expiration_date', 'ASC')->get()->getResultArray();
+
+        if (empty($matches)) {
+            $db->transRollback();
+            session()->setFlashdata('error', 'No available stock found for this item.');
+            return redirect()->to('inventory');
+        }
+
+        $remaining = $quantity;
+        $updatedAny = false;
+        $totalAvailable = 0;
+
+        foreach ($matches as $m) {
+            $totalAvailable += (int)$m['ds_qty'];
+        }
+
+        if ($totalAvailable < $quantity) {
+            $db->transRollback();
+            session()->setFlashdata('error', "Not enough stock. Only {$totalAvailable} unit(s) available.");
+            return redirect()->to('inventory');
+        }
+
+        foreach ($matches as $m) {
+            if ($remaining <= 0) break;
+
+            $dsQty = (int)$m['ds_qty'];
+            $take = min($remaining, $dsQty);
+
+            // Decrement department_supply
+            $db->table('department_supply')
+               ->where('department_supply_id', $m['department_supply_id'])
+               ->set('quantity_on_hand', 'quantity_on_hand - ' . $take, false)
+               ->set('quantity_used', 'quantity_used + ' . $take, false)
+               ->update();
+
+            // Decrement central_supply
+            $db->table('central_supply')
+               ->where('central_supply_id', $m['central_supply_id'])
+               ->set('quantity_on_hand', 'quantity_on_hand - ' . $take, false)
+               ->update();
+
+            $remaining -= $take;
+            $updatedAny = true;
+        }
+
+        $db->transComplete();
+
+        if (!$updatedAny || $db->transStatus() === false) {
+            session()->setFlashdata('error', 'An error occurred while consuming inventory.');
+        } else {
+            $displayName = $itemName ?: $itemCode;
+            $this->auditModel->log_activity(
+                'CONSUME_ITEM',
+                'Inventory',
+                "Consumed {$quantity} unit(s) of {$displayName}" . ($reason ? " ({$reason})" : "") . "."
+            );
+            session()->setFlashdata('success', "Successfully consumed {$quantity} unit(s).");
         }
 
         return redirect()->to('inventory');

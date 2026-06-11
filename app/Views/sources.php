@@ -37,13 +37,6 @@
     </div>
 <?php endif; ?>
 
-<div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
-    <div class="card-header-styled mb-4">
-        <h5 class="card-title-styled">
-            <span>Suppliers & Sources</span>
-        </h5>
-    </div>
-
     <div class="table-responsive-custom">
         <table class="table table-custom table-hover w-100" id="sourcesTable">
             <thead>
@@ -91,7 +84,6 @@
             </tbody>
         </table>
     </div>
-</div>
 
 <!-- ===================== SINGLE SOURCE MODAL (Add/Edit) ===================== -->
 <div class="modal fade" id="sourceModal" tabindex="-1" aria-labelledby="sourceModalLabel" aria-hidden="true">

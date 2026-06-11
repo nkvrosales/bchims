@@ -38,13 +38,7 @@
     </div>
 <?php endif; ?>
 
-<!-- Departments Table Card -->
-<div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
-    <div class="card-header-styled mb-4">
-        <h5 class="card-title-styled">
-            <span>Hospital Departments</span>
-        </h5>
-    </div>
+<!-- Departments Table -->
 
     <div class="table-responsive-custom">
         <table class="table table-custom table-hover w-100" id="departmentsTable">
@@ -99,7 +93,6 @@
             </tbody>
         </table>
     </div>
-</div>
 
 
 <!-- ===================== CREATE DEPARTMENT MODAL ===================== -->

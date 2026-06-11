@@ -2,7 +2,7 @@
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1">Supply Requests</h1>
+            <h1 class="page-title mb-1">Requests</h1>
         </div>
         <div>
             <?php if (session()->get('role') === 'encoder'): ?>
@@ -13,7 +13,7 @@
                         data-bs-target="#createRequestModal"
                         style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
                     <i class="fa-solid fa-file-circle-plus"></i>
-                    <span>Supply Request</span>
+                    <span>Request</span>
                 </button>
             <?php endif; ?>
         </div>
@@ -42,13 +42,7 @@
     </div>
 <?php endif; ?>
 
-<!-- Supply Requests Database Card -->
-<div class="standard-card fade-in-up" style="animation-delay: 0.1s;">
-    <div class="card-header-styled mb-4">
-        <h5 class="card-title-styled">
-            <span><?php echo is_admin_role() ? 'All Staff Supply Requests' : 'Departmental Supply Requests'; ?></span>
-        </h5>
-    </div>
+<!-- Supply Requests Table -->
 
     <div class="table-responsive-custom">
         <table class="table table-custom table-hover w-100" id="supplyRequestsTable">
@@ -68,7 +62,7 @@
                 <?php if (!empty($requests)): ?>
                     <?php foreach ($requests as $req): ?>
                         <tr>
-                            <td class="font-monospace fw-bold" style="font-size: 0.85rem; color: var(--text-secondary);">
+                            <td class="font-monospace fw-bold" style="font-size: 0.85rem; color: var(--text-secondary);" data-order="<?php echo $req['request_id']; ?>">
                                 #<?php echo $req['request_id']; ?>
                             </td>
                             <td data-order="<?php echo htmlspecialchars($req['created_at'] ?? ''); ?>">
@@ -239,7 +233,6 @@
             </tbody>
         </table>
     </div>
-</div>
 
 <?php if (is_admin_role() && !empty($requests)): ?>
     <?php foreach ($requests as $req): ?>
@@ -952,6 +945,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <style>
     #btnNewSupplyRequest:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
+
+    <?php if (session()->get('role') === 'encoder'): ?>
+    #supplyRequestsTable th:nth-child(1),
+    #supplyRequestsTable td:nth-child(1),
+    #supplyRequestsTable th:nth-child(3),
+    #supplyRequestsTable td:nth-child(3),
+    #supplyRequestsTable th:nth-child(4),
+    #supplyRequestsTable td:nth-child(4) { display: none; }
+    <?php endif; ?>
 
     #createRequestModal .form-control.input-custom,
     #createRequestModal .form-select.input-custom {

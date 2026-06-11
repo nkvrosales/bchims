@@ -145,7 +145,7 @@
                     <a href="<?php echo base_url('requests'); ?>"
                        class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests">
                         <i class="bi bi-file-earmark-text"></i>
-                        <span>Supply Requests</span>
+                        <span>Requests</span>
                     </a>
                 </li>
                 <?php endif; ?>

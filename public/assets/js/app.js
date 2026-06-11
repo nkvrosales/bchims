@@ -335,7 +335,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[1, 'desc']],
+            order: [[0, 'desc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -349,7 +349,8 @@ $(document).ready(function() {
                 zeroRecords: 'No supply requests found'
             },
             columnDefs: [
-                { orderable: false, targets: 7 }
+                { orderable: false, targets: 7 },
+                { type: 'num', targets: 0 }
             ],
             initComplete: function () {
                 var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');

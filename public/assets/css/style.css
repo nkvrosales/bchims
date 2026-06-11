@@ -728,6 +728,10 @@ h1, h2, h3, h4, h5, h6 {
     overflow-x: auto;
     overflow-y: hidden;
     border: 1px solid var(--border-color);
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -1321,7 +1325,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dataTables_wrapper .row:first-child {
-    margin-bottom: 1.25rem !important;
+    margin-bottom: 1.75rem !important;
     padding-top: 0.25rem !important;
 }
 
