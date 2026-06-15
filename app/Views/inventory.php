@@ -144,7 +144,7 @@
                                     </button>
                                      <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
                                     <button type="button"
-                                       class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center rounded-2"
+                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
                                        onclick='openConsumeModal(<?php echo json_encode([
                                            "id" => $item["id"],
@@ -155,37 +155,39 @@
                                         <i class="fa-solid fa-minus"></i>
                                     </button>
                                     <?php endif; ?>
-                                    <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
-                                    <button type="button"
-                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                        onclick='openItemModal("edit", <?php echo json_encode([
-                                            "id" => $item["id"],
-                                            "item_code" => $item["item_code"],
-                                            "name" => $item["item_name"],
-                                            "category_id" => $item["category_id"] ?? "",
-                                            "quantity" => $item["quantity"],
-                                            "unit" => $item["unit"] ?? "",
-                                            "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
-                                            "source_name" => $item["supplier_name"] ?? "",
-                                            "expiration_date" => $item["expiration_date"] ?? "",
-                                            "manufacturing_date" => $item["manufacturing_date"] ?? "",
-                                            "batch_num" => $item["batch_num"] ?? "",
-                                            "lot_num" => $item["lot_num"] ?? "",
-                                            "remarks" => $item["remarks"] ?? "",
-                                        ]); ?>)'
-                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
-                                       title="Edit Item">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                    <a href="<?php echo base_url('inventory/archive/' . $item['id']); ?>"
-                                       class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
-                                       data-bs-toggle="modal"
-                                       data-bs-target="#archiveItemModal<?php echo $item['id']; ?>"
-                                         title="Archive Item">
-                                         <i class="fa-regular fa-folder"></i>
-                                     </a>
-                                    <?php endif; ?>
+                                     <?php if ($isAdmin): ?>
+                                     <button type="button"
+                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
+                                         onclick='openItemModal("edit", <?php echo json_encode([
+                                             "id" => $item["id"],
+                                             "item_code" => $item["item_code"],
+                                             "name" => $item["item_name"],
+                                             "category_id" => $item["category_id"] ?? "",
+                                             "quantity" => $item["quantity"],
+                                             "unit" => $item["unit"] ?? "",
+                                             "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
+                                             "source_name" => $item["supplier_name"] ?? "",
+                                             "expiration_date" => $item["expiration_date"] ?? "",
+                                             "manufacturing_date" => $item["manufacturing_date"] ?? "",
+                                             "batch_num" => $item["batch_num"] ?? "",
+                                             "lot_num" => $item["lot_num"] ?? "",
+                                             "remarks" => $item["remarks"] ?? "",
+                                         ]); ?>)'
+                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
+                                        title="Edit Item">
+                                         <i class="bi bi-pencil-square"></i>
+                                     </button>
+                                     <?php endif; ?>
+                                     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
+                                     <a href="<?php echo base_url('inventory/archive/' . $item['id']); ?>"
+                                        class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
+                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#archiveItemModal<?php echo $item['id']; ?>"
+                                          title="Archive Item">
+                                          <i class="fa-regular fa-folder"></i>
+                                      </a>
+                                     <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

@@ -143,7 +143,7 @@
                 <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('requests'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests" title="Supply Requests">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
                         <i class="bi bi-file-earmark-text"></i>
                         <span>Requests</span>
                     </a>

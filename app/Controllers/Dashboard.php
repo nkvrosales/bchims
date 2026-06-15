@@ -61,26 +61,79 @@ class Dashboard extends BaseController
         $deptId = $currentUser['department_id'] ?? null;
 
         if (is_admin_role()) {
-            $data['total_inventory'] = $db->table('central_supply')->countAll();
-            $data['total_low_stock'] = $db->table('central_supply')->where('quantity <=', 10)->where('quantity >', 0)->countAllResults();
-            $data['total_no_stock'] = $db->table('central_supply')->where('quantity', 0)->countAllResults();
+            // Count distinct items (grouped by item_code+item_name) with status=1,
+            // matching the inventory page's get_items() grouping logic.
+            $invCountRow = $db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT item_code, item_name
+                    FROM central_supply
+                    WHERE status = 1
+                    GROUP BY item_code, item_name
+                ) AS grouped"
+            )->getRowArray();
+            $data['total_inventory'] = (int)($invCountRow['cnt'] ?? 0);
+
+            $data['total_low_stock'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh
+                    FROM central_supply
+                    WHERE status = 1
+                    GROUP BY item_code, item_name
+                    HAVING total_qoh <= 10 AND total_qoh > 0
+                ) AS grouped"
+            )->getRowArray()['cnt'];
+
+            $data['total_no_stock'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh
+                    FROM central_supply
+                    WHERE status = 1
+                    GROUP BY item_code, item_name
+                    HAVING total_qoh = 0
+                ) AS grouped"
+            )->getRowArray()['cnt'];
+
             $data['total_requests'] = $db->table('request')->whereIn('request_status', ['Pending', 'Partially Served'])->countAllResults();
         } else {
-            // Staff: count department_supply rows for this department (each row = one supply item allocation)
-            $data['total_inventory'] = $db->table('department_supply')
-                ->where('department_id', $deptId)
-                ->countAllResults();
+            // Staff: count distinct items (grouped by item_code+item_name) for this department,
+            // matching the inventory page's get_items() grouping logic.
+            $data['total_inventory'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code, i.item_name
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code, i.item_name
+                ) AS grouped",
+                [$deptId]
+            )->getRowArray()['cnt'];
 
-            $data['total_low_stock'] = $db->table('department_supply')
-                ->where('department_id', $deptId)
-                ->where('quantity_on_hand <=', 10)
-                ->where('quantity_on_hand >', 0)
-                ->countAllResults();
+            $data['total_low_stock'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code, i.item_name
+                    HAVING total_qoh <= 10 AND total_qoh > 0
+                ) AS grouped",
+                [$deptId]
+            )->getRowArray()['cnt'];
 
-            $data['total_no_stock'] = $db->table('department_supply')
-                ->where('department_id', $deptId)
-                ->where('quantity_on_hand', 0)
-                ->countAllResults();
+            $data['total_no_stock'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code, i.item_name
+                    HAVING total_qoh = 0
+                ) AS grouped",
+                [$deptId]
+            )->getRowArray()['cnt'];
 
             $data['total_requests'] = $db->table('request')
                 ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id')

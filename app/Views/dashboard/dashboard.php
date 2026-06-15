@@ -58,6 +58,7 @@
         </div>
     </div>
 
+    <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
     <!-- Supply Requests -->
     <div class="col-12 col-sm-6 col-xl-3">
         <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
@@ -67,10 +68,12 @@
         </div>
     </div>
 </div>
+    <?php endif; ?>
 
 <!-- Main Row Content (Stacked Tables layout) -->
 <div class="row g-4 fade-in-up" style="animation-delay: 0.1s;">
     <!-- 1. Recent Supply Requests Panel (Top Full-Width Column) -->
+    <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
     <div class="col-12">
         <div class="standard-card">
             <div class="card-header-styled">
@@ -149,6 +152,7 @@
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- 2. Recent Activities Panel (Bottom Full-Width Column) -->
     <div class="col-12 mt-4">

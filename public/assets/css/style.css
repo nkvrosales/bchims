@@ -1400,6 +1400,20 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: 0 !important;
 }
 
+/* Table action buttons - no border, darker icon/text on hover */
+.table-custom td.text-end .btn {
+    border: none !important;
+    background: transparent !important;
+}
+.table-custom td.text-end .btn:hover {
+    background: transparent !important;
+    color: rgba(0,0,0,0.7) !important;
+}
+.table-custom td.text-end .btn:hover .bi,
+.table-custom td.text-end .btn:hover i {
+    filter: brightness(0.4);
+}
+
 /* Breadcrumb styles */
 .page-breadcrumb {
     display: flex;

@@ -97,7 +97,7 @@
                                     <small class="text-muted">pcs</small>
                                 </div>
                             </td>
-                            <td>
+                            <td data-order="<?php echo $req['request_status'] === 'Served' ? 1 : ($req['request_status'] === 'Rejected' ? 2 : 0); ?>">
                                 <?php 
                                     if ($req['request_status'] === 'Served') {
                                         $badge = 'bg-success-subtle text-success border border-success-subtle';
@@ -162,17 +162,6 @@
                                     </div>
                                 <?php elseif (is_admin_role() && $req['request_status'] === 'Partially Served'): ?>
                                     <div class="d-inline-flex gap-2">
-                                        <!-- Partial Serve Again -->
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 rounded-2"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
-                                                id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
-                                                title="Serve Partially">
-                                            <i class="fa-solid fa-circle-half-stroke"></i>
-                                            <span class="small fw-semibold">Partial</span>
-                                        </button>
-
                                         <!-- Complete -->
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
@@ -182,6 +171,17 @@
                                                 title="Complete Partially Served Request">
                                             <i class="bi bi-check-circle"></i>
                                             <span class="small fw-semibold">Complete</span>
+                                        </button>
+
+                                        <!-- Partial Serve Again -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 rounded-2"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
+                                                id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
+                                                title="Serve Partially">
+                                            <i class="fa-solid fa-circle-half-stroke"></i>
+                                            <span class="small fw-semibold">Partial</span>
                                         </button>
 
                                         <!-- Archive -->
