@@ -1399,3 +1399,33 @@ h1, h2, h3, h4, h5, h6 {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
+
+/* Breadcrumb styles */
+.page-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+}
+.page-breadcrumb a {
+    color: #000 !important;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+}
+.page-breadcrumb a:hover {
+    color: #10b981 !important;
+}
+.page-breadcrumb a i {
+    color: inherit;
+}
+.page-breadcrumb .separator {
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.page-breadcrumb .current {
+    color: #0f172a;
+    font-weight: 600;
+}

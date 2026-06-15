@@ -17,6 +17,12 @@
     </div>
 <?php endif; ?>
 
+<div class="page-breadcrumb">
+    <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+    <span class="separator">/</span>
+    <span class="current">Audit Trail</span>
+</div>
+
 <div class="page-title-section fade-in-up d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="page-title mb-1">Audit Trail</h1>

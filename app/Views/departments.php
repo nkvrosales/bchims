@@ -1,4 +1,10 @@
 <!-- Page Title Section -->
+<div class="page-breadcrumb">
+    <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+    <span class="separator">/</span>
+    <span class="current">Departments</span>
+</div>
+
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>

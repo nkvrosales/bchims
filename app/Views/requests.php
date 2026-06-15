@@ -1,8 +1,14 @@
 <!-- Page Title Section -->
+<div class="page-breadcrumb">
+    <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+    <span class="separator">/</span>
+    <span class="current">Supply Requests</span>
+</div>
+
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1">Requests</h1>
+            <h1 class="page-title mb-1">Supply Requests</h1>
         </div>
         <div>
             <?php if (session()->get('role') === 'encoder'): ?>
