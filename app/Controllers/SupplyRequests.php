@@ -271,7 +271,7 @@ class SupplyRequests extends BaseController
                     'category_id'          => $item['category_id'],
                 ]);
 
-                $auditLogs[] = "{$quantity} unit(s) of {$item['item_name']} (Code: {$item['item_code']})";
+                $auditLogs[] = "{$quantity} unit(s) of {$item['item_name']}";
                 $successCount++;
             }
         }
@@ -323,21 +323,57 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        // Fetch central supply item (use selected batch if provided)
-        $selectedCsId = (int)$this->request->getPost('central_supply_id') ?: (int)$request['central_supply_id'];
-        $csItem = $this->db->table('central_supply')
-                           ->where('central_supply_id', $selectedCsId)
-                           ->get()->getRowArray();
+        $qtyRequested = (int)$request['quantity_requested'];
+        $csIds = $this->request->getPost('central_supply_id') ?: [];
+        $qties = $this->request->getPost('quantity') ?: [];
 
-        if (!$csItem) {
-            session()->setFlashdata('error', 'Associated central supply item not found.');
+        if (empty($csIds) || !is_array($csIds)) {
+            session()->setFlashdata('error', 'Please select at least one inventory batch.');
             return redirect()->to('requests');
         }
 
-        $qtyRequested = (int)$request['quantity_requested'];
+        $db = \Config\Database::connect();
+        $db->transStart();
 
-        if ($csItem['quantity_on_hand'] < $qtyRequested) {
-            session()->setFlashdata('error', "Insufficient stock of '{$csItem['item_name']}' in Central Supply. Available: {$csItem['quantity_on_hand']}, Requested: {$qtyRequested}.");
+        $totalServed = 0;
+        $firstBatch = null;
+        $servedBatchesInfo = [];
+
+        foreach ($csIds as $i => $csId) {
+            $csId = (int)$csId;
+            $qty = isset($qties[$i]) ? (int)$qties[$i] : 0;
+            if ($qty <= 0) continue;
+
+            $csItem = $db->table('central_supply')
+                         ->where('central_supply_id', $csId)
+                         ->get()->getRowArray();
+
+            if (!$csItem) {
+                $db->transRollback();
+                session()->setFlashdata('error', "Inventory batch #{$csId} not found.");
+                return redirect()->to('requests');
+            }
+
+            if ($csItem['quantity_on_hand'] < $qty) {
+                $db->transRollback();
+                session()->setFlashdata('error', "Insufficient stock for batch '{$csItem['item_code']}'. Available: {$csItem['quantity_on_hand']}, Requested: {$qty}.");
+                return redirect()->to('requests');
+            }
+
+            $db->table('central_supply')
+               ->where('central_supply_id', $csId)
+               ->update([
+                   'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
+               ]);
+
+            $totalServed += $qty;
+            if (!$firstBatch) $firstBatch = $csItem;
+            $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
+        }
+
+        if ($totalServed !== $qtyRequested) {
+            $db->transRollback();
+            session()->setFlashdata('error', "Total quantity from batches ({$totalServed}) does not match requested quantity ({$qtyRequested}).");
             return redirect()->to('requests');
         }
 
@@ -345,15 +381,7 @@ class SupplyRequests extends BaseController
         $deptId    = $request['department_id'] ?? null;
         $deptName  = $request['department_name'] ?? 'Department';
 
-        $db = \Config\Database::connect();
-        $db->transStart();
-
-        // 1. Deduct from central_supply
-        $db->table('central_supply')
-           ->where('central_supply_id', $csItem['central_supply_id'])
-           ->update([
-               'quantity_on_hand' => $csItem['quantity_on_hand'] - $qtyRequested,
-           ]);        // 2. Find the pre-created supply record for this request
+        // Find the pre-created supply record for this request
         $supplyRec = $db->table('supply')
                         ->where('request_id', $id)
                         ->get()->getRowArray();
@@ -367,8 +395,8 @@ class SupplyRequests extends BaseController
                 $db->table('department_supply')
                    ->where('department_supply_id', $deptSupply['department_supply_id'])
                    ->update([
-                       'quantity_received' => $deptSupply['quantity_received'] + $qtyRequested,
-                       'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $qtyRequested,
+                       'quantity_received' => $deptSupply['quantity_received'] + $totalServed,
+                       'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $totalServed,
                    ]);
             }
             $deptSupplyId = $supplyRec['department_supply_id'];
@@ -381,19 +409,19 @@ class SupplyRequests extends BaseController
                 $db->table('inventory')
                    ->where('inventory_id', $invItem['inventory_id'])
                    ->update([
-                       'quantity' => $invItem['quantity'] + $qtyRequested,
+                       'quantity' => $invItem['quantity'] + $totalServed,
                    ]);
             }
 
-            // Update supply record quantity and details
+            // Update supply record quantity and details (first batch as primary)
             $supplyUpdate = [
-                'quantity' => $qtyRequested,
-                'batch_num' => $csItem['batch_num'],
-                'lot_num' => $csItem['lot_num'],
-                'expiration_date' => $csItem['expiration_date'],
+                'quantity' => $totalServed,
+                'batch_num' => $firstBatch['batch_num'],
+                'lot_num' => $firstBatch['lot_num'],
+                'expiration_date' => $firstBatch['expiration_date'],
             ];
-            if ((int)$supplyRec['central_supply_id'] !== $selectedCsId) {
-                $supplyUpdate['central_supply_id'] = $selectedCsId;
+            if ((int)$supplyRec['central_supply_id'] !== (int)$firstBatch['central_supply_id']) {
+                $supplyUpdate['central_supply_id'] = $firstBatch['central_supply_id'];
             }
             $db->table('supply')
                ->where('supply_id', $supplyRec['supply_id'])
@@ -402,12 +430,11 @@ class SupplyRequests extends BaseController
             $deptSupplyId = null;
         }
 
-        // 4. Update request to Served
         $this->requestModel->update($id, [
-            'request_status'               => 'Served',
-            'quantity_served'      => $qtyRequested,
+            'request_status'      => 'Served',
+            'quantity_served'     => $totalServed,
             'department_supply_id' => $deptSupplyId,
-            'served_date'          => date('Y-m-d H:i:s'),
+            'served_date'         => date('Y-m-d H:i:s'),
         ]);
 
         $db->transComplete();
@@ -418,9 +445,9 @@ class SupplyRequests extends BaseController
             $this->auditModel->log_activity(
                 'SERVE_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$qtyRequested} unit(s) of '{$csItem['item_name']}' to department '{$deptName}'."
+                "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$totalServed} unit(s) of '{$firstBatch['item_name']}' to department '{$deptName}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
             );
-            session()->setFlashdata('success', "Request served! {$qtyRequested} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
+            session()->setFlashdata('success', "Request served! {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('requests');
@@ -442,9 +469,8 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        $servedQty = (int)$this->request->getPost('served_quantity');
-        $notes     = trim((string)$this->request->getPost('partial_notes'));
-        $request   = $this->_getRequest($id);
+        $notes   = trim((string)$this->request->getPost('partial_notes'));
+        $request = $this->_getRequest($id);
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
@@ -460,24 +486,56 @@ class SupplyRequests extends BaseController
         $qtyServed    = (int)$request['quantity_served'];
         $remainingQty = $qtyRequested - $qtyServed;
 
-        if ($servedQty <= 0 || $servedQty >= $remainingQty) {
-            session()->setFlashdata('error', "Invalid partial quantity. Must be between 1 and " . ($remainingQty - 1) . ".");
+        $csIds = $this->request->getPost('central_supply_id') ?: [];
+        $qties = $this->request->getPost('quantity') ?: [];
+
+        if (empty($csIds) || !is_array($csIds)) {
+            session()->setFlashdata('error', 'Please select at least one inventory batch.');
             return redirect()->to('requests');
         }
 
-        // Fetch central supply item (use selected batch if provided)
-        $selectedCsId = (int)$this->request->getPost('central_supply_id') ?: (int)$request['central_supply_id'];
-        $csItem = $this->db->table('central_supply')
-                           ->where('central_supply_id', $selectedCsId)
-                           ->get()->getRowArray();
+        $db = \Config\Database::connect();
+        $db->transStart();
 
-        if (!$csItem) {
-            session()->setFlashdata('error', 'Associated central supply item not found.');
-            return redirect()->to('requests');
+        $totalServed = 0;
+        $firstBatch = null;
+        $servedBatchesInfo = [];
+
+        foreach ($csIds as $i => $csId) {
+            $csId = (int)$csId;
+            $qty = isset($qties[$i]) ? (int)$qties[$i] : 0;
+            if ($qty <= 0) continue;
+
+            $csItem = $db->table('central_supply')
+                         ->where('central_supply_id', $csId)
+                         ->get()->getRowArray();
+
+            if (!$csItem) {
+                $db->transRollback();
+                session()->setFlashdata('error', "Inventory batch #{$csId} not found.");
+                return redirect()->to('requests');
+            }
+
+            if ($csItem['quantity_on_hand'] < $qty) {
+                $db->transRollback();
+                session()->setFlashdata('error', "Insufficient stock for batch '{$csItem['item_code']}'. Available: {$csItem['quantity_on_hand']}, Requested: {$qty}.");
+                return redirect()->to('requests');
+            }
+
+            $db->table('central_supply')
+               ->where('central_supply_id', $csId)
+               ->update([
+                   'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
+               ]);
+
+            $totalServed += $qty;
+            if (!$firstBatch) $firstBatch = $csItem;
+            $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
         }
 
-        if ($csItem['quantity_on_hand'] < $servedQty) {
-            session()->setFlashdata('error', "Insufficient stock. Available: {$csItem['quantity_on_hand']}, Trying to serve: {$servedQty}.");
+        if ($totalServed <= 0 || $totalServed >= $remainingQty) {
+            $db->transRollback();
+            session()->setFlashdata('error', "Invalid partial quantity. Total must be between 1 and " . ($remainingQty - 1) . ".");
             return redirect()->to('requests');
         }
 
@@ -485,37 +543,27 @@ class SupplyRequests extends BaseController
         $deptId    = $request['department_id'] ?? null;
         $deptName  = $request['department_name'] ?? 'Department';
 
-        $db = \Config\Database::connect();
-        $db->transStart();
-
-        // 1. Deduct from central_supply
-        $db->table('central_supply')
-           ->where('central_supply_id', $selectedCsId)
-           ->update([
-               'quantity_on_hand' => $csItem['quantity_on_hand'] - $servedQty,
-           ]);
-
-        // 2. Find or create inventory item for the department
+        // Find or create inventory item for the department
         $invItem = $db->table('inventory')
-                      ->where('item_code', $csItem['item_code'])
+                      ->where('item_code', $firstBatch['item_code'])
                       ->get()->getRowArray();
 
         if (!$invItem) {
             $db->table('inventory')->insert([
-                'item_code'       => $csItem['item_code'],
-                'item_name'       => $csItem['item_name'],
-                'batch_num'       => $csItem['batch_num'],
-                'lot_num'         => $csItem['lot_num'],
-                'expiration_date' => $csItem['expiration_date'],
-                'quantity'        => $servedQty,
-                'category_id'     => $csItem['category_id'],
+                'item_code'       => $firstBatch['item_code'],
+                'item_name'       => $firstBatch['item_name'],
+                'batch_num'       => $firstBatch['batch_num'],
+                'lot_num'         => $firstBatch['lot_num'],
+                'expiration_date' => $firstBatch['expiration_date'],
+                'quantity'        => $totalServed,
+                'category_id'     => $firstBatch['category_id'],
             ]);
             $invId = $db->insertID();
         } else {
             $invId = $invItem['inventory_id'];
         }
 
-        // 3. Upsert department_supply
+        // Upsert department_supply
         $deptSupply = $db->table('department_supply')
                          ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
                          ->where('department_supply.department_id', $deptId)
@@ -526,55 +574,54 @@ class SupplyRequests extends BaseController
             $db->table('department_supply')
                ->where('department_supply_id', $deptSupply['department_supply_id'])
                ->update([
-                   'quantity_received' => $deptSupply['quantity_received'] + $servedQty,
-                   'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $servedQty,
+                   'quantity_received' => $deptSupply['quantity_received'] + $totalServed,
+                   'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $totalServed,
                ]);
             $deptSupplyId = $deptSupply['department_supply_id'];
         } else {
             $db->table('department_supply')->insert([
                 'department_id'     => $deptId,
-                'quantity_received' => $servedQty,
+                'quantity_received' => $totalServed,
                 'quantity_used'     => 0,
-                'quantity_on_hand'  => $servedQty,
+                'quantity_on_hand'  => $totalServed,
             ]);
             $deptSupplyId = $db->insertID();
 
-            // Link via supply table
             $db->table('supply')->insert([
                 'request_id'           => $id,
-                'central_supply_id'    => $csItem['central_supply_id'],
+                'central_supply_id'    => $firstBatch['central_supply_id'],
                 'department_supply_id' => $deptSupplyId,
                 'inventory_id'         => $invId,
-                'batch_num'            => $csItem['batch_num'],
-                'lot_num'              => $csItem['lot_num'],
-                'expiration_date'      => $csItem['expiration_date'],
-                'unit'                 => $csItem['unit'],
-                'quantity'             => $servedQty,
-                'category_id'          => $csItem['category_id'],
+                'batch_num'            => $firstBatch['batch_num'],
+                'lot_num'              => $firstBatch['lot_num'],
+                'expiration_date'      => $firstBatch['expiration_date'],
+                'unit'                 => $firstBatch['unit'],
+                'quantity'             => $totalServed,
+                'category_id'          => $firstBatch['category_id'],
             ]);
         }
 
-        // Update the supply record for this request (batch selection may have changed)
+        // Update the supply record for this request
         $existingSupply = $db->table('supply')->where('request_id', $id)->get()->getRowArray();
         if ($existingSupply) {
             $supplyUpdate = [
-                'batch_num'       => $csItem['batch_num'],
-                'lot_num'         => $csItem['lot_num'],
-                'expiration_date' => $csItem['expiration_date'],
-                'quantity'        => ($existingSupply['quantity'] ?? 0) + $servedQty,
+                'batch_num'       => $firstBatch['batch_num'],
+                'lot_num'         => $firstBatch['lot_num'],
+                'expiration_date' => $firstBatch['expiration_date'],
+                'quantity'        => ($existingSupply['quantity'] ?? 0) + $totalServed,
             ];
-            if ((int)$existingSupply['central_supply_id'] !== $selectedCsId) {
-                $supplyUpdate['central_supply_id'] = $selectedCsId;
+            if ((int)$existingSupply['central_supply_id'] !== (int)$firstBatch['central_supply_id']) {
+                $supplyUpdate['central_supply_id'] = $firstBatch['central_supply_id'];
             }
             $db->table('supply')->where('supply_id', $existingSupply['supply_id'])->update($supplyUpdate);
         }
 
-        // 4. Update request
+        // Update request
         $updateData = [
-            'request_status'               => 'Partially Served',
-            'quantity_served'      => $qtyServed + $servedQty,
+            'request_status'      => 'Partially Served',
+            'quantity_served'     => $qtyServed + $totalServed,
             'department_supply_id' => $deptSupplyId,
-            'partial_date'         => date('Y-m-d H:i:s'),
+            'partial_date'        => date('Y-m-d H:i:s'),
         ];
         if ($notes !== '') {
             $existingNotes = $request['notes'] ?? '';
@@ -592,9 +639,9 @@ class SupplyRequests extends BaseController
             $this->auditModel->log_activity(
                 'PARTIAL_SERVE_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$servedQty} of {$qtyRequested} unit(s) of '{$csItem['item_name']}'."
+                "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$totalServed} of {$qtyRequested} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
             );
-            session()->setFlashdata('success', "Partially served! {$servedQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
+            session()->setFlashdata('success', "Partially served! {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('requests');
@@ -686,58 +733,83 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        // Fetch central supply item (use selected batch if provided)
-        $selectedCsId = (int)$this->request->getPost('central_supply_id') ?: (int)$request['central_supply_id'];
-        $csItem = $this->db->table('central_supply')
-                           ->where('central_supply_id', $selectedCsId)
-                           ->get()->getRowArray();
+        $csIds = $this->request->getPost('central_supply_id') ?: [];
+        $qties = $this->request->getPost('quantity') ?: [];
 
-        if (!$csItem) {
-            session()->setFlashdata('error', 'Associated central supply item not found.');
+        if (empty($csIds) || !is_array($csIds)) {
+            session()->setFlashdata('error', 'Please select at least one inventory batch.');
             return redirect()->to('requests');
         }
 
-        if ($csItem['quantity_on_hand'] < $remainingQty) {
-            session()->setFlashdata('error', "Insufficient stock to complete the request. Available: {$csItem['quantity_on_hand']}, Needed: {$remainingQty}.");
+        $db = \Config\Database::connect();
+        $db->transStart();
+        $totalServed = 0;
+        $firstBatch = null;
+        $servedBatchesInfo = [];
+
+        foreach ($csIds as $i => $csId) {
+            $csId = (int)$csId;
+            $qty = isset($qties[$i]) ? (int)$qties[$i] : 0;
+            if ($qty <= 0) continue;
+
+            $csItem = $db->table('central_supply')
+                         ->where('central_supply_id', $csId)
+                         ->get()->getRowArray();
+
+            if (!$csItem) {
+                $db->transRollback();
+                session()->setFlashdata('error', "Inventory batch #{$csId} not found.");
+                return redirect()->to('requests');
+            }
+
+            if ($csItem['quantity_on_hand'] < $qty) {
+                $db->transRollback();
+                session()->setFlashdata('error', "Insufficient stock for batch '{$csItem['item_code']}'. Available: {$csItem['quantity_on_hand']}, Requested: {$qty}.");
+                return redirect()->to('requests');
+            }
+
+            $db->table('central_supply')
+               ->where('central_supply_id', $csId)
+               ->update([
+                   'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
+               ]);
+
+            $totalServed += $qty;
+            if (!$firstBatch) $firstBatch = $csItem;
+            $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
+        }
+
+        if ($totalServed !== $remainingQty) {
+            $db->transRollback();
+            session()->setFlashdata('error', "Total quantity from batches ({$totalServed}) does not match remaining quantity ({$remainingQty}).");
             return redirect()->to('requests');
         }
 
         // Get requester's department
-        // Get requester's department from joined request data
         $deptId    = $request['department_id'] ?? null;
         $deptName  = $request['department_name'] ?? 'Department';
 
-        $db = \Config\Database::connect();
-        $db->transStart();
-
-        // 1. Deduct remaining quantity from central_supply
-        $db->table('central_supply')
-           ->where('central_supply_id', $csItem['central_supply_id'])
-           ->update([
-               'quantity_on_hand' => $csItem['quantity_on_hand'] - $remainingQty,
-           ]);
-
-        // 2. Find or create inventory item for the department
+        // Find or create inventory item for the department
         $invItem = $db->table('inventory')
-                      ->where('item_code', $csItem['item_code'])
+                      ->where('item_code', $firstBatch['item_code'])
                       ->get()->getRowArray();
 
         if (!$invItem) {
             $db->table('inventory')->insert([
-                'item_code'       => $csItem['item_code'],
-                'item_name'       => $csItem['item_name'],
-                'batch_num'       => $csItem['batch_num'],
-                'lot_num'         => $csItem['lot_num'],
-                'expiration_date' => $csItem['expiration_date'],
-                'quantity'        => $remainingQty,
-                'category_id'     => $csItem['category_id'],
+                'item_code'       => $firstBatch['item_code'],
+                'item_name'       => $firstBatch['item_name'],
+                'batch_num'       => $firstBatch['batch_num'],
+                'lot_num'         => $firstBatch['lot_num'],
+                'expiration_date' => $firstBatch['expiration_date'],
+                'quantity'        => $totalServed,
+                'category_id'     => $firstBatch['category_id'],
             ]);
             $invId = $db->insertID();
         } else {
             $invId = $invItem['inventory_id'];
         }
 
-        // 3. Upsert department_supply for the remaining quantity
+        // Upsert department_supply for the remaining quantity
         $deptSupply = $db->table('department_supply')
                          ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
                          ->where('department_supply.department_id', $deptId)
@@ -748,57 +820,56 @@ class SupplyRequests extends BaseController
             $db->table('department_supply')
                ->where('department_supply_id', $deptSupply['department_supply_id'])
                ->update([
-                   'quantity_received' => $deptSupply['quantity_received'] + $remainingQty,
-                   'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $remainingQty,
+                   'quantity_received' => $deptSupply['quantity_received'] + $totalServed,
+                   'quantity_on_hand'  => $deptSupply['quantity_on_hand'] + $totalServed,
                ]);
             $deptSupplyId = $deptSupply['department_supply_id'];
         } else {
             $db->table('department_supply')->insert([
                 'department_id'     => $deptId,
-                'quantity_received' => $remainingQty,
+                'quantity_received' => $totalServed,
                 'quantity_used'     => 0,
-                'quantity_on_hand'  => $remainingQty,
+                'quantity_on_hand'  => $totalServed,
             ]);
             $deptSupplyId = $db->insertID();
 
-            // Link via supply table
             $db->table('supply')->insert([
                 'request_id'           => $id,
-                'central_supply_id'    => $csItem['central_supply_id'],
+                'central_supply_id'    => $firstBatch['central_supply_id'],
                 'department_supply_id' => $deptSupplyId,
                 'inventory_id'         => $invId,
-                'batch_num'            => $csItem['batch_num'],
-                'lot_num'              => $csItem['lot_num'],
-                'expiration_date'      => $csItem['expiration_date'],
-                'unit'                 => $csItem['unit'],
-                'quantity'             => $remainingQty,
-                'category_id'          => $csItem['category_id'],
+                'batch_num'            => $firstBatch['batch_num'],
+                'lot_num'              => $firstBatch['lot_num'],
+                'expiration_date'      => $firstBatch['expiration_date'],
+                'unit'                 => $firstBatch['unit'],
+                'quantity'             => $totalServed,
+                'category_id'          => $firstBatch['category_id'],
             ]);
         }
 
-        // Update the supply record for this request (batch selection may have changed)
+        // Update the supply record for this request
         $existingSupply = $db->table('supply')->where('request_id', $id)->get()->getRowArray();
         if ($existingSupply) {
             $supplyUpdate = [
-                'batch_num'       => $csItem['batch_num'],
-                'lot_num'         => $csItem['lot_num'],
-                'expiration_date' => $csItem['expiration_date'],
-                'quantity'        => ($existingSupply['quantity'] ?? 0) + $remainingQty,
+                'batch_num'       => $firstBatch['batch_num'],
+                'lot_num'         => $firstBatch['lot_num'],
+                'expiration_date' => $firstBatch['expiration_date'],
+                'quantity'        => ($existingSupply['quantity'] ?? 0) + $totalServed,
             ];
-            if ((int)$existingSupply['central_supply_id'] !== $selectedCsId) {
-                $supplyUpdate['central_supply_id'] = $selectedCsId;
+            if ((int)$existingSupply['central_supply_id'] !== (int)$firstBatch['central_supply_id']) {
+                $supplyUpdate['central_supply_id'] = $firstBatch['central_supply_id'];
             }
             $db->table('supply')->where('supply_id', $existingSupply['supply_id'])->update($supplyUpdate);
         }
 
-        // 4. Update request to Served and clear notes
+        // Update request to Served and clear notes
         $this->requestModel->update($id, [
-            'request_status'               => 'Served',
-            'quantity_served'      => $qtyRequested,
+            'request_status'      => 'Served',
+            'quantity_served'     => $qtyRequested,
             'department_supply_id' => $deptSupplyId,
-            'served_date'          => date('Y-m-d H:i:s'),
-            'closed_date'          => date('Y-m-d H:i:s'),
-            'notes'                => null,
+            'served_date'         => date('Y-m-d H:i:s'),
+            'closed_date'         => date('Y-m-d H:i:s'),
+            'notes'               => null,
         ]);
 
         $db->transComplete();
@@ -809,9 +880,9 @@ class SupplyRequests extends BaseController
             $this->auditModel->log_activity(
                 'COMPLETE_PARTIAL_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$remainingQty} unit(s) of '{$csItem['item_name']}'."
+                "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$totalServed} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
             );
-            session()->setFlashdata('success', "Request completed! Remaining {$remainingQty} unit(s) of '{$csItem['item_name']}' transferred to {$deptName}.");
+            session()->setFlashdata('success', "Request completed! Remaining {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('requests');
