@@ -47,6 +47,16 @@
         </div>
     <?php endif; ?>
 
+    <!-- Session Expired Notification -->
+    <?php if (session()->getFlashdata('session_expired')): ?>
+        <div class="alert border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fs-7 py-2.5 px-3" role="alert" id="loginAlertExpired" style="background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.2); color: #b45309;">
+            <i class="fa-solid fa-clock"></i>
+            <div>
+                <?php echo session()->getFlashdata('session_expired'); ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Login Form -->
     <?php echo form_open('auth/login', array('id' => 'loginForm', 'class' => 'needs-validation')); ?>
         

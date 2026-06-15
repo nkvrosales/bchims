@@ -29,6 +29,7 @@ class SupplyRequests extends BaseController
     protected function checkAuth()
     {
         if (!session()->get('logged_in')) {
+            session()->setFlashdata('session_expired', 'Your session has expired due to inactivity. Please log in again.');
             return redirect()->to('auth/login');
         }
 
