@@ -395,7 +395,7 @@
                 </div><!-- /.modal-body -->
 
                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                    <button type="button"
+                    <button type="button" id="userModalCancelBtn"
                             data-bs-dismiss="modal"
                             style="
                                 background: #fff;
@@ -583,6 +583,7 @@
             statusSelect.disabled = false;
             if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             if (statusSelfInfo) statusSelfInfo.style.display = 'none';
+            document.getElementById('userModalCancelBtn').textContent = 'Cancel';
             
         } else if (mode === 'edit') {
             modalTitle.textContent = 'Edit User Account';
@@ -644,6 +645,7 @@
                 statusSelect.disabled = false;
                 if (statusSelfInfo) statusSelfInfo.style.display = 'none';
             }
+            document.getElementById('userModalCancelBtn').textContent = 'Cancel';
         } else if (mode === 'view') {
             modalTitle.textContent = 'View User';
             form.action = '#';
@@ -676,6 +678,7 @@
             
             if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             if (statusSelfInfo) statusSelfInfo.style.display = 'none';
+            document.getElementById('userModalCancelBtn').textContent = 'Close';
         }
 
         toggleAdminDept();

@@ -271,7 +271,7 @@
                                         <option value="" disabled selected hidden>Select Inventory</option>
                                         <?php foreach ($batches_by_code[$req['item_name']] as $batch): ?>
                                         <option value="<?php echo $batch['central_supply_id']; ?>" <?php echo ((int)$batch['central_supply_id'] === (int)$req['central_supply_id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($batch['item_code']); ?> &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
                                         </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -385,7 +385,7 @@
                                         <option value="" disabled selected hidden>Select Inventory</option>
                                         <?php foreach ($batches_by_code[$req['item_name']] as $batch): ?>
                                         <option value="<?php echo $batch['central_supply_id']; ?>" <?php echo ((int)$batch['central_supply_id'] === (int)$req['central_supply_id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($batch['item_code']); ?> &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
                                         </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -446,7 +446,7 @@
                                         <option value="" disabled selected hidden>Select Inventory</option>
                                         <?php foreach ($batches_by_code[$req['item_name']] as $batch): ?>
                                         <option value="<?php echo $batch['central_supply_id']; ?>" <?php echo ((int)$batch['central_supply_id'] === (int)$req['central_supply_id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($batch['item_code']); ?> &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Available: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
                                         </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -847,7 +847,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var filtered = allItems.filter(item => {
             var matchCat = !catId || String(item.category_id) === catId;
-            var matchSearch = !query || item.name.toLowerCase().indexOf(query) !== -1;
+            var searchText = (item.name + ' ' + (item.item_code || '')).toLowerCase();
+            var matchSearch = !query || searchText.indexOf(query) !== -1;
             return matchCat && matchSearch;
         });
 

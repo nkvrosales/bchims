@@ -409,7 +409,7 @@
                 </div>
 
                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
-                    <button type="button"
+                    <button type="button" id="itemModalCancelBtn"
                             data-bs-dismiss="modal"
                             style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
                             onmouseover="this.style.background='#f9fafb'"
@@ -470,12 +470,14 @@ function openItemModal(mode, data) {
         document.getElementById('item_lot_num').value = data.lot_num || '';
         document.getElementById('item_remarks').value = data.remarks || '';
         document.getElementById('item_remarks').disabled = true;
+        document.getElementById('itemModalCancelBtn').textContent = 'Close';
     } else if (mode === 'edit') {
         form.action = '<?php echo base_url('inventory/edit'); ?>/' + data.id;
         label.textContent = 'Edit Item';
         btn.textContent = 'Update Item';
         btn.style.display = '';
         disableFields(false);
+        document.getElementById('itemModalCancelBtn').textContent = 'Cancel';
         document.getElementById('item_code').value = data.item_code || '';
         document.getElementById('item_name').value = data.name || '';
         document.getElementById('item_category_id').value = data.category_id || '';
@@ -496,12 +498,14 @@ function openItemModal(mode, data) {
         document.getElementById('item_lot_num').value = data.lot_num || '';
         document.getElementById('item_remarks').value = data.remarks || '';
         document.getElementById('item_remarks').disabled = false;
+        document.getElementById('itemModalCancelBtn').textContent = 'Cancel';
     } else {
         form.action = '<?php echo base_url('inventory/create'); ?>';
         label.textContent = 'Add New Item';
         btn.textContent = 'Add Item';
         btn.style.display = '';
         disableFields(false);
+        document.getElementById('itemModalCancelBtn').textContent = 'Cancel';
         document.getElementById('item_code').value = '';
         document.getElementById('item_name').value = '';
         document.getElementById('item_category_id').value = '';

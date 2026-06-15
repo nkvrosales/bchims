@@ -72,8 +72,7 @@ class SupplyRequests extends BaseController
                                    ->get()->getResultArray();
             // Fetch in-stock Central Supply items for the request dropdown (one per item name)
             $items = $this->db->table('central_supply')
-                              ->select('MAX(central_supply_id) AS id, item_name AS name, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id')
-                              ->where('quantity_on_hand >', 0)
+                              ->select('MAX(central_supply_id) AS id, item_name AS name, MAX(item_code) AS item_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id')
                               ->groupBy('item_name')
                               ->orderBy('item_name', 'ASC')
                               ->get()->getResultArray();
