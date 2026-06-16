@@ -54,7 +54,7 @@
                     
                     <!-- Brand Text -->
                     <div class="d-none d-md-flex flex-column justify-content-center align-items-start">
-                        <div class="brand-title-serif" style="font-size: 0.8rem; font-weight: 800; color: #7e0000 !important; letter-spacing: -0.1px; line-height: 1.15; white-space: nowrap;">BIÑAN CITY HOSPITAL</div>
+                        <div class="brand-title-serif" style="font-size: 0.8rem; font-weight: 800; color: #000000 !important; letter-spacing: -0.1px; line-height: 1.15; white-space: nowrap;">BIÑAN CITY HOSPITAL</div>
                         <div style="font-family: var(--font-body); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.46rem; color: #64748b; margin-top: 1px; white-space: nowrap;">Inventory Management System</div>
                     </div>
                     

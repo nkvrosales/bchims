@@ -170,7 +170,6 @@
                 <table class="table table-custom table-hover w-100">
                     <thead>
                         <tr>
-                            <th style="width: 5%">#</th>
                             <th style="width: 18%">Date/Time</th>
                             <th style="width: 12%">User</th>
                             <th style="width: 12%">Action</th>
@@ -179,10 +178,8 @@
                     </thead>
                     <tbody>
                         <?php if (!empty($recent_logs)): ?>
-                            <?php $count = 1; ?>
                             <?php foreach ($recent_logs as $log): ?>
                                 <tr>
-                                    <td><span class="text-dark"><?php echo $count++; ?></span></td>
                                     <td>
                                         <span class="text-dark" style="font-size: 0.9rem;">
                                             <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
@@ -219,7 +216,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
+                                <td colspan="4" class="text-center py-5 text-muted">
                                     <i class="fa-regular fa-folder-open d-block fs-3 mb-2 text-secondary"></i>
                                     <span class="fw-medium">No recent logs found.</span>
                                 </td>

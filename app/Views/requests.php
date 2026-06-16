@@ -1114,6 +1114,33 @@
                 window.batchRow.updateAll();
             }, 150);
         });
+        document.addEventListener('hidden.bs.modal', function(e) {
+            var id = e.target.id || '';
+            var modal = e.target;
+            // Clear reject notes
+            var notes = modal.querySelector('textarea[name="reject_notes"]');
+            if (notes) notes.value = '';
+            // Reset batch rows to single default row
+            ['.serve-batch-rows', '.partial-batch-rows', '.complete-batch-rows'].forEach(function(sel) {
+                var container = modal.querySelector(sel);
+                if (container) {
+                    var rows = container.querySelectorAll('.serve-batch-row, .partial-batch-row, .complete-batch-row');
+                    // Remove all rows except first
+                    for (var i = rows.length - 1; i > 0; i--) {
+                        rows[i].remove();
+                    }
+                    // Reset first row
+                    var first = container.querySelector('.serve-batch-row, .partial-batch-row, .complete-batch-row');
+                    if (first) {
+                        var sel = first.querySelector('select');
+                        if (sel) sel.selectedIndex = 0;
+                        var qty = first.querySelector('input[type="number"]');
+                        if (qty) qty.value = '1';
+                    }
+                    window.batchRow.updateAll();
+                }
+            });
+        });
     });
     </script>
 

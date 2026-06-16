@@ -49,8 +49,8 @@
         <table class="table table-custom table-hover w-100" id="categoriesTable">
             <thead>
                 <tr>
-                    <th style="width: 20%">Code</th>
-                    <th style="width: 65%">Category</th>
+                    <th style="width: 20%">Category Code</th>
+                    <th style="width: 65%">Category Name</th>
                     <th style="width: 15%" class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -150,13 +150,14 @@
 
                     <div>
                         <label for="category_description" class="form-label small fw-semibold text-secondary">
-                            Description
+                            Category Name <span class="text-danger">*</span>
                         </label>
                         <input type="text"
                                class="form-control input-custom"
                                id="category_description"
                                name="category_description"
-                               value="<?php echo old('category_description'); ?>">
+                               value="<?php echo old('category_description'); ?>"
+                               required>
                     </div>
 
                 </div>

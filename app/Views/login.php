@@ -27,7 +27,7 @@
             </div>
             <!-- Center: title + subtitle -->
             <div class="text-center flex-grow-1">
-                <h2 class="brand-title-serif mb-1">BIÑAN CITY HOSPITAL</h2>
+                <h2 class="brand-title-serif mb-1" style="color: #000000 !important;">BIÑAN CITY HOSPITAL</h2>
                 <p class="mb-0" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.65rem; color: #64748b;">Inventory Management System</p>
             </div>
             <!-- Right: bchlogo -->

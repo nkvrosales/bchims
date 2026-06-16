@@ -69,6 +69,7 @@ class SupplyRequests extends BaseController
             $requests = $this->requestModel->get_requests(null, $user['department_id'] ?? 0);
             // Fetch categories for the filter dropdown
             $categories = $this->db->table('category')
+                                   ->where('status', 1)
                                    ->orderBy('category_code', 'ASC')
                                    ->get()->getResultArray();
             // Fetch in-stock Central Supply items for the request dropdown (one per item name)

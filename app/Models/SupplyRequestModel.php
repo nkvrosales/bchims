@@ -49,6 +49,6 @@ class SupplyRequestModel extends Model
             $builder = $builder->where('department_supply.department_id', $department_id);
         }
 
-        return $builder->groupBy('request.request_id')->orderBy('request.request_date', 'DESC')->findAll();
+        return $builder->groupBy('request.request_id')->orderBy('request.request_id', 'DESC')->findAll();
     }
 }
