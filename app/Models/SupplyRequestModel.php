@@ -27,6 +27,7 @@ class SupplyRequestModel extends Model
             request.quantity_requested AS quantity,
             request.quantity_served AS served_quantity,
             request.request_date AS created_at,
+            request.updated_at,
             central_supply.central_supply_id AS central_supply_id,
             central_supply.item_name AS item_name,
             central_supply.item_code AS item_code,

@@ -320,7 +320,7 @@
                                    id="item_quantity"
                                    name="quantity"
                                    min="0"
-                                   value="<?php echo old('quantity', '0'); ?>"
+                                   value="<?php echo old('quantity', ''); ?>"
                                    required>
                         </div>
 
@@ -453,7 +453,7 @@ function openItemModal(mode, data) {
         document.getElementById('item_code').value = data.item_code || '';
         document.getElementById('item_name').value = data.name || '';
         document.getElementById('item_category_id').value = data.category_id || '';
-        document.getElementById('item_quantity').value = data.quantity || 0;
+        document.getElementById('item_quantity').value = data.quantity !== undefined ? data.quantity : '';
         document.getElementById('item_unit').value = data.unit || '';
         document.getElementById('item_source_type').value = data.source_type || 'supplier';
         toggleSourceName();
@@ -481,7 +481,7 @@ function openItemModal(mode, data) {
         document.getElementById('item_code').value = data.item_code || '';
         document.getElementById('item_name').value = data.name || '';
         document.getElementById('item_category_id').value = data.category_id || '';
-        document.getElementById('item_quantity').value = data.quantity || 0;
+        document.getElementById('item_quantity').value = data.quantity !== undefined ? data.quantity : '';
         document.getElementById('item_unit').value = data.unit || '';
         document.getElementById('item_source_type').value = data.source_type || 'supplier';
         toggleSourceName();
@@ -509,7 +509,7 @@ function openItemModal(mode, data) {
         document.getElementById('item_code').value = '';
         document.getElementById('item_name').value = '';
         document.getElementById('item_category_id').value = '';
-        document.getElementById('item_quantity').value = '0';
+        document.getElementById('item_quantity').value = '';
         document.getElementById('item_unit').value = '';
         document.getElementById('item_source_type').value = '';
         document.getElementById('item_source_name_select').value = '';
@@ -569,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function () {
         item_code: '<?php echo addslashes(old('item_code', '')); ?>',
         name: '<?php echo addslashes(old('name', '')); ?>',
         category_id: '<?php echo addslashes(old('category_id', '')); ?>',
-        quantity: '<?php echo addslashes(old('quantity', '0')); ?>',
+        quantity: '<?php echo addslashes(old('quantity', '')); ?>',
         unit: '<?php echo addslashes(old('unit', '')); ?>',
         source_type: '<?php echo addslashes(old('source_type', 'supplier')); ?>',
         source_name: '<?php echo addslashes(old('source_name', '')); ?>',
@@ -584,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('item_code').value = '<?php echo addslashes(old('item_code', '')); ?>';
     document.getElementById('item_name').value = '<?php echo addslashes(old('name', '')); ?>';
     document.getElementById('item_category_id').value = '<?php echo addslashes(old('category_id', '')); ?>';
-    document.getElementById('item_quantity').value = '<?php echo addslashes(old('quantity', '0')); ?>';
+    document.getElementById('item_quantity').value = '<?php echo addslashes(old('quantity', '')); ?>';
     document.getElementById('item_unit').value = '<?php echo addslashes(old('unit', '')); ?>';
     document.getElementById('item_source_type').value = '<?php echo addslashes(old('source_type', '')); ?>';
     toggleSourceName();

@@ -213,7 +213,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[0, 'desc']], // Order by Date/Time descending (newest first)
+            order: [[0, 'desc'], [7, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -335,7 +335,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[6, 'asc'], [0, 'desc']],
+            order: [[7, 'asc'], [0, 'desc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -349,7 +349,7 @@ $(document).ready(function() {
                 zeroRecords: 'No supply requests found'
             },
             columnDefs: [
-                { orderable: false, targets: 7 },
+                { orderable: false, targets: 8 },
                 { type: 'num', targets: 0 }
             ],
             initComplete: function () {

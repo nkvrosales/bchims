@@ -121,16 +121,29 @@ class Categories extends BaseController
         ];
 
         if ($this->validate($rules)) {
+            $oldCat = $this->categoryModel->find($id);
+
             $updateData = [
                 'category_code'        => strtoupper($this->request->getPost('category_code')),
                 'category_description' => $this->request->getPost('category_description') ?: null,
             ];
 
             if ($this->categoryModel->update($id, $updateData)) {
+                $changes = [];
+                if (($oldCat['category_code'] ?? '') !== $updateData['category_code']) {
+                    $changes[] = "Code: '{$oldCat['category_code']}' → '{$updateData['category_code']}'";
+                }
+                if (($oldCat['category_description'] ?? '') !== ($updateData['category_description'] ?? '')) {
+                    $changes[] = "Description: '{$oldCat['category_description']}' → '{$updateData['category_description']}'";
+                }
+                $auditDesc = "Updated category: {$updateData['category_code']}.";
+                if ($changes) {
+                    $auditDesc .= ' Changes: ' . implode(', ', $changes);
+                }
                 $this->auditModel->log_activity(
                     'UPDATE_CATEGORY',
                     'Categories',
-                    "Updated category: {$updateData['category_code']}.",
+                    $auditDesc,
                     $id
                 );
 

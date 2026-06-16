@@ -164,7 +164,7 @@ class Inventory extends BaseController
             'category_id' => 'required|integer',
             'source_type' => 'required|in_list[supplier,donation,others]',
             'source_name' => 'permit_empty|max_length[150]',
-            'quantity'    => 'required|integer|greater_than_equal_to[0]',
+            'quantity'    => 'required|integer|greater_than[0]',
             'unit'               => 'required',
             'expiration_date'    => 'required|valid_date',
             'manufacturing_date' => 'permit_empty|valid_date',
@@ -295,10 +295,14 @@ class Inventory extends BaseController
             if ($db->transStatus() === false) {
                 session()->setFlashdata('error', 'An error occurred while creating the item.');
             } else {
+                $auditDesc = "Added new item: {$itemName} (Code: {$itemCode}) with initial quantity of {$quantity}.";
+                if ($remarks) {
+                    $auditDesc .= " Remarks: {$remarks}";
+                }
                 $this->auditModel->log_activity(
                     'ADD_ITEM',
                     'Inventory',
-                    "Added new item: {$itemName} (Code: {$itemCode}) with initial quantity of {$quantity}.",
+                    $auditDesc,
                     $itemId
                 );
                 session()->setFlashdata('success', 'Item successfully added to inventory!');
@@ -356,7 +360,7 @@ class Inventory extends BaseController
             'expiration_date'    => 'required|valid_date',
             'manufacturing_date' => 'permit_empty|valid_date',
         ];
-
+        
         if ($this->validate($rules)) {
             $expiration = $this->request->getPost('expiration_date');
             if (!empty($expiration) && $expiration < date('Y-m-d')) {
@@ -367,6 +371,10 @@ class Inventory extends BaseController
             }
 
             $db = \Config\Database::connect();
+
+            // Fetch old item for audit diff
+            $oldItem = $this->itemModel->find($id);
+
             $db->transStart();
 
             $update_data = [
@@ -429,10 +437,23 @@ class Inventory extends BaseController
                 session()->setFlashdata('modal_errors', '<li>An error occurred while updating the item. Please try again.</li>');
                 return redirect()->to('inventory')->withInput();
             } else {
+                $changes = [];
+                $fields = ['item_name' => 'Name', 'item_code' => 'Code', 'quantity' => 'Quantity', 'unit' => 'Unit', 'batch_num' => 'Batch', 'lot_num' => 'Lot', 'expiration_date' => 'Expiration', 'manufacturing_date' => 'Manufacturing', 'remarks' => 'Remarks'];
+                foreach ($fields as $key => $label) {
+                    $oldVal = $oldItem[$key] ?? '';
+                    $newVal = $update_data[$key] ?? '';
+                    if ((string)$oldVal !== (string)$newVal) {
+                        $changes[] = "{$label}: '{$oldVal}' → '{$newVal}'";
+                    }
+                }
+                $auditDesc = "Updated item: {$update_data['item_name']} (Code: {$update_data['item_code']}).";
+                if ($changes) {
+                    $auditDesc .= ' Changes: ' . implode(', ', $changes);
+                }
                 $this->auditModel->log_activity(
                     'UPDATE_ITEM',
                     'Inventory',
-                    "Updated item: {$update_data['item_name']} (Code: {$update_data['item_code']}).",
+                    $auditDesc,
                     $id
                 );
                 session()->setFlashdata('success', 'Item successfully updated!');
@@ -750,10 +771,14 @@ class Inventory extends BaseController
             session()->setFlashdata('error', 'An error occurred while consuming inventory.');
         } else {
             $displayName = $itemName ?: $itemCode;
+            $auditDesc = "Consumed {$quantity} unit(s) of {$displayName}.";
+            if ($reason) {
+                $auditDesc .= " Reason: {$reason}";
+            }
             $this->auditModel->log_activity(
                 'CONSUME_ITEM',
                 'Inventory',
-                "Consumed {$quantity} unit(s) of {$displayName}" . ($reason ? " ({$reason})" : "") . "."
+                $auditDesc
             );
             session()->setFlashdata('success', "Successfully consumed {$quantity} unit(s).");
         }

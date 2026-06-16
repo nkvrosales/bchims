@@ -283,6 +283,9 @@ class SupplyRequests extends BaseController
             session()->setFlashdata('error', 'An error occurred while submitting your requests.');
         } else {
             $logMsg = "{$user['full_name']} submitted a supply request batch for: " . implode(', ', $auditLogs) . " from Central Supply.";
+            if ($notes) {
+                $logMsg .= " Notes: {$notes}";
+            }
             $this->auditModel->log_activity(
                 'CREATE_SUPPLY_REQUEST',
                 'Supply Requests',
@@ -637,10 +640,14 @@ class SupplyRequests extends BaseController
         if ($db->transStatus() === false) {
             session()->setFlashdata('error', 'An error occurred while partially serving the request.');
         } else {
+            $auditDesc = "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$totalServed} of {$qtyRequested} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . ".";
+            if ($notes) {
+                $auditDesc .= " Remarks: {$notes}";
+            }
             $this->auditModel->log_activity(
                 'PARTIAL_SERVE_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$totalServed} of {$qtyRequested} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
+                $auditDesc
             );
             session()->setFlashdata('success', "Partially served! {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
@@ -684,10 +691,14 @@ class SupplyRequests extends BaseController
         }
 
         if ($this->requestModel->update($id, $updateData)) {
+            $auditDesc = "Rejected supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'.";
+            if ($notes) {
+                $auditDesc .= " Remarks: {$notes}";
+            }
             $this->auditModel->log_activity(
                 'REJECT_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Rejected supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'."
+                $auditDesc
             );
             session()->setFlashdata('success', 'Supply request rejected successfully.');
         } else {

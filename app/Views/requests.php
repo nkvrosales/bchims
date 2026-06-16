@@ -55,11 +55,12 @@
                 <thead>
                     <tr>
                         <th style="width: 7%">ID</th>
-                        <th style="width: 13%">Request Date</th>
-                        <th style="width: 16%">Requester</th>
-                        <th style="width: 12%">Department</th>
-                        <th style="width: 20%">Item Requested</th>
-                        <th style="width: 12%">Quantity</th>
+                        <th style="width: 12%">Request Date</th>
+                        <th style="width: 13%" class="col-last-updated">Last Updated</th>
+                        <th style="width: 13%">Requester</th>
+                        <th style="width: 10%">Department</th>
+                        <th style="width: 18%">Item Requested</th>
+                        <th style="width: 10%">Quantity</th>
                         <th style="width: 10%">Status</th>
                         <th style="width: 10%" class="text-end">Actions</th>
                     </tr>
@@ -73,6 +74,9 @@
                                 </td>
                                 <td data-order="<?php echo htmlspecialchars($req['created_at'] ?? ''); ?>">
                                     <span class="text-dark"><?php echo !empty($req['created_at']) ? date('Y-m-d', strtotime($req['created_at'])) : 'N/A'; ?></span>
+                                </td>
+                                <td class="col-last-updated" data-order="<?php echo htmlspecialchars($req['updated_at'] ?? $req['created_at'] ?? ''); ?>">
+                                    <span class="text-dark"><?php echo !empty($req['updated_at']) ? date('Y-m-d h:i A', strtotime($req['updated_at'])) : (!empty($req['created_at']) ? date('Y-m-d h:i A', strtotime($req['created_at'])) : 'N/A'); ?></span>
                                 </td>
                                 <td>
                                     <div class="text-dark"><?php echo htmlspecialchars($req['requester_full_name']); ?></div>
@@ -97,7 +101,7 @@
                                         <small class="text-muted">pcs</small>
                                     </div>
                                 </td>
-                                <td data-order="<?php echo $req['request_status'] === 'Served' ? 1 : ($req['request_status'] === 'Rejected' ? 2 : 0); ?>">
+                                <td data-order="<?php echo ($req['request_status'] === 'Served' || $req['request_status'] === 'Rejected') ? 1 : 0; ?>">
                                     <?php 
                                         if ($req['request_status'] === 'Served') {
                                             $badge = 'bg-success-subtle text-success border border-success-subtle';
@@ -116,37 +120,48 @@
                                 <td class="text-end">
                                     <?php if (is_admin_role() && $req['request_status'] === 'Pending'): ?>
                                         <div class="d-inline-flex gap-2">
+                                            <!-- View Details -->
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
+                                                    id="btnTriggerView_<?php echo $req['request_id']; ?>"
+                                                    title="View Details"
+                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+
                                             <!-- Serve Button Trigger -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#serveModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerServe_<?php echo $req['request_id']; ?>"
-                                                    title="Serve Request">
+                                                    title="Serve Request"
+                                                    style="width: 32px; height: 32px; padding: 0;">
                                                 <i class="bi bi-check-circle"></i>
-                                                <span class="small fw-semibold">Serve</span>
                                             </button>
 
                                             <!-- Partial Serve Trigger -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 rounded-2"
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
-                                                    title="Serve Partially">
+                                                    title="Serve Partially"
+                                                    style="width: 32px; height: 32px; padding: 0;">
                                                 <i class="fa-solid fa-circle-half-stroke"></i>
-                                                <span class="small fw-semibold">Partial</span>
                                             </button>
 
                                             <!-- Reject Button Trigger -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 rounded-2"
+                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#rejectModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerReject_<?php echo $req['request_id']; ?>"
-                                                    title="Reject Request">
+                                                    title="Reject Request"
+                                                    style="width: 32px; height: 32px; padding: 0;">
                                                 <i class="fa-solid fa-xmark"></i>
-                                                <span class="small fw-semibold">Reject</span>
                                             </button>
 
                                             <!-- Archive Button Trigger -->
@@ -162,26 +177,37 @@
                                         </div>
                                     <?php elseif (is_admin_role() && $req['request_status'] === 'Partially Served'): ?>
                                         <div class="d-inline-flex gap-2">
+                                            <!-- View Details -->
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
+                                                    id="btnTriggerView_<?php echo $req['request_id']; ?>"
+                                                    title="View Details"
+                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+
                                             <!-- Complete -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 rounded-2"
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>"
-                                                    title="Complete Partially Served Request">
+                                                    title="Complete Partially Served Request"
+                                                    style="width: 32px; height: 32px; padding: 0;">
                                                 <i class="bi bi-check-circle"></i>
-                                                <span class="small fw-semibold">Complete</span>
                                             </button>
 
                                             <!-- Partial Serve Again -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 rounded-2"
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
-                                                    title="Serve Partially">
+                                                    title="Serve Partially"
+                                                    style="width: 32px; height: 32px; padding: 0;">
                                                 <i class="fa-solid fa-circle-half-stroke"></i>
-                                                <span class="small fw-semibold">Partial</span>
                                             </button>
 
                                             <!-- Archive -->
@@ -199,7 +225,7 @@
                                         <div class="d-inline-flex gap-2">
                                             <!-- View Details (icon only) -->
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
                                                     id="btnTriggerView_<?php echo $req['request_id']; ?>"
@@ -223,7 +249,7 @@
                                     <?php else: ?>
                                         <div class="d-inline-flex gap-2">
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
+                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
                                                     title="View Details"
@@ -1097,10 +1123,13 @@
         <?php if (session()->get('role') === 'encoder'): ?>
         #supplyRequestsTable th:nth-child(1),
         #supplyRequestsTable td:nth-child(1),
-        #supplyRequestsTable th:nth-child(3),
-        #supplyRequestsTable td:nth-child(3),
         #supplyRequestsTable th:nth-child(4),
-        #supplyRequestsTable td:nth-child(4) { display: none; }
+        #supplyRequestsTable td:nth-child(4),
+        #supplyRequestsTable th:nth-child(5),
+        #supplyRequestsTable td:nth-child(5) { display: none; }
+        #supplyRequestsTable .col-last-updated { display: table-cell; }
+    <?php else: ?>
+        #supplyRequestsTable .col-last-updated { display: none; }
         <?php endif; ?>
 
         #createRequestModal .form-control.input-custom,

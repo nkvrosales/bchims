@@ -130,6 +130,8 @@ class Sources extends BaseController
         ];
 
         if ($this->validate($rules)) {
+            $oldSource = $this->sourceModel->find($id);
+
             $updateData = [
                 'source_type'    => $this->request->getPost('source_type'),
                 'supplier_name'  => $this->request->getPost('supplier_name'),
@@ -139,10 +141,23 @@ class Sources extends BaseController
             ];
 
             if ($this->sourceModel->update($id, $updateData)) {
+                $changes = [];
+                $sourceFields = ['supplier_name' => 'Name', 'source_type' => 'Type', 'contact_person' => 'Contact Person', 'contact_number' => 'Contact Number', 'address' => 'Address'];
+                foreach ($sourceFields as $key => $label) {
+                    $oldVal = $oldSource[$key] ?? '';
+                    $newVal = $updateData[$key] ?? '';
+                    if ((string)$oldVal !== (string)$newVal) {
+                        $changes[] = "{$label}: '{$oldVal}' → '{$newVal}'";
+                    }
+                }
+                $auditDesc = "Updated source: {$updateData['supplier_name']} ({$updateData['source_type']}).";
+                if ($changes) {
+                    $auditDesc .= ' Changes: ' . implode(', ', $changes);
+                }
                 $this->auditModel->log_activity(
                     'UPDATE_SOURCE',
                     'Sources',
-                    "Updated source: {$updateData['supplier_name']} ({$updateData['source_type']}).",
+                    $auditDesc,
                     $id
                 );
 
