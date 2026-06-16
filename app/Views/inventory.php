@@ -152,7 +152,7 @@
                                            "item_name" => $item["item_name"],
                                        ]); ?>)'
                                        title="Consume Item">
-                                        <i class="fa-solid fa-minus"></i>
+                                        <i class="bi bi-dash-circle"></i>
                                     </button>
                                     <?php endif; ?>
                                      <?php if ($isAdmin): ?>

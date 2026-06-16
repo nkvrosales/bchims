@@ -221,7 +221,7 @@
                                             style="width: 32px; height: 32px; padding: 0 !important;"
                                             title="You cannot modify yourself"
                                             disabled>
-                                        <i class="fa-solid fa-trash"></i>
+                                        <i class="fa-solid fa-user-slash"></i>
                                     </button>
                                 <?php endif; ?>
                             </div>
@@ -379,13 +379,16 @@
 
                         <!-- Status -->
                         <div class="col-12 col-sm-6" id="statusContainer">
-                            <label for="modal_is_active" class="form-label small fw-semibold text-secondary">
+                            <label class="form-label small fw-semibold text-secondary">
                                 Status <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select input-custom" id="modal_is_active" name="is_active" required>
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" name="is_active" value="0">
+                                    <input type="checkbox" class="form-check-input" role="switch" id="modal_is_active" name="is_active" value="1" checked>
+                                </div>
+                                <span id="statusText" class="fw-semibold small text-dark">Active</span>
+                            </div>
                             <div class="form-text small text-secondary" id="statusSelfInfo" style="display: none;">
                                 <i class="fa-solid fa-circle-info me-1"></i>You cannot deactivate your active admin session.
                             </div>
@@ -539,7 +542,8 @@
         const submitBtn = document.getElementById('btnSubmitUser');
         
         const roleSelect = document.getElementById('modal_role');
-        const statusSelect = document.getElementById('modal_is_active');
+        const statusSwitch = document.getElementById('modal_is_active');
+        const statusText = document.getElementById('statusText');
         const roleSelfInfo = document.getElementById('roleSelfInfo');
         const statusSelfInfo = document.getElementById('statusSelfInfo');
         
@@ -562,7 +566,6 @@
             passwordInput.disabled = false;
             
             statusContainer.style.display = 'none';
-            statusSelect.required = false;
             
             // Populate fields
             document.getElementById('modal_first_name').value = data.firstName || '';
@@ -577,10 +580,11 @@
             roleSelect.value = data.role || '';
             document.getElementById('modal_department_id').value = data.departmentId || '';
             document.getElementById('modal_department_id').disabled = false;
-            statusSelect.value = '1';
+            statusSwitch.checked = true;
+            statusText.textContent = 'Active';
             
             roleSelect.disabled = false;
-            statusSelect.disabled = false;
+            statusSwitch.disabled = false;
             if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             if (statusSelfInfo) statusSelfInfo.style.display = 'none';
             document.getElementById('userModalCancelBtn').textContent = 'Cancel';
@@ -597,7 +601,6 @@
             passwordInput.disabled = false;
             
             statusContainer.style.display = 'block';
-            statusSelect.required = true;
             
             // Populate fields
             document.getElementById('modal_first_name').value = data.firstName || '';
@@ -618,8 +621,9 @@
                 roleSelect.disabled = true;
                 if (roleSelfInfo) roleSelfInfo.style.display = 'block';
                 
-                statusSelect.value = '1';
-                statusSelect.disabled = true;
+                statusSwitch.checked = true;
+                statusText.textContent = 'Active';
+                statusSwitch.disabled = true;
                 if (statusSelfInfo) statusSelfInfo.style.display = 'block';
                 
                 // Add hidden inputs since disabled fields are not submitted
@@ -641,8 +645,11 @@
                 roleSelect.disabled = false;
                 if (roleSelfInfo) roleSelfInfo.style.display = 'none';
                 
-                statusSelect.value = data.isActive !== undefined ? data.isActive : '1';
-                statusSelect.disabled = false;
+                const isActive = data.isActive == '1' || data.isActive == 1 || data.isActive === true;
+                statusSwitch.checked = isActive;
+                statusText.textContent = isActive ? 'Active' : 'Inactive';
+                statusText.className = 'fw-semibold small ' + (isActive ? 'text-dark' : 'text-muted');
+                statusSwitch.disabled = false;
                 if (statusSelfInfo) statusSelfInfo.style.display = 'none';
             }
             document.getElementById('userModalCancelBtn').textContent = 'Cancel';
@@ -653,22 +660,24 @@
             
             labelPassword.textContent = 'Password';
             passwordInput.required = false;
-            passwordInput.placeholder = '';
+            passwordInput.placeholder = '••••••••';
             passwordInput.disabled = true;
             
             statusContainer.style.display = 'block';
-            statusSelect.required = false;
-            statusSelect.disabled = true;
+            statusSwitch.disabled = true;
             
             document.getElementById('modal_first_name').value = data.firstName || '';
             document.getElementById('modal_last_name').value = data.lastName || '';
             document.getElementById('modal_username').value = data.username || '';
-            document.getElementById('modal_email').value = data.email || '';
+            document.getElementById('modal_email').value = data.email || 'N/A';
             passwordInput.value = '';
             document.getElementById('modal_department_id').value = data.departmentId || '';
             roleSelect.value = data.role || '';
             roleSelect.disabled = true;
-            statusSelect.value = data.isActive !== undefined ? data.isActive : '1';
+            const isActive = data.isActive == '1' || data.isActive == 1 || data.isActive === true;
+            statusSwitch.checked = isActive;
+            statusText.textContent = isActive ? 'Active' : 'Inactive';
+            statusText.className = 'fw-semibold small ' + (isActive ? 'text-dark' : 'text-muted');
             
             document.getElementById('modal_first_name').disabled = true;
             document.getElementById('modal_last_name').disabled = true;
@@ -683,6 +692,14 @@
 
         toggleAdminDept();
     }
+
+    document.getElementById('modal_is_active')?.addEventListener('change', function () {
+        const st = document.getElementById('statusText');
+        if (st) {
+            st.textContent = this.checked ? 'Active' : 'Inactive';
+            st.className = 'fw-semibold small ' + (this.checked ? 'text-dark' : 'text-muted');
+        }
+    });
 
     document.getElementById('userModal')?.addEventListener('hidden.bs.modal', function () {
         const form = this.querySelector('form');
@@ -799,4 +816,8 @@
 <!-- Hover style for Add New User button -->
 <style>
     #btnAddNewUser:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
+    #modal_is_active:checked { background-color: #198754; border-color: #198754; }
+    .form-switch .form-check-input { width: 3em; height: 1.5em; }
+    .form-switch .form-check-input:focus { box-shadow: none; outline: none; border-color: #198754; }
+    .form-switch .form-check-input:focus-visible { outline: none; }
 </style>

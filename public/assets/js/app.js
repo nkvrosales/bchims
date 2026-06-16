@@ -213,7 +213,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[0, 'desc'], [7, 'asc']],
+            order: [[0, 'desc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',

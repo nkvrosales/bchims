@@ -268,10 +268,21 @@ class Dashboard extends BaseController
 
                     // Log activity
                     $auditDesc = "Updated own profile details.";
+                    $changes = [];
                     if (!empty($password)) {
-                        $auditDesc .= " Changed name and password.";
-                    } else {
-                        $auditDesc .= " Changed name.";
+                        $changes[] = "Password";
+                    }
+                    if ($update_data['first_name'] !== $user['first_name']) {
+                        $changes[] = "First Name";
+                    }
+                    if ($update_data['last_name'] !== $user['last_name']) {
+                        $changes[] = "Last Name";
+                    }
+                    if ($update_data['username'] !== $user['username']) {
+                        $changes[] = "Username";
+                    }
+                    if (!empty($changes)) {
+                        $auditDesc .= " Changed " . implode(', ', $changes) . ".";
                     }
                     $this->auditModel->log_activity('UPDATE_PROFILE', 'Auth', $auditDesc);
 
