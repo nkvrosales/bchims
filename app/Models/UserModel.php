@@ -34,6 +34,9 @@ class UserModel extends Model
 
         if ($user) {
             if (password_verify($password, $user['password'])) {
+                if (password_needs_rehash($user['password'], PASSWORD_ARGON2ID)) {
+                    $this->update($user['user_id'], ['password' => password_hash($password, PASSWORD_ARGON2ID)]);
+                }
                 unset($user['password']);
                 return $user;
             }
@@ -80,7 +83,7 @@ class UserModel extends Model
     public function insert_user($data)
     {
         if (!empty($data['password'])) {
-            $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+            $data['password'] = password_hash($data['password'], PASSWORD_ARGON2ID);
         }
         return $this->insert($data);
     }
@@ -91,7 +94,7 @@ class UserModel extends Model
     public function update_user($id, $data)
     {
         if (!empty($data['password'])) {
-            $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+            $data['password'] = password_hash($data['password'], PASSWORD_ARGON2ID);
         } else {
             unset($data['password']);
         }
