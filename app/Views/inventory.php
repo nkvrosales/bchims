@@ -55,11 +55,12 @@
             <thead>
                 <tr>
                     <th style="width: 14%">Code</th>
-                    <th style="width: 22%">Name</th>
-                    <th style="width: 14%">Category</th>
+                    <th style="width: 20%">Name</th>
+                    <th style="width: 12%">Category</th>
+                    <th style="width: 8%">Unit</th>
                     <th style="width: 10%">Total Inventory</th>
                     <th style="width: 10%"><?php echo $isAdmin ? 'Served' : 'Total Consumption'; ?></th>
-                    <th style="width: 10%">In Stock</th>
+                    <th style="width: 10%">On Hand</th>
                     <th style="width: 12%">Stock Status</th>
                     <th style="width: 8%" class="text-end">Actions</th>
                 </tr>
@@ -78,14 +79,14 @@
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_description'] ?? 'N/A'); ?></span>
                             </td>
                             <td>
+                                <span class="text-dark"><?php echo htmlspecialchars($item['unit'] ?? 'N/A'); ?></span>
+                            </td>
+                            <td class="text-end">
                                 <span class="fs-6 text-dark">
                                     <?php echo (int)$item['total_quantity']; ?>
-                                    <?php if (!empty($item['unit'])): ?>
-                                        <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
-                                    <?php endif; ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-end">
                                 <span class="fs-6 text-dark">
                                     <?php
                                         $consumed = (int)$item['total_quantity'] - (int)$item['quantity_on_hand'];
@@ -93,29 +94,26 @@
                                     ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-end">
                                 <span class="fs-6 text-dark">
                                     <?php echo (int)$item['quantity_on_hand']; ?>
-                                    <?php if (!empty($item['unit'])): ?>
-                                        <small class="text-secondary fw-normal ms-1">(<?php echo htmlspecialchars($item['unit']); ?>)</small>
-                                    <?php endif; ?>
                                 </span>
                             </td>
                             <td>
                                 <?php
                                     $stockQty = (int)$item['quantity_on_hand'];
                                     if ($stockQty === 0) {
-                                        $badge  = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                        $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
                                         $status = 'Out of Stock';
                                     } elseif ($stockQty <= 10) {
-                                        $badge  = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                        $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         $status = 'Low Stock';
                                     } else {
-                                        $badge  = 'bg-success-subtle text-success border border-success-subtle';
+                                        $badge  = 'bg-success-subtle text-dark border border-success-subtle';
                                         $status = 'In Stock';
                                     }
                                 ?>
-                                <span class="badge badge-action <?php echo $badge; ?>">
+                                    <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
                                     <?php echo $status; ?>
                                 </span>
                             </td>

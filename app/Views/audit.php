@@ -63,16 +63,16 @@
                                 <?php 
                                     $badge_class = 'bg-secondary';
                                     if ($log['action'] === 'LOGIN') {
-                                        $badge_class = 'bg-success-subtle text-success border border-success-subtle';
+                                        $badge_class = 'bg-success-subtle text-dark border border-success-subtle';
                                     } elseif ($log['action'] === 'LOGOUT') {
-                                        $badge_class = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+                                        $badge_class = 'bg-secondary-subtle text-dark border border-secondary-subtle';
                                     } elseif ($log['action'] === 'LOGIN_FAIL') {
-                                        $badge_class = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                        $badge_class = 'bg-danger-subtle text-dark border border-danger-subtle';
                                     } elseif ($log['action'] === 'PAGE_VIEW') {
-                                        $badge_class = 'bg-info-subtle text-info border border-info-subtle';
+                                        $badge_class = 'bg-info-subtle text-dark border border-info-subtle';
                                     }
                                 ?>
-                                <span class="badge badge-action <?php echo $badge_class; ?>">
+                                <span class="badge badge-action rounded-pill <?php echo $badge_class; ?>">
                                     <?php echo $log['action']; ?>
                                 </span>
                             </td>

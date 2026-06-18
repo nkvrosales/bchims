@@ -388,7 +388,7 @@ $(document).ready(function() {
                 zeroRecords: 'No inventory items found'
             },
             columnDefs: [
-                { orderable: false, targets: 5 }
+                { orderable: false, targets: 8 }
             ],
             initComplete: function () {
                 var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');

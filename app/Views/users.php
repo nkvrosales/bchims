@@ -98,22 +98,22 @@
                             else echo 3;
                         ?>">
                             <?php if ($r === 'dev'): ?>
-                                <span class="badge rounded-2 px-2 py-1 small fw-semibold"
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
                                       style="background:#f3e8ff; color:#7c3aed; border:1px solid #d8b4fe;">
                                     DEV
                                 </span>
                             <?php elseif ($r === 'admin' || $r === 'administrator'): ?>
-                                <span class="badge rounded-2 px-2 py-1 small fw-semibold"
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
                                       style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">
                                     ADMIN
                                 </span>
                             <?php elseif ($r === 'encoder'): ?>
-                                <span class="badge rounded-2 px-2 py-1 small fw-semibold"
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
                                       style="background:#ccfbf1; color:#0f766e; border:1px solid #99f6e4;">
                                     ENCODER
                                 </span>
                             <?php else: ?>
-                                <span class="badge rounded-2 px-2 py-1 small fw-semibold"
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
                                       style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">
                                     VIEWER
                                 </span>

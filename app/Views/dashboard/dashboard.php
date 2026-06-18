@@ -124,16 +124,16 @@
                                     <td>
                                         <?php 
                                             if ($req['request_status'] === 'Served') {
-                                                $badge = 'bg-success-subtle text-success border border-success-subtle';
+                                                $badge = 'bg-success-subtle text-dark border border-success-subtle';
                                             } elseif ($req['request_status'] === 'Partially Served') {
-                                                $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
+                                                $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
                                             } elseif ($req['request_status'] === 'Rejected') {
-                                                $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                                $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
                                             } else {
-                                                $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                                $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
                                             }
                                         ?>
-                                        <span class="badge badge-action <?php echo $badge; ?>">
+                                        <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
                                             <?php echo $req['request_status']; ?>
                                         </span>
                                     </td>
@@ -194,16 +194,16 @@
                                         <?php 
                                             $badge_class = 'bg-secondary';
                                             if (in_array($log['action'], array('LOGIN', 'CREATE_DEPT', 'CREATE_USER', 'ADD_ITEM', 'COMPLETE_PARTIAL_SUPPLY_REQUEST', 'SERVE_SUPPLY_REQUEST', 'PARTIAL_SUPPLY_REQUEST'))) {
-                                                $badge_class = 'bg-success-subtle text-success border border-success-subtle';
+                                                $badge_class = 'bg-success-subtle text-dark border border-success-subtle';
                                             } elseif (in_array($log['action'], array('LOGOUT', 'DELETE_DEPT', 'DELETE_USER', 'DELETE_ITEM', 'DELETE_SUPPLY_REQUEST', 'BULK_DELETE_SUPPLY_REQUESTS'))) {
-                                                $badge_class = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+                                                $badge_class = 'bg-secondary-subtle text-dark border border-secondary-subtle';
                                             } elseif (in_array($log['action'], array('LOGIN_FAIL', 'SYSTEM_ERR', 'REJECT_SUPPLY_REQUEST'))) {
-                                                $badge_class = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                                $badge_class = 'bg-danger-subtle text-dark border border-danger-subtle';
                                             } elseif (in_array($log['action'], array('UPDATE_DEPT', 'UPDATE_USER', 'UPDATE_ITEM', 'UPDATE_PROFILE'))) {
-                                                $badge_class = 'bg-info-subtle text-info border border-info-subtle';
+                                                $badge_class = 'bg-info-subtle text-dark border border-info-subtle';
                                             }
                                         ?>
-                                        <span class="badge badge-action <?php echo $badge_class; ?>">
+                                        <span class="badge badge-action rounded-pill <?php echo $badge_class; ?>">
                                             <?php echo $log['action']; ?>
                                         </span>
                                     </td>

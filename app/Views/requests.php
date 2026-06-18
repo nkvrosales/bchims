@@ -104,16 +104,16 @@
                                 <td data-order="<?php echo ($req['request_status'] === 'Served' || $req['request_status'] === 'Rejected') ? 1 : 0; ?>">
                                     <?php 
                                         if ($req['request_status'] === 'Served') {
-                                            $badge = 'bg-success-subtle text-success border border-success-subtle';
+                                            $badge = 'bg-success-subtle text-dark border border-success-subtle';
                                         } elseif ($req['request_status'] === 'Partially Served') {
-                                            $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
+                                            $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
                                         } elseif ($req['request_status'] === 'Rejected') {
-                                            $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                            $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
                                         } else {
-                                            $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                            $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         }
                                     ?>
-                                    <span class="badge badge-action <?php echo $badge; ?>">
+                                    <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
                                         <?php echo $req['request_status']; ?>
                                     </span>
                                 </td>
@@ -613,16 +613,16 @@
                                     <label class="small fw-semibold text-secondary d-block">Status</label>
                                     <?php 
                                         if ($req['request_status'] === 'Served') {
-                                            $badge = 'bg-success-subtle text-success border border-success-subtle';
+                                            $badge = 'bg-success-subtle text-dark border border-success-subtle';
                                         } elseif ($req['request_status'] === 'Partially Served') {
-                                            $badge = 'bg-primary-subtle text-primary border border-primary-subtle';
+                                            $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
                                         } elseif ($req['request_status'] === 'Rejected') {
-                                            $badge = 'bg-danger-subtle text-danger border border-danger-subtle';
+                                            $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
                                         } else {
-                                            $badge = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                            $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         }
                                     ?>
-                                    <span class="badge <?php echo $badge; ?>"><?php echo $req['request_status']; ?></span>
+                                    <span class="badge rounded-pill <?php echo $badge; ?>"><?php echo $req['request_status']; ?></span>
                                 </div>
                                 <div class="col-12"><hr class="my-1"></div>
                                 <div class="col-6">
