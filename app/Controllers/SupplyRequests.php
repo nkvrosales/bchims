@@ -58,7 +58,8 @@ class SupplyRequests extends BaseController
         $userId = session()->get('user_id');
         $user   = $this->userModel->get_user_by_id($userId);
         $role   = session()->get('role');
-        $search = trim((string) $this->request->getGet('search'));
+        $search        = trim((string) $this->request->getGet('search'));
+        $status_filter = trim((string) $this->request->getGet('status_filter'));
 
         if (is_admin_role()) {
             $requests = $this->requestModel->get_requests();
@@ -122,12 +123,20 @@ class SupplyRequests extends BaseController
             }));
         }
 
-        $data['title']      = 'Supply Requests';
-        $data['requests']   = $requests;
-        $data['user']       = $user;
-        $data['items']      = $items;
-        $data['categories'] = $categories;
-        $data['search']     = $search;
+        // Filter by status dropdown
+        if ($status_filter !== '') {
+            $requests = array_values(array_filter($requests, static function ($req) use ($status_filter) {
+                return strcasecmp((string)($req['request_status'] ?? ''), $status_filter) === 0;
+            }));
+        }
+
+        $data['title']         = is_admin_role() ? 'Central Requests' : ($user['department_name'] ?? 'My') . ' Requests';
+        $data['requests']      = $requests;
+        $data['user']          = $user;
+        $data['items']         = $items;
+        $data['categories']    = $categories;
+        $data['search']        = $search;
+        $data['status_filter'] = $status_filter;
         $data['batches_by_code'] = $batchesByCode;
 
         return view('templates/header', $data)

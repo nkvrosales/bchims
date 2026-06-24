@@ -25,7 +25,7 @@
 <div class="row g-4 mb-4 fade-in-up" style="animation-delay: 0.05s;">
 
     <!-- Inventory Count -->
-    <div class="col-12 col-sm-6 col-xl-3">
+    <div class="col-lg-6 col-xl-3 col-12">
         <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Inventory Count</div>
@@ -36,20 +36,8 @@
         </div>
     </div>
     
-    <!-- Low Stock Count -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=low_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--warning); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
-            <div>
-                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Low Stock Count</div>
-                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_low_stock; ?></h3>
-               
-            </div>
-           
-        </div>
-    </div>
-
     <!-- No Stock Count -->
-    <div class="col-12 col-sm-6 col-xl-3">
+    <div class="col-lg-6 col-xl-3 col-12">
         <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=out_of_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--danger); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">No Stock Count</div>
@@ -58,9 +46,19 @@
         </div>
     </div>
 
+    <!-- Expired Count -->
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=expired'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #6b7280; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Expired Count</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_expired; ?></h3>
+            </div>
+        </div>
+    </div>
+
     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
     <!-- Supply Requests -->
-    <div class="col-12 col-sm-6 col-xl-3">
+    <div class="col-lg-6 col-xl-3 col-12">
         <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Supply Requests</div>
@@ -80,7 +78,7 @@
                 <h5 class="card-title-styled">
                     <span>Recent Supply Requests</span>
                 </h5>
-                <a href="<?php echo base_url('requests'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
+                <a href="<?php echo base_url('requests'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
                     <span>View All</span>
                 </a>
             </div>
@@ -161,7 +159,7 @@
                 <h5 class="card-title-styled">
                     <span>Recent Activities</span>
                 </h5>
-                <a href="<?php echo base_url('audit'); ?>" class="btn btn-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">
+                <a href="<?php echo base_url('audit'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2" id="kpiQuickActionBtn">
                     <span>View All</span>
                 </a>
             </div>
@@ -182,7 +180,7 @@
                                 <tr>
                                     <td>
                                         <span class="text-dark" style="font-size: 0.9rem;">
-                                            <?php echo date('F j, Y g:i A', strtotime($log['created_at'])); ?>
+                                            <?php echo date('M j, Y g:i A', strtotime($log['created_at'])); ?>
                                         </span>
                                     </td>
                                     <td>

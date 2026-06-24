@@ -88,9 +88,9 @@ class ItemModel extends Model
     }
 
     /**
-     * Fetch list of inventory items based on search query, department_id, role, and stock status.
+     * Fetch list of inventory items based on search query, department_id, role, stock status, and category.
      */
-    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '')
+    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null)
     {
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
@@ -123,17 +123,23 @@ class ItemModel extends Model
                                    ->groupEnd();
             }
 
+            if (!empty($category_id)) {
+                $builder = $builder->where('central_supply.category_id', (int)$category_id);
+            }
+
             $builder = $builder->where('central_supply.status', 1);
 
             $builder = $builder->groupBy('central_supply.item_code, central_supply.item_name');
 
             if (!empty($stock_status)) {
                 if ($stock_status === 'low_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) <= 10 AND SUM(central_supply.quantity_on_hand) > 0', null, false);
+                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) <= SUM(central_supply.quantity) * 0.15 AND SUM(central_supply.quantity_on_hand) > 0', null, false);
                 } elseif ($stock_status === 'out_of_stock') {
                     $builder = $builder->having('SUM(central_supply.quantity_on_hand) = 0', null, false);
                 } elseif ($stock_status === 'in_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) > 10', null, false);
+                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) > SUM(central_supply.quantity) * 0.15', null, false);
+                } elseif ($stock_status === 'expired') {
+                    $builder = $builder->having('MAX(central_supply.expiration_date) < CURDATE() AND SUM(central_supply.quantity_on_hand) > 0', null, false);
                 }
             }
 
@@ -162,8 +168,8 @@ class ItemModel extends Model
                                 ->join('category', 'category.category_id = inventory.category_id', 'left')
                                 ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
                                 ->join('source', 'source.source_id = central_supply.source_id', 'left')
-                                 ->where('department_supply.department_id', $department_id)
-                                 ->where('inventory.status', 1);
+                                ->where('department_supply.department_id', $department_id)
+                                ->where('inventory.status', 1);
 
             if (!empty($search)) {
                 $builder = $builder->groupStart()
@@ -172,15 +178,21 @@ class ItemModel extends Model
                                    ->groupEnd();
             }
 
+            if (!empty($category_id)) {
+                $builder = $builder->where('inventory.category_id', (int)$category_id);
+            }
+
             $builder = $builder->groupBy('inventory.item_code, inventory.item_name');
 
             if (!empty($stock_status)) {
                 if ($stock_status === 'low_stock') {
-                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) <= 10 AND SUM(department_supply.quantity_on_hand) > 0', null, false);
+                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) <= SUM(department_supply.quantity_received) * 0.15 AND SUM(department_supply.quantity_on_hand) > 0', null, false);
                 } elseif ($stock_status === 'out_of_stock') {
                     $builder = $builder->having('SUM(department_supply.quantity_on_hand) = 0', null, false);
                 } elseif ($stock_status === 'in_stock') {
-                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) > 10', null, false);
+                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) > SUM(department_supply.quantity_received) * 0.15', null, false);
+                } elseif ($stock_status === 'expired') {
+                    $builder = $builder->having('MAX(inventory.expiration_date) < CURDATE() AND SUM(department_supply.quantity_on_hand) > 0', null, false);
                 }
             }
 

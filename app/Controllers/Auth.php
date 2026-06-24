@@ -53,8 +53,9 @@ class Auth extends BaseController
                     'first_name'    => $user['first_name'],
                     'full_name'     => $user['full_name'],  // "LastName, FirstName"
                     'role'          => $user['role'],
-                    'department_id' => $user['department_id'] ?? null,
-                    'logged_in'     => true
+                    'department_id'   => $user['department_id'] ?? null,
+                    'department_name' => $user['department_name'] ?? null,
+                    'logged_in'       => true
                 ];
                 $session->set($session_data);
 
@@ -65,8 +66,8 @@ class Auth extends BaseController
                 return redirect()->to('dashboard');
             } else {
                 // Set flash data and reload login page
-                $session->setFlashdata('error', 'Invalid username or password.');
-                return redirect()->to('auth/login');
+                $session->setFlashdata('error', 'Invalid login credentials');
+                return redirect()->to('auth/login')->withInput();
             }
         }
     }

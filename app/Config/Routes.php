@@ -67,15 +67,15 @@ $routes->group('categories', function($routes) {
     $routes->get('delete/(:num)', 'Categories::delete/$1');
 });
 
-$routes->group('sources', function($routes) {
-    $routes->get('/', 'Sources::index');
-    $routes->get('create', 'Sources::create');
-    $routes->post('create', 'Sources::create');
-    $routes->get('edit/(:num)', 'Sources::edit/$1');
-    $routes->post('edit/(:num)', 'Sources::edit/$1');
-    $routes->get('archive/(:num)', 'Sources::archive/$1');
-    $routes->get('restore/(:num)', 'Sources::restore/$1');
-    $routes->get('delete/(:num)', 'Sources::delete/$1');
+$routes->group('suppliers', function($routes) {
+    $routes->get('/', 'Suppliers::index');
+    $routes->get('create', 'Suppliers::create');
+    $routes->post('create', 'Suppliers::create');
+    $routes->get('edit/(:num)', 'Suppliers::edit/$1');
+    $routes->post('edit/(:num)', 'Suppliers::edit/$1');
+    $routes->get('archive/(:num)', 'Suppliers::archive/$1');
+    $routes->get('restore/(:num)', 'Suppliers::restore/$1');
+    $routes->get('delete/(:num)', 'Suppliers::delete/$1');
 });
 
 $routes->group('requests', function($routes) {
@@ -85,6 +85,8 @@ $routes->group('requests', function($routes) {
     $routes->post('partial/(:num)', 'SupplyRequests::partial/$1');
     $routes->post('complete_partial/(:num)', 'SupplyRequests::complete_partial/$1');
     $routes->post('reject/(:num)', 'SupplyRequests::reject/$1');
+    $routes->post('edit/(:num)', 'SupplyRequests::edit/$1');
+    $routes->post('cancel/(:num)', 'SupplyRequests::cancel/$1');
     $routes->post('archive/(:num)', 'SupplyRequests::archive/$1');
     $routes->post('restore/(:num)', 'SupplyRequests::restore/$1');
     $routes->post('archive_selected', 'SupplyRequests::archive_selected');

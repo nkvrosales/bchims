@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class SourceModel extends Model
+class SupplierModel extends Model
 {
     protected $table      = 'source';
     protected $primaryKey = 'source_id';

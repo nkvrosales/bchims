@@ -1,28 +1,17 @@
 <?php $isAdmin = !in_array(strtolower((string) session()->get('role')), ['viewer', 'encoder'], true); ?>
+<?php $invTitle = $title ?? ($isAdmin ? 'Central Inventory' : 'My Inventory'); ?>
 <!-- Page Title Section -->
 <div class="page-breadcrumb">
-    <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+    <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
     <span class="separator">/</span>
-    <span class="current">Inventory</span>
+    <span class="current"><?php echo $invTitle; ?></span>
 </div>
 
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1"> Inventory</h1>
+            <h1 class="page-title mb-1"><?php echo $invTitle; ?></h1>
         </div>
-        <?php if (!in_array(strtolower((string) session()->get('role')), ['viewer', 'encoder'], true)): ?>
-        <div>
-            <button type="button"
-                    class="btn d-flex align-items-center gap-2"
-                    id="btnAddNewItem"
-                    onclick="openItemModal('create')"
-                    style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
-                <i class="fa-solid fa-plus"></i>
-                <span>Add Item</span>
-            </button>
-        </div>
-        <?php endif; ?>
     </div>  
 </div>
 
@@ -48,13 +37,71 @@
 <?php endif; ?>
 
 
+<!-- Inventory Search Bar -->
+<form method="GET" action="<?php echo base_url('inventory'); ?>" id="inventorySearchForm">
+    <div class="db-search-bar">
+        <div class="db-search-field db-search-field--keyword">
+            <label for="inv_search_keyword">Search Keyword</label>
+            <input
+                type="text"
+                id="inv_search_keyword"
+                name="search"
+                class="db-search-input"
+                placeholder="Search by item code or name..."
+                value="<?php echo htmlspecialchars($search ?? ''); ?>"
+                autocomplete="off"
+            >
+        </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <label for="inv_search_category">Category</label>
+            <select id="inv_search_category" name="category_id" class="db-search-select">
+                <option value="">All Categories</option>
+                <?php foreach ($categories as $cat): ?>
+                    <option value="<?php echo $cat['category_id']; ?>"
+                        <?php echo (isset($category_id) && (string)$category_id === (string)$cat['category_id']) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($cat['category_description']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <label for="inv_search_status">Stock Status</label>
+            <select id="inv_search_status" name="stock_status" class="db-search-select">
+                <option value="">All Statuses</option>
+                <option value="in_stock"   <?php echo (($stock_status ?? '') === 'in_stock')   ? 'selected' : ''; ?>>In Stock</option>
+                <option value="low_stock"  <?php echo (($stock_status ?? '') === 'low_stock')  ? 'selected' : ''; ?>>Low Stock</option>
+                <option value="out_of_stock" <?php echo (($stock_status ?? '') === 'out_of_stock') ? 'selected' : ''; ?>>Out of Stock</option>
+                <option value="expired"    <?php echo (($stock_status ?? '') === 'expired')    ? 'selected' : ''; ?>>Expired</option>
+            </select>
+        </div>
+        <div class="db-search-actions">
+            <button type="submit" class="btn-db-search" id="btnInvSearch">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+            <a href="<?php echo base_url('inventory'); ?>" class="btn-db-clear" id="btnInvClear">
+                Clear
+            </a>
+            <?php if (!in_array(strtolower((string) session()->get('role')), ['viewer', 'encoder'], true)): ?>
+                <div class="db-search-separator"></div>
+                <button type="button"
+                        class="btn btn-db-search d-inline-flex align-items-center gap-2"
+                        id="btnAddNewItem"
+                        onclick="openItemModal('create')">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add Item</span>
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
+</form>
+
 <!-- Inventory Items Table Area -->
 
     <div class="table-responsive-custom">
         <table class="table table-custom table-hover w-100" id="inventoryTable">
             <thead>
                 <tr>
-                    <th style="width: 14%">Code</th>
+                    <th style="width: 14%">Inventory Code</th>
                     <th style="width: 20%">Name</th>
                     <th style="width: 12%">Category</th>
                     <th style="width: 8%">Unit</th>
@@ -102,10 +149,17 @@
                             <td>
                                 <?php
                                     $stockQty = (int)$item['quantity_on_hand'];
-                                    if ($stockQty === 0) {
+                                    $expDate = $item['expiration_date'] ?? '';
+                                    $totalQty = (int)$item['total_quantity'];
+                                    $isExpired = !empty($expDate) && $expDate < date('Y-m-d') && $stockQty > 0;
+                                    $lowStockThreshold = $totalQty > 0 ? max(1, (int)ceil($totalQty * 0.15)) : 0;
+                                    if ($isExpired) {
+                                        $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
+                                        $status = 'Expired';
+                                    } elseif ($stockQty === 0) {
                                         $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
                                         $status = 'Out of Stock';
-                                    } elseif ($stockQty <= 10) {
+                                    } elseif ($stockQty <= $lowStockThreshold) {
                                         $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         $status = 'Low Stock';
                                     } else {
@@ -118,10 +172,20 @@
                                 </span>
                             </td>
                             <td class="text-end">
-                                <div class="d-inline-flex gap-2">
-                                    <button type="button"
-                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                        onclick='openItemModal("view", <?php echo json_encode([
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                        <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openConsumeModal(<?php echo json_encode([
+                                            "id" => $item["id"],
+                                            "item_code" => $item["item_code"],
+                                            "item_name" => $item["item_name"],
+                                        ]); ?>)' title="Consume Item">Consume</a></li>
+                                        <?php endif; ?>
+                                        <?php if ($isAdmin): ?>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openItemModal("edit", <?php echo json_encode([
                                             "id" => $item["id"],
                                             "item_code" => $item["item_code"],
                                             "name" => $item["item_name"],
@@ -135,57 +199,12 @@
                                             "batch_num" => $item["batch_num"] ?? "",
                                             "lot_num" => $item["lot_num"] ?? "",
                                             "remarks" => $item["remarks"] ?? "",
-                                        ]); ?>)'
-                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
-                                       title="View Item">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                     <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
-                                    <button type="button"
-                                       class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                       style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
-                                       onclick='openConsumeModal(<?php echo json_encode([
-                                           "id" => $item["id"],
-                                           "item_code" => $item["item_code"],
-                                           "item_name" => $item["item_name"],
-                                       ]); ?>)'
-                                       title="Consume Item">
-                                        <i class="bi bi-dash-circle"></i>
-                                    </button>
-                                    <?php endif; ?>
-                                     <?php if ($isAdmin): ?>
-                                     <button type="button"
-                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                         onclick='openItemModal("edit", <?php echo json_encode([
-                                             "id" => $item["id"],
-                                             "item_code" => $item["item_code"],
-                                             "name" => $item["item_name"],
-                                             "category_id" => $item["category_id"] ?? "",
-                                             "quantity" => $item["quantity"],
-                                             "unit" => $item["unit"] ?? "",
-                                             "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
-                                             "source_name" => $item["supplier_name"] ?? "",
-                                             "expiration_date" => $item["expiration_date"] ?? "",
-                                             "manufacturing_date" => $item["manufacturing_date"] ?? "",
-                                             "batch_num" => $item["batch_num"] ?? "",
-                                             "lot_num" => $item["lot_num"] ?? "",
-                                             "remarks" => $item["remarks"] ?? "",
-                                         ]); ?>)'
-                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
-                                        title="Edit Item">
-                                         <i class="bi bi-pencil-square"></i>
-                                     </button>
-                                     <?php endif; ?>
-                                     <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
-                                     <a href="<?php echo base_url('inventory/archive/' . $item['id']); ?>"
-                                        class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                        style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#archiveItemModal<?php echo $item['id']; ?>"
-                                          title="Archive Item">
-                                          <i class="fa-regular fa-folder"></i>
-                                      </a>
-                                     <?php endif; ?>
+                                        ]); ?>)' title="Manage Item">Manage</a></li>
+                                        <?php endif; ?>
+                                        <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
+                                        <li><a class="dropdown-item" href="<?php echo base_url('inventory/archive/' . $item['id']); ?>" data-bs-toggle="modal" data-bs-target="#archiveItemModal<?php echo $item['id']; ?>" title="Archive Item">Archive</a></li>
+                                        <?php endif; ?>
+                                    </ul>
                                 </div>
                             </td>
                         </tr>
@@ -218,7 +237,8 @@
                         $modal_edit_id = session()->getFlashdata('modal_edit_id');
                     ?>
                     <?php if ($modal_errors): ?>
-                    <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
+                    <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
                         <div class="d-flex align-items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation mt-1"></i>
                             <div>
@@ -231,7 +251,7 @@
 
                     <div class="row g-3">
 
-                        <div class="col-12 col-sm-4">
+                        <div class="col-lg-4 col-12">
                             <label for="item_category_id" class="form-label small fw-semibold text-secondary">
                                 Category <span class="text-danger">*</span>
                             </label>
@@ -249,9 +269,9 @@
                             </select>
                         </div>
 
-                        <div class="col-12 col-sm-4">
+                        <div class="col-lg-4 col-12">
                             <label for="item_code" class="form-label small fw-semibold text-secondary">
-                                Item Code <span class="text-danger">*</span>
+                                Inventory Code <span class="text-danger">*</span>
                             </label>
                             <input type="text"
                                    class="form-control input-custom"
@@ -262,7 +282,7 @@
                                    >
                         </div>
 
-                        <div class="col-12 col-sm-4">
+                        <div class="col-lg-4 col-12">
                             <label for="item_name" class="form-label small fw-semibold text-secondary">
                                 Item Name <span class="text-danger">*</span>
                             </label>
@@ -274,7 +294,7 @@
                                    required>
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-3 col-12">
                             <label for="item_unit" class="form-label small fw-semibold text-secondary">
                                 Unit <span class="text-danger">*</span>
                             </label>
@@ -309,7 +329,7 @@
                             </select>
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-3 col-12">
                             <label for="item_quantity" class="form-label small fw-semibold text-secondary">
                                 Quantity <span class="text-danger">*</span>
                             </label>
@@ -322,7 +342,25 @@
                                    required>
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-3 col-12">
+                            <label for="item_batch_num" class="form-label small fw-semibold text-secondary">Batch No.</label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_batch_num"
+                                   name="batch_num"
+                                   value="<?php echo old('batch_num'); ?>">
+                        </div>
+
+                        <div class="col-lg-3 col-12">
+                            <label for="item_lot_num" class="form-label small fw-semibold text-secondary">Lot No.</label>
+                            <input type="text"
+                                   class="form-control input-custom"
+                                   id="item_lot_num"
+                                   name="lot_num"
+                                   value="<?php echo old('lot_num'); ?>">
+                        </div>
+
+                        <div class="col-lg-6 col-12">
                             <label for="item_source_type" class="form-label small fw-semibold text-secondary">
                                 Source Type <span class="text-danger">*</span>
                             </label>
@@ -338,7 +376,7 @@
                             </select>
                         </div>
 
-                        <div class="col-12 col-sm-6" id="sourceNameCol">
+                        <div class="col-lg-6 col-12" id="sourceNameCol">
                             <label for="item_source_name_select" class="form-label small fw-semibold text-secondary">
                                 Source <span class="text-danger">*</span>
                             </label>
@@ -356,7 +394,7 @@
                                    style="display:none;">
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="item_expiration_date" class="form-label small fw-semibold text-secondary">
                                 Expiration Date <span class="text-danger">*</span>
                             </label>
@@ -368,7 +406,7 @@
                                    required>
                         </div>
 
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="item_manufacturing_date" class="form-label small fw-semibold text-secondary">Manufacturing Date</label>
                             <input type="date"
                                    class="form-control input-custom"
@@ -377,23 +415,7 @@
                                    value="<?php echo old('manufacturing_date'); ?>">
                         </div>
 
-                        <div class="col-12 col-sm-6">
-                            <label for="item_batch_num" class="form-label small fw-semibold text-secondary">Batch No.</label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="item_batch_num"
-                                   name="batch_num"
-                                   value="<?php echo old('batch_num'); ?>">
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label for="item_lot_num" class="form-label small fw-semibold text-secondary">Lot No.</label>
-                            <input type="text"
-                                   class="form-control input-custom"
-                                   id="item_lot_num"
-                                   name="lot_num"
-                                   value="<?php echo old('lot_num'); ?>">
-                        </div>
+                        
 
                         <div class="col-12">
                             <label for="item_remarks" class="form-label small fw-semibold text-secondary">Remarks</label>
@@ -471,11 +493,11 @@ function openItemModal(mode, data) {
         document.getElementById('itemModalCancelBtn').textContent = 'Close';
     } else if (mode === 'edit') {
         form.action = '<?php echo base_url('inventory/edit'); ?>/' + data.id;
-        label.textContent = 'Edit Item';
+        label.textContent = 'Manage Item';
         btn.textContent = 'Update Item';
         btn.style.display = '';
         disableFields(false);
-        document.getElementById('itemModalCancelBtn').textContent = 'Cancel';
+        document.getElementById('itemModalCancelBtn').textContent = 'Close';
         document.getElementById('item_code').value = data.item_code || '';
         document.getElementById('item_name').value = data.name || '';
         document.getElementById('item_category_id').value = data.category_id || '';
@@ -496,14 +518,14 @@ function openItemModal(mode, data) {
         document.getElementById('item_lot_num').value = data.lot_num || '';
         document.getElementById('item_remarks').value = data.remarks || '';
         document.getElementById('item_remarks').disabled = false;
-        document.getElementById('itemModalCancelBtn').textContent = 'Cancel';
+        document.getElementById('itemModalCancelBtn').textContent = 'Close';
     } else {
         form.action = '<?php echo base_url('inventory/create'); ?>';
         label.textContent = 'Add New Item';
         btn.textContent = 'Add Item';
         btn.style.display = '';
         disableFields(false);
-        document.getElementById('itemModalCancelBtn').textContent = 'Cancel';
+        document.getElementById('itemModalCancelBtn').textContent = 'Close';
         document.getElementById('item_code').value = '';
         document.getElementById('item_name').value = '';
         document.getElementById('item_category_id').value = '';
@@ -635,6 +657,11 @@ function generateItemCode() {
     })
     .catch(function() {});
 }
+
+document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', function () {
+    var err = this.querySelector('.modal-body .alert.alert-danger');
+    if (err) err.remove();
+});
 </script>
 
 <!-- ===================== ARCHIVE ITEM MODALS ===================== -->
@@ -672,7 +699,7 @@ function generateItemCode() {
                                 style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                 onmouseover="this.style.background='#f9fafb'"
                                 onmouseout="this.style.background='#fff'">
-                            Cancel
+                            Close
                         </button>
                         <a href="<?php echo base_url('inventory/archive/' . $item['id']); ?>"
                            style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -726,7 +753,7 @@ function generateItemCode() {
                             style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                             onmouseover="this.style.background='#f9fafb'"
                             onmouseout="this.style.background='#fff'">
-                        Cancel
+                        Close
                     </button>
                     <button type="submit"
                             style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"

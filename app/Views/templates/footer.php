@@ -21,6 +21,7 @@
 
 <!-- Custom JS Application File -->
 <script src="<?php echo base_url('assets/js/app.js?v=' . filemtime(FCPATH . 'assets/js/app.js')); ?>"></script>
+<script>document.addEventListener('DOMContentLoaded', function () { lucide.createIcons(); });</script>
 
 </body>
 </html>

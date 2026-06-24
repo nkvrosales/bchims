@@ -39,11 +39,12 @@
 
     <!-- Error Flash Alerts -->
     <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fs-7 py-2.5 px-3" role="alert" id="loginAlertError" style="background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #ef4444;">
+        <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fs-7 py-2.5 px-3" role="alert" id="loginAlertError" style="background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #ef4444;">
             <i class="fa-solid fa-circle-exclamation fs-6"></i>
-            <div>
+            <div class="flex-grow-1">
                 <?php echo session()->getFlashdata('error'); ?>
             </div>
+            <button type="button" class="btn-close btn-close-dark" onclick="this.parentElement.remove()" aria-label="Close" style="font-size: 0.75rem;"></button>
         </div>
     <?php endif; ?>
 
@@ -62,14 +63,14 @@
         
         <!-- Username input group -->
         <div class="mb-3">
-            <label class="form-label text-secondary fw-semibold small mb-1" for="username">Username</label>
+            <label class="form-label text-secondary fw-semibold small mb-1" for="username">Username or Email</label>
             <div class="input-group">
                 <span class="input-group-text bg-light text-muted" style="border-right: none; border-color: #e2e8f0;"><i class="fa-solid fa-user"></i></span>
                 <input type="text" 
                        class="form-control" 
                        id="username" 
                        name="username" 
-                       placeholder="Enter username" 
+                       placeholder="Enter username or email" 
                        required 
                        autocomplete="username"
                        value="<?php echo set_value('username'); ?>"
@@ -91,7 +92,7 @@
                        autocomplete="current-password"
                        style="border-left: none; border-right: none; border-color: #e2e8f0;">
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1" style="border-color: #e2e8f0; border-left: none; color: #94a3b8; background-color: #ffffff;">
-                    <i class="fa-solid fa-eye"></i>
+                    <i class="fa-solid fa-eye-slash"></i>
                 </button>
             </div>
         </div>
@@ -113,12 +114,12 @@
         const icon = this.querySelector('i');
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
         }
     });
 
@@ -134,6 +135,11 @@
             btnSpinner.classList.remove('d-none');
         }
     });
+
+    // Clear password field on failed login
+    if (document.getElementById('loginAlertError')) {
+        document.getElementById('password').value = '';
+    }
 </script>
 
 </body>

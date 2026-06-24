@@ -20,11 +20,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=1.0.7'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=1.1.1'); ?>">
 
 
     <link rel="icon" href="<?php echo base_url('bchlogo.ico'); ?>" type="image/x-icon">
 
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         const BASE_URL = '<?php echo base_url(); ?>';
     </script>
@@ -89,27 +90,44 @@
                             $roleLower = strtolower((string)session()->get('role'));
                             $displayRole = ($roleLower === 'dev') ? 'DEVELOPER' : strtoupper($roleLower);
                         ?>
-                        <span class="navbar-user-name" style="color: #64748b;"><?php echo htmlspecialchars($fullName); ?></span>
-                        <span class="navbar-user-username" style="color: #64748b; margin-left: 0.25rem;">(<?php echo $displayRole; ?>)</span>
+                        <span class="navbar-user-username" style="color: #1e293b; text-transform: uppercase;"><?php echo htmlspecialchars($username); ?></span>
                     </div>
                     <i class="bi bi-person-circle" style="font-size: 2.3rem; color: #cbd5e1; line-height: 1;"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end navbar-user-dropdown-menu" aria-labelledby="userDropdownMenu">
-                    <li class="navbar-dropdown-user-info">
-                        <span class="navbar-dropdown-name"><?php echo htmlspecialchars($fullName); ?></span>
-                        <span class="navbar-dropdown-role"><?php echo ucfirst(session()->get('role')); ?></span>
+                    <li class="navbar-dropdown-user-info" style="padding: 0.75rem 1.25rem;">
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; line-height: 1.3;"><?php echo htmlspecialchars($fullName); ?></div>
+                        <div style="font-weight: 500; font-size: 0.78rem; color: #64748b; margin-top: 0.25rem; line-height: 1.3;">
+                            <?php 
+                                $_role = strtolower((string)session()->get('role'));
+                                echo $_role === 'dev' ? 'Developer' : ucfirst($_role);
+                            ?>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem; line-height: 1.3;">
+                            <?php
+                                $_dept = session()->get('department_name');
+                                $_r = strtolower((string)session()->get('role'));
+                                if (!empty($_dept)) {
+                                    echo htmlspecialchars($_dept);
+                                } elseif (in_array($_r, ['admin', 'dev'])) {
+                                    echo 'Administrator';
+                                } else {
+                                    echo 'N/A';
+                                }
+                            ?>
+                        </div>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <a class="dropdown-item navbar-dropdown-profile" href="<?php echo base_url('dashboard/profile'); ?>" id="headerProfile">
-                            <i class="fa-solid fa-user-gear"></i>
+                            <i class="bi bi-person-gear"></i>
                             <span>Profile Settings</span>
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <a class="dropdown-item navbar-dropdown-logout" href="<?php echo base_url('logout'); ?>" id="headerLogout">
-                            <i class="fa-solid fa-power-off"></i>
+                            <i class="bi bi-box-arrow-right"></i>
                             <span>Log Out</span>
                         </a>
                     </li>
@@ -134,7 +152,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('inventory'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Inventory', 'Add Item', 'Edit Item'])) ? 'active' : ''; ?>" id="navInventory" title="Inventory">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Central Inventory', 'My Inventory'])) ? 'active' : ''; ?>" id="navInventory" title="Inventory">
                         <i class="bi bi-box-seam"></i>
                         <span>Inventory</span>
                     </a>
@@ -143,7 +161,7 @@
                 <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('requests'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Supply Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Central Requests', 'My Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
                         <i class="bi bi-file-earmark-text"></i>
                         <span>Requests</span>
                     </a>
@@ -179,10 +197,10 @@
                 </li>
 
                 <li class="sidebar-item">
-                    <a href="<?php echo base_url('sources'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Sources') ? 'active' : ''; ?>" id="navSources" title="Sources">
+                    <a href="<?php echo base_url('suppliers'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Suppliers') ? 'active' : ''; ?>" id="navSuppliers" title="Suppliers">
                         <i class="bi bi-truck"></i>
-                        <span>Sources</span>
+                        <span>Suppliers</span>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -192,14 +210,6 @@
                        class="sidebar-link <?php echo (isset($title) && $title === 'Audit Trail') ? 'active' : ''; ?>" id="navAuditTrail" title="Audit Trail">
                         <i class="bi bi-clock-history"></i>
                         <span>Audit Trail</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-item">
-                    <a href="<?php echo base_url('dashboard/profile'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Profile Settings') ? 'active' : ''; ?>" id="navSettings" title="Settings">
-                        <i class="bi bi-gear"></i>
-                        <span>Settings</span>
                     </a>
                 </li>
 

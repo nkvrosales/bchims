@@ -43,8 +43,21 @@ class Departments extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $data['title'] = 'Departments';
-        $data['departments'] = $this->departmentModel->get_departments();
+        $search = trim((string) $this->request->getGet('search'));
+
+        $departments = $this->departmentModel->get_departments();
+
+        if ($search !== '') {
+            $departments = array_values(array_filter($departments, static function ($d) use ($search) {
+                $needle = mb_strtolower($search);
+                return mb_stripos((string)($d['name'] ?? ''), $needle) !== false
+                    || mb_stripos((string)($d['code'] ?? ''), $needle) !== false;
+            }));
+        }
+
+        $data['title']       = 'Departments';
+        $data['departments'] = $departments;
+        $data['search']      = $search;
 
         return view('templates/header', $data)
              . view('departments', $data)
@@ -70,7 +83,7 @@ class Departments extends BaseController
 
         if ($this->validate($rules)) {
             $code = $this->request->getPost('code');
-            $name = $this->request->getPost('name');
+            $name = ucwords(strtolower($this->request->getPost('name')));
             $insert_data = ['code' => $code, 'name' => $name];
 
             if ($this->departmentModel->insert_department($insert_data)) {
@@ -126,7 +139,7 @@ class Departments extends BaseController
 
         if ($this->validate($rules)) {
             $code     = $this->request->getPost('code');
-            $name     = $this->request->getPost('name');
+            $name     = ucwords(strtolower($this->request->getPost('name')));
             $old_name = $dept['name'];
             $old_code = $dept['code'];
             $update_data = ['code' => $code, 'name' => $name];

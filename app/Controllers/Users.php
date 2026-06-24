@@ -49,13 +49,49 @@ class Users extends BaseController
     {
         if ($res = $this->checkAdmin()) return $res;
 
-        $data['title'] = 'User Management';
-        $data['users'] = $this->userModel->get_users();
-        $data['departments'] = $this->departmentModel->get_departments();
+        $search      = trim((string) $this->request->getGet('search'));
+        $role_filter = trim((string) $this->request->getGet('role_filter'));
+
+        $users = $this->userModel->get_users();
+
+        // Keyword filter
+        if ($search !== '') {
+            $users = array_values(array_filter($users, static function ($u) use ($search) {
+                $needle = mb_strtolower($search);
+                $haystacks = [
+                    (string)($u['first_name'] ?? ''),
+                    (string)($u['last_name'] ?? ''),
+                    (string)($u['full_name'] ?? ''),
+                    (string)($u['username'] ?? ''),
+                    (string)($u['department_name'] ?? ''),
+                ];
+                foreach ($haystacks as $value) {
+                    if (mb_stripos($value, $needle) !== false) {
+                        return true;
+                    }
+                }
+                return false;
+            }));
+        }
+
+        // Role filter
+        if ($role_filter !== '') {
+            $users = array_values(array_filter($users, static function ($u) use ($role_filter) {
+                return strcasecmp((string)($u['role'] ?? ''), $role_filter) === 0;
+            }));
+        }
+
+        $data['title']             = 'User Management';
+        $data['users']             = $users;
+        $data['departments']       = $this->departmentModel->get_departments();
+        $data['current_user_role'] = session()->get('role');
+        $data['search']            = $search;
+        $data['role_filter']       = $role_filter;
 
         return view('templates/header', $data)
              . view('users', $data)
              . view('templates/footer');
+
     }
 
     /**

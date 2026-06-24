@@ -44,11 +44,24 @@ class Categories extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $data['title'] = 'Categories';
-        $data['categories'] = $this->categoryModel
+        $search = trim((string) $this->request->getGet('search'));
+
+        $categories = $this->categoryModel
             ->where('status', 1)
             ->orderBy('category_code', 'ASC')
             ->findAll();
+
+        if ($search !== '') {
+            $categories = array_values(array_filter($categories, static function ($c) use ($search) {
+                $needle = mb_strtolower($search);
+                return mb_stripos((string)($c['category_description'] ?? ''), $needle) !== false
+                    || mb_stripos((string)($c['category_code'] ?? ''), $needle) !== false;
+            }));
+        }
+
+        $data['title']      = 'Categories';
+        $data['categories'] = $categories;
+        $data['search']     = $search;
 
         return view('templates/header', $data)
              . view('categories', $data)
@@ -71,7 +84,7 @@ class Categories extends BaseController
         if ($this->validate($rules)) {
             $insertData = [
                 'category_code'        => strtoupper($this->request->getPost('category_code')),
-                'category_description' => $this->request->getPost('category_description'),
+                'category_description' => ucwords(strtolower($this->request->getPost('category_description'))),
             ];
 
             if ($this->categoryModel->insert($insertData)) {
@@ -125,7 +138,7 @@ class Categories extends BaseController
 
             $updateData = [
                 'category_code'        => strtoupper($this->request->getPost('category_code')),
-                'category_description' => $this->request->getPost('category_description'),
+                'category_description' => ucwords(strtolower($this->request->getPost('category_description'))),
             ];
 
             if ($this->categoryModel->update($id, $updateData)) {

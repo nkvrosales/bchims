@@ -159,10 +159,46 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.2s ease;
 }
 
-.btn-primary:hover, .btn-primary:focus {
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .btn-primary.show, .show > .btn-primary.dropdown-toggle, .btn-primary:first-child:active, :not(.btn-check)+.btn-primary:active, :not(.btn-check)+.btn-primary.active {
     background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    background-color: #059669 !important;
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
     color: #ffffff !important;
+    border: none !important;
+}
+
+.btn-primary.rounded-pill {
+    border-radius: 50rem !important;
+}
+
+/* Custom premium styling for btn-outline-primary (ghost button) */
+.btn-outline-primary {
+    color: #10b981 !important;
+    border-color: #10b981 !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-outline-primary.show,
+.show > .btn-outline-primary.dropdown-toggle,
+.btn-outline-primary:first-child:active,
+:not(.btn-check)+.btn-outline-primary:active,
+:not(.btn-check)+.btn-outline-primary.active {
+    color: #ffffff !important;
+    background-color: #10b981 !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+}
+
+.btn-outline-primary.rounded-pill {
+    border-radius: 50rem !important;
 }
 
 .btn-outline-secondary {
@@ -1400,14 +1436,15 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: 0 !important;
 }
 
-/* Table action buttons - no border, darker icon/text on hover */
+/* Table action buttons */
 .table-custom td.text-end .btn {
-    border: none !important;
-    background: transparent !important;
-}
-.table-custom td.text-end .btn:hover {
-    background: transparent !important;
-    color: rgba(0,0,0,0.7) !important;
+    padding: 4px 12px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    border-radius: 999px !important;
+    transition: all 0.15s ease !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    letter-spacing: 0.03em;
 }
 .table-custom td.text-end .btn:hover .bi,
 .table-custom td.text-end .btn:hover i {
@@ -1442,4 +1479,187 @@ h1, h2, h3, h4, h5, h6 {
 .page-breadcrumb .current {
     color: #0f172a;
     font-weight: 600;
+}
+
+/* ============================================================
+   DB Search Bar Component
+   ============================================================ */
+.db-search-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.db-search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.db-search-field label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.db-search-field--keyword {
+    flex: 1 1 220px;
+}
+
+.db-search-field--dropdown {
+    flex: 0 1 180px;
+}
+
+.db-search-input {
+    height: 38px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0 0.85rem;
+    font-size: 0.875rem;
+    font-family: var(--font-body);
+    color: #0f172a;
+    background: #f8fafc;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    width: 100%;
+    outline: none;
+}
+
+.db-search-input::placeholder {
+    color: #94a3b8;
+}
+
+.db-search-input:focus {
+    border-color: #10b981;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+}
+
+.db-search-select {
+    height: 38px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    font-family: var(--font-body);
+    color: #0f172a;
+    background: #f8fafc;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+    appearance: auto;
+}
+
+.db-search-select:focus {
+    border-color: #10b981;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+}
+
+.db-search-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    flex-shrink: 0;
+    padding-bottom: 0;
+}
+
+.btn-db-search {
+    height: 38px;
+    padding: 0 1.15rem;
+    min-width: 100px;
+    justify-content: center;
+    background: #10b981;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.1s;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+    text-decoration: none;
+}
+
+.btn-db-search:hover {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+    transform: translateY(-1px);
+}
+
+.btn-db-search:active {
+    transform: translateY(0);
+}
+
+.btn-db-clear {
+    height: 38px;
+    padding: 0 1.15rem;
+    min-width: 100px;
+    justify-content: center;
+    background: #fff;
+    color: #ef4444;
+    border: 1.5px solid #ef4444;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.1s;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.btn-db-clear:hover {
+    background: #ef4444;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.25);
+    transform: translateY(-1px);
+}
+
+.btn-db-clear:active {
+    transform: translateY(0);
+}
+
+/* Vertical separator between Clear and Add button */
+.db-search-separator {
+    width: 1px;
+    height: 28px;
+    background: #e2e8f0;
+    margin: 0 0.25rem;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+@media (max-width: 640px) {
+    .db-search-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .db-search-field--keyword,
+    .db-search-field--dropdown {
+        flex: 1 1 100%;
+    }
+    .db-search-actions {
+        justify-content: flex-end;
+    }
 }

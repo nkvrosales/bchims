@@ -3,19 +3,19 @@
 namespace App\Controllers;
 
 use App\Models\AuditModel;
-use App\Models\SourceModel;
+use App\Models\SupplierModel;
 use App\Models\UserModel;
 
-class Sources extends BaseController
+class Suppliers extends BaseController
 {
-    protected $sourceModel;
+    protected $supplierModel;
     protected $auditModel;
 
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
 
-        $this->sourceModel = new SourceModel();
+        $this->supplierModel = new SupplierModel();
         $this->auditModel = new AuditModel();
     }
 
@@ -44,14 +44,35 @@ class Sources extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $data['title'] = 'Sources';
-        $data['sources'] = $this->sourceModel
+        $search      = trim((string) $this->request->getGet('search'));
+        $type_filter = trim((string) $this->request->getGet('type_filter'));
+
+        $sources = $this->supplierModel
             ->where('status', 1)
             ->orderBy('supplier_name', 'ASC')
             ->findAll();
 
+        if ($search !== '') {
+            $sources = array_values(array_filter($sources, static function ($s) use ($search) {
+                $needle = mb_strtolower($search);
+                return mb_stripos((string)($s['supplier_name'] ?? ''), $needle) !== false
+                    || mb_stripos((string)($s['contact_person'] ?? ''), $needle) !== false;
+            }));
+        }
+
+        if ($type_filter !== '') {
+            $sources = array_values(array_filter($sources, static function ($s) use ($type_filter) {
+                return strcasecmp((string)($s['source_type'] ?? ''), $type_filter) === 0;
+            }));
+        }
+
+        $data['title']       = 'Suppliers';
+        $data['sources']     = $sources;
+        $data['search']      = $search;
+        $data['type_filter'] = $type_filter;
+
         return view('templates/header', $data)
-             . view('sources', $data)
+             . view('suppliers', $data)
              . view('templates/footer');
     }
 
@@ -60,27 +81,31 @@ class Sources extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         if (strcasecmp($this->request->getMethod(), 'get') === 0) {
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
         $rules = [
             'source_type'    => 'required|in_list[Supplier,Donation,Others]',
-            'supplier_name'  => 'required|max_length[150]',
+            'supplier_name'  => 'required|max_length[150]|is_unique[source.supplier_name]',
             'contact_person' => 'permit_empty|max_length[150]',
             'contact_number' => 'permit_empty|max_length[50]',
             'address'        => 'permit_empty',
         ];
 
-        if ($this->validate($rules)) {
+        $customErrors = [
+            'supplier_name' => ['is_unique' => 'Supplier already exists. Enter a different name.'],
+        ];
+
+        if ($this->validate($rules, $customErrors)) {
             $insertData = [
                 'source_type'    => $this->request->getPost('source_type'),
-                'supplier_name'  => $this->request->getPost('supplier_name'),
+                'supplier_name'  => ucwords(strtolower($this->request->getPost('supplier_name'))),
                 'contact_person' => $this->request->getPost('contact_person') ?: null,
                 'contact_number' => $this->request->getPost('contact_number') ?: null,
                 'address'        => $this->request->getPost('address') ?: null,
             ];
 
-            if ($this->sourceModel->insert($insertData)) {
+            if ($this->supplierModel->insert($insertData)) {
                 $this->auditModel->log_activity(
                     'CREATE_SOURCE',
                     'Sources',
@@ -88,17 +113,17 @@ class Sources extends BaseController
                 );
 
                 session()->setFlashdata('success', 'Source successfully created!');
-                return redirect()->to('sources');
+                return redirect()->to('suppliers');
             }
 
             session()->setFlashdata('modal_mode', 'create');
             session()->setFlashdata('modal_errors', '<li>An error occurred while creating the source.</li>');
-            return redirect()->to('sources')->withInput();
+            return redirect()->to('suppliers')->withInput();
         }
 
         session()->setFlashdata('modal_mode', 'create');
         session()->setFlashdata('modal_errors', $this->validator->listErrors());
-        return redirect()->to('sources')->withInput();
+        return redirect()->to('suppliers')->withInput();
     }
 
     public function edit($id = null)
@@ -106,41 +131,45 @@ class Sources extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         if (empty($id)) {
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        $source = $this->sourceModel->find($id);
+        $source = $this->supplierModel->find($id);
         if (empty($source)) {
             session()->setFlashdata('error', 'Source not found.');
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
         if (strcasecmp($this->request->getMethod(), 'get') === 0) {
             session()->setFlashdata('modal_mode', 'edit');
             session()->setFlashdata('modal_edit_id', $id);
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
         $rules = [
             'source_type'    => 'required|in_list[Supplier,Donation,Others]',
-            'supplier_name'  => 'required|max_length[150]',
+            'supplier_name'  => "required|max_length[150]|is_unique[source.supplier_name,source_id,{$id}]",
             'contact_person' => 'permit_empty|max_length[150]',
             'contact_number' => 'permit_empty|max_length[50]',
             'address'        => 'permit_empty',
         ];
 
-        if ($this->validate($rules)) {
-            $oldSource = $this->sourceModel->find($id);
+        $customErrors = [
+            'supplier_name' => ['is_unique' => 'Supplier already exists. Enter a different name.'],
+        ];
+
+        if ($this->validate($rules, $customErrors)) {
+            $oldSource = $this->supplierModel->find($id);
 
             $updateData = [
                 'source_type'    => $this->request->getPost('source_type'),
-                'supplier_name'  => $this->request->getPost('supplier_name'),
+                'supplier_name'  => ucwords(strtolower($this->request->getPost('supplier_name'))),
                 'contact_person' => $this->request->getPost('contact_person') ?: null,
                 'contact_number' => $this->request->getPost('contact_number') ?: null,
                 'address'        => $this->request->getPost('address') ?: null,
             ];
 
-            if ($this->sourceModel->update($id, $updateData)) {
+            if ($this->supplierModel->update($id, $updateData)) {
                 $changes = [];
                 $sourceFields = ['supplier_name' => 'Name', 'source_type' => 'Type', 'contact_person' => 'Contact Person', 'contact_number' => 'Contact Number', 'address' => 'Address'];
                 foreach ($sourceFields as $key => $label) {
@@ -162,19 +191,19 @@ class Sources extends BaseController
                 );
 
                 session()->setFlashdata('success', 'Source successfully updated!');
-                return redirect()->to('sources');
+                return redirect()->to('suppliers');
             }
 
             session()->setFlashdata('modal_mode', 'edit');
             session()->setFlashdata('modal_edit_id', $id);
             session()->setFlashdata('modal_errors', '<li>An error occurred while updating the source.</li>');
-            return redirect()->to('sources')->withInput();
+            return redirect()->to('suppliers')->withInput();
         }
 
         session()->setFlashdata('modal_mode', 'edit');
         session()->setFlashdata('modal_edit_id', $id);
         session()->setFlashdata('modal_errors', $this->validator->listErrors());
-        return redirect()->to('sources')->withInput();
+        return redirect()->to('suppliers')->withInput();
     }
 
     public function archive($id = null)
@@ -182,16 +211,16 @@ class Sources extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         if (empty($id)) {
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        $source = $this->sourceModel->find($id);
+        $source = $this->supplierModel->find($id);
         if (empty($source)) {
             session()->setFlashdata('error', 'Source not found.');
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        if ($this->sourceModel->update($id, ['status' => 0])) {
+        if ($this->supplierModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
                 'ARCHIVE_SOURCE',
                 'Sources',
@@ -203,7 +232,7 @@ class Sources extends BaseController
             session()->setFlashdata('error', 'An error occurred while archiving the source.');
         }
 
-        return redirect()->to('sources');
+        return redirect()->to('suppliers');
     }
 
     public function restore($id = null)
@@ -211,16 +240,16 @@ class Sources extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         if (empty($id)) {
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        $source = $this->sourceModel->find($id);
+        $source = $this->supplierModel->find($id);
         if (empty($source)) {
             session()->setFlashdata('error', 'Source not found.');
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        if ($this->sourceModel->update($id, ['status' => 1])) {
+        if ($this->supplierModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
                 'RESTORE_SOURCE',
                 'Sources',
@@ -232,7 +261,7 @@ class Sources extends BaseController
             session()->setFlashdata('error', 'An error occurred while restoring the source.');
         }
 
-        return redirect()->to('sources');
+        return redirect()->to('suppliers');
     }
 
     public function delete($id = null)
@@ -240,13 +269,13 @@ class Sources extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         if (empty($id)) {
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        $source = $this->sourceModel->find($id);
+        $source = $this->supplierModel->find($id);
         if (empty($source)) {
             session()->setFlashdata('error', 'Source not found.');
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
         $db = \Config\Database::connect();
@@ -254,10 +283,10 @@ class Sources extends BaseController
 
         if ($inUse > 0) {
             session()->setFlashdata('error', 'Cannot delete a source that is currently used by inventory stock.');
-            return redirect()->to('sources');
+            return redirect()->to('suppliers');
         }
 
-        if ($this->sourceModel->delete($id)) {
+        if ($this->supplierModel->delete($id)) {
             $this->auditModel->log_activity(
                 'DELETE_SOURCE',
                 'Sources',
@@ -269,6 +298,6 @@ class Sources extends BaseController
             session()->setFlashdata('error', 'An error occurred while deleting the source.');
         }
 
-        return redirect()->to('sources');
+        return redirect()->to('suppliers');
     }
 }

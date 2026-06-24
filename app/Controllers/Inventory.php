@@ -102,18 +102,20 @@ class Inventory extends BaseController
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
         $deptId = $user['department_id'] ?? 3; // default fallback to Central Supplies
 
-        $data['title'] = 'Inventory';
+        $data['title'] = $isAdmin ? 'Central Inventory' : ($user['department_name'] ?? 'My') . ' Inventory';
 
         $search = $this->request->getGet('search');
         $stock_status = $this->request->getGet('stock_status');
+        $category_id  = $this->request->getGet('category_id');
 
         $data['search'] = $search;
         $data['department_context'] = $isAdmin ? 'Central Supply' : ($user['department_name'] ?? 'Central Supplies');
         $data['department_name'] = $isAdmin ? 'Central Supply' : ($user['department_name'] ?? 'Local');
         $data['stock_status'] = $stock_status;
+        $data['category_id']  = $category_id;
         $data['show_archived'] = false;
 
-        $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status);
+        $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status, $category_id);
         $data['categories'] = \Config\Database::connect()
             ->table('category')
             ->where('status', 1)
@@ -178,6 +180,19 @@ class Inventory extends BaseController
                 return redirect()->to('inventory')->withInput();
             }
 
+            // Check for duplicate item_code
+            $itemCode = strtoupper($this->request->getPost('item_code'));
+            if (!empty($itemCode)) {
+                $dbCheck = \Config\Database::connect();
+                $existsInCentral = $dbCheck->table('central_supply')->where('item_code', $itemCode)->get()->getRow();
+                $existsInInv     = $dbCheck->table('inventory')->where('item_code', $itemCode)->get()->getRow();
+                if ($existsInCentral || $existsInInv) {
+                    session()->setFlashdata('modal_mode', 'create');
+                    session()->setFlashdata('modal_errors', '<li>Inventory code "' . htmlspecialchars($itemCode) . '" already exists. Please use a different code.</li>');
+                    return redirect()->to('inventory')->withInput();
+                }
+            }
+
             $db = \Config\Database::connect();
             $db->transStart();
 
@@ -189,7 +204,7 @@ class Inventory extends BaseController
                 $itemCode = $this->itemModel->generate_item_code($categoryId);
             }
             
-            $itemName   = $this->request->getPost('name');
+            $itemName   = ucwords(strtolower($this->request->getPost('name')));
             $quantity   = (int)$this->request->getPost('quantity');
             $sourceId   = $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name'));
             $batchNum   = $this->request->getPost('batch_num') ?: null;
@@ -379,7 +394,7 @@ class Inventory extends BaseController
 
             $update_data = [
                 'item_code'       => strtoupper($this->request->getPost('item_code')),
-                'item_name'       => $this->request->getPost('name'),
+                'item_name'       => ucwords(strtolower($this->request->getPost('name'))),
                 'category_id'     => (int)$this->request->getPost('category_id'),
                 'source_id'       => $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name')),
                 'batch_num'       => $this->request->getPost('batch_num') ?: null,

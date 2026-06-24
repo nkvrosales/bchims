@@ -28,7 +28,10 @@ class UserModel extends Model
         $user = $this->select("user.*, CONCAT(user.first_name, ' ', user.last_name) AS full_name, departments.department_name AS department_name, roles.role_name AS role")
                      ->join('departments', 'departments.department_id = user.department_id', 'left')
                      ->join('roles', 'roles.role_id = user.role_id', 'inner')
-                     ->where('user.username', $username)
+                     ->groupStart()
+                         ->where('user.username', $username)
+                         ->orWhere('user.email', $username)
+                     ->groupEnd()
                      ->where('user.status', 1)
                      ->first();
 

@@ -1,27 +1,14 @@
     <!-- Page Title Section -->
     <div class="page-breadcrumb">
-        <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+        <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
         <span class="separator">/</span>
-        <span class="current">Supply Requests</span>
+        <span class="current"><?php echo $title ?? (is_admin_role() ? 'Central Requests' : 'My Requests'); ?></span>
     </div>
 
     <div class="page-title-section fade-in-up">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-                <h1 class="page-title mb-1">Supply Requests</h1>
-            </div>
-            <div>
-                <?php if (session()->get('role') === 'encoder'): ?>
-                    <button type="button"
-                            class="btn d-flex align-items-center gap-2"
-                            id="btnNewSupplyRequest"
-                            data-bs-toggle="modal"
-                            data-bs-target="#createRequestModal"
-                            style="background: #10b981; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
-                        <i class="fa-solid fa-file-circle-plus"></i>
-                        <span>Request</span>
-                    </button>
-                <?php endif; ?>
+                <h1 class="page-title mb-1"><?php echo $title ?? (is_admin_role() ? 'Central Requests' : 'My Requests'); ?></h1>
             </div>
         </div>
     </div>
@@ -48,6 +35,54 @@
         </div>
     <?php endif; ?>
 
+    <!-- Supply Requests Search Bar -->
+    <form method="GET" action="<?php echo base_url('requests'); ?>" id="requestsSearchForm">
+        <div class="db-search-bar">
+            <div class="db-search-field db-search-field--keyword">
+                <label for="req_search_keyword">Search Keyword</label>
+                <input
+                    type="text"
+                    id="req_search_keyword"
+                    name="search"
+                    class="db-search-input"
+                    placeholder="Search by ID, requester, department, item, status, notes..."
+                    value="<?php echo htmlspecialchars($search ?? ''); ?>"
+                    autocomplete="off"
+                >
+            </div>
+            <div class="db-search-field db-search-field--dropdown">
+                <label for="req_search_status">Status Filter</label>
+                <select id="req_search_status" name="status_filter" class="db-search-select">
+                    <option value="">All Statuses</option>
+                    <option value="Pending"           <?php echo (($status_filter ?? '') === 'Pending')           ? 'selected' : ''; ?>>Pending</option>
+                    <option value="Served"            <?php echo (($status_filter ?? '') === 'Served')            ? 'selected' : ''; ?>>Served</option>
+                    <option value="Partially Served"  <?php echo (($status_filter ?? '') === 'Partially Served')  ? 'selected' : ''; ?>>Partially Served</option>
+                    <option value="Rejected"          <?php echo (($status_filter ?? '') === 'Rejected')          ? 'selected' : ''; ?>>Rejected</option>
+                    <option value="Cancelled"         <?php echo (($status_filter ?? '') === 'Cancelled')         ? 'selected' : ''; ?>>Cancelled</option>
+                </select>
+            </div>
+            <div class="db-search-actions">
+                <button type="submit" class="btn-db-search" id="btnReqSearch">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search
+                </button>
+                <a href="<?php echo base_url('requests'); ?>" class="btn-db-clear" id="btnReqClear">
+                    Clear
+                </a>
+                <?php if (session()->get('role') === 'encoder'): ?>
+                    <div class="db-search-separator"></div>
+                    <button type="button"
+                            class="btn btn-db-search d-inline-flex align-items-center gap-2"
+                            id="btnNewSupplyRequest"
+                            data-bs-toggle="modal"
+                            data-bs-target="#createRequestModal">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Request</span>
+                    </button>
+                <?php endif; ?>
+            </div>
+        </div>
+    </form>
+
     <!-- Supply Requests Table -->
 
         <div class="table-responsive-custom">
@@ -73,10 +108,10 @@
                                     #<?php echo $req['request_id']; ?>
                                 </td>
                                 <td data-order="<?php echo htmlspecialchars($req['created_at'] ?? ''); ?>">
-                                    <span class="text-dark"><?php echo !empty($req['created_at']) ? date('Y-m-d', strtotime($req['created_at'])) : 'N/A'; ?></span>
+                                    <span class="text-dark"><?php echo !empty($req['created_at']) ? date('M j, Y h:i A', strtotime($req['created_at'])) : 'N/A'; ?></span>
                                 </td>
                                 <td class="col-last-updated" data-order="<?php echo htmlspecialchars($req['updated_at'] ?? $req['created_at'] ?? ''); ?>">
-                                    <span class="text-dark"><?php echo !empty($req['updated_at']) ? date('Y-m-d h:i A', strtotime($req['updated_at'])) : (!empty($req['created_at']) ? date('Y-m-d h:i A', strtotime($req['created_at'])) : 'N/A'); ?></span>
+                                    <span class="text-dark"><?php echo !empty($req['updated_at']) ? date('M j, Y h:i A', strtotime($req['updated_at'])) : (!empty($req['created_at']) ? date('M j, Y h:i A', strtotime($req['created_at'])) : 'N/A'); ?></span>
                                 </td>
                                 <td>
                                     <div class="text-dark"><?php echo htmlspecialchars($req['requester_full_name']); ?></div>
@@ -101,7 +136,7 @@
                                         <small class="text-muted">pcs</small>
                                     </div>
                                 </td>
-                                <td data-order="<?php echo ($req['request_status'] === 'Served' || $req['request_status'] === 'Rejected') ? 1 : 0; ?>">
+                                <td data-order="<?php echo ($req['request_status'] === 'Served' || $req['request_status'] === 'Rejected' || $req['request_status'] === 'Cancelled') ? 1 : 0; ?>">
                                     <?php 
                                         if ($req['request_status'] === 'Served') {
                                             $badge = 'bg-success-subtle text-dark border border-success-subtle';
@@ -109,6 +144,8 @@
                                             $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
                                         } elseif ($req['request_status'] === 'Rejected') {
                                             $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                        } elseif ($req['request_status'] === 'Cancelled') {
+                                            $badge = 'bg-secondary-subtle text-dark border border-secondary-subtle';
                                         } else {
                                             $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         }
@@ -119,143 +156,54 @@
                                 </td>
                                 <td class="text-end">
                                     <?php if (is_admin_role() && $req['request_status'] === 'Pending'): ?>
-                                        <div class="d-inline-flex gap-2">
-                                            <!-- View Details -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerView_<?php echo $req['request_id']; ?>"
-                                                    title="View Details"
-                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                                <i class="bi bi-eye"></i>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
                                             </button>
-
-                                            <!-- Serve Button Trigger -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#serveModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerServe_<?php echo $req['request_id']; ?>"
-                                                    title="Serve Request"
-                                                    style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="bi bi-check-circle"></i>
-                                            </button>
-
-                                            <!-- Partial Serve Trigger -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
-                                                    title="Serve Partially"
-                                                    style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="fa-solid fa-circle-half-stroke"></i>
-                                            </button>
-
-                                            <!-- Reject Button Trigger -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#rejectModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerReject_<?php echo $req['request_id']; ?>"
-                                                    title="Reject Request"
-                                                    style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="fa-solid fa-xmark"></i>
-                                            </button>
-
-                                            <!-- Archive Button Trigger -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
-                                            title="Archive Request"
-                                            style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="fa-regular fa-folder"></i>
-                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#serveModal_<?php echo $req['request_id']; ?>" id="btnTriggerServe_<?php echo $req['request_id']; ?>" title="Serve Request">Serve</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#partialModal_<?php echo $req['request_id']; ?>" id="btnTriggerPartial_<?php echo $req['request_id']; ?>" title="Serve Partially">Partial</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#rejectModal_<?php echo $req['request_id']; ?>" id="btnTriggerReject_<?php echo $req['request_id']; ?>" title="Reject Request">Reject</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                            </ul>
                                         </div>
                                     <?php elseif (is_admin_role() && $req['request_status'] === 'Partially Served'): ?>
-                                        <div class="d-inline-flex gap-2">
-                                            <!-- View Details -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerView_<?php echo $req['request_id']; ?>"
-                                                    title="View Details"
-                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                                <i class="bi bi-eye"></i>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
                                             </button>
-
-                                            <!-- Complete -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>"
-                                                    title="Complete Partially Served Request"
-                                                    style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="bi bi-check-circle"></i>
-                                            </button>
-
-                                            <!-- Partial Serve Again -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#partialModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerPartial_<?php echo $req['request_id']; ?>"
-                                                    title="Serve Partially"
-                                                    style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="fa-solid fa-circle-half-stroke"></i>
-                                            </button>
-
-                                            <!-- Archive -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
-                                                    title="Archive Request"
-                                                    style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="fa-regular fa-folder"></i>
-                                                </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>" id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>" title="Complete Partially Served Request">Complete</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#partialModal_<?php echo $req['request_id']; ?>" id="btnTriggerPartial_<?php echo $req['request_id']; ?>" title="Serve Partially">Partial</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                            </ul>
                                         </div>
                                     <?php elseif ($req['request_status'] !== 'Pending'): ?>
-                                        <div class="d-inline-flex gap-2">
-                                            <!-- View Details (icon only) -->
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
-                                                    id="btnTriggerView_<?php echo $req['request_id']; ?>"
-                                                    title="View Details"
-                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                                <i class="bi bi-eye"></i>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
                                             </button>
-
-                                            <?php if (is_admin_role()): ?>
-                                                <!-- Archive Button Trigger -->
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"                                                    data-bs-toggle="modal" 
-                                                        data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>"
-                                                        id="btnTriggerArchive_<?php echo $req['request_id']; ?>"
-                                            title="Archive Request"
-                                            style="width: 32px; height: 32px; padding: 0;">
-                                                <i class="fa-regular fa-folder"></i>
-                                            </button>
-                                            <?php endif; ?>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                                <?php if (is_admin_role()): ?>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php endif; ?>
+                                            </ul>
                                         </div>
                                     <?php else: ?>
-                                        <div class="d-inline-flex gap-2">
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#viewModal_<?php echo $req['request_id']; ?>"
-                                                    title="View Details"
-                                                    style="width: 32px; height: 32px; padding: 0 !important; flex-shrink: 0;">
-                                                <i class="bi bi-eye"></i>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
                                             </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                                <?php if (session()->get('role') === 'encoder'): ?>
+                                                    <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Edit Request">Edit</a></li>
+                                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
+                                                <?php endif; ?>
+                                            </ul>
                                         </div>
                                     <?php endif; ?>
                                 </td>
@@ -271,7 +219,7 @@
             <?php if ($req['request_status'] === 'Pending'): ?>
                 <!-- Serve Modal -->
                 <div class="modal fade" id="serveModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="serveModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-dialog modal-dialog-centered modal-md">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                             <div class="modal-header border-bottom px-4">
                                 <h5 class="modal-title fw-bold text-dark" id="serveModalLabel_<?php echo $req['request_id']; ?>">Serve Supply Request</h5>
@@ -279,6 +227,18 @@
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/serve/' . $req['request_id']); ?>">
                                 <div class="modal-body px-4 py-4 text-center">
+                                    <?php if (session()->getFlashdata('open_modal') === 'serveModal_' . $req['request_id'] && $modal_errors = session()->getFlashdata('modal_errors')): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
+                                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fa-solid fa-triangle-exclamation mt-1"></i>
+                                            <div>
+                                                <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
+                                                <div class="small"><?php echo $modal_errors; ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                     <h5 class="fw-semibold text-dark mb-2">Confirm Full Serve</h5>
                                     <p class="text-muted small mb-3">
                                         Transfer <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
@@ -290,50 +250,9 @@
                                             <div class="text-muted">Requested</div>
                                         </div>
                                     </div>
-                                    <div class="mb-3 text-start">
-                                        <!-- Column Labels for Desktop/Tablet -->
-                                        <div class="row g-2 mb-2 d-none d-md-flex">
-                                            <div class="col-md-7">
-                                                <label class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label small fw-semibold text-secondary">Action</label>
-                                            </div>
-                                        </div>
-
-                                        <div class="serve-batch-rows" data-request-id="<?php echo $req['request_id']; ?>">
-                                            <div class="serve-batch-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle">
-                                                <!-- Inventory dropdown -->
-                                                <div class="col-12 col-md-7">
-                                                    <label class="form-label small fw-semibold text-secondary d-md-none">Select Inventory <span class="text-danger">*</span></label>
-                                                    <select class="form-select input-custom serve-batch-select" name="central_supply_id[]" required style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                                                        <option value="" disabled selected hidden>Select Inventory</option>
-                                                        <?php foreach (($batches_by_code[$req['item_name']] ?? []) as $batch): ?>
-                                                        <option value="<?php echo $batch['central_supply_id']; ?>">
-                                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
-                                                        </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                </div>
-                                                <!-- Qty -->
-                                                <div class="col-12 col-md-2">
-                                                    <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
-                                                    <input type="number" class="form-control input-custom serve-batch-qty" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                                                </div>
-                                                <!-- Actions -->
-                                                <div class="col-12 col-md-3 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
-                                                    <button type="button" onclick="batchRow.add(this)" class="btn btn-add-serve-batch d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                                                        <span>ADD</span>
-                                                    </button>
-                                                    <button type="button" onclick="batchRow.remove(this)" class="btn-remove-serve-batch btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0 ms-2" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px; display: none;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
-                                                        <i class="fa-regular fa-trash-can"></i> <span>Remove</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="text-center small text-muted mb-3">
+                                        <i class="fa-solid fa-circle-info me-1"></i>
+                                        This will serve <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> from available inventory using the earliest expiring batches first.
                                     </div>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
@@ -342,7 +261,7 @@
                                             style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">
-                                        Cancel
+                                        Close
                                     </button>
                                     <button type="submit"
                                             style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -387,7 +306,7 @@
                                             style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">
-                                        Cancel
+                                        Close
                                     </button>
                                     <button type="submit"
                                             style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -417,6 +336,18 @@
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/partial/' . $req['request_id']); ?>">
                                 <div class="modal-body px-4 py-4">
+                                    <?php if (session()->getFlashdata('open_modal') === 'partialModal_' . $req['request_id'] && $modal_errors = session()->getFlashdata('modal_errors')): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
+                                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fa-solid fa-triangle-exclamation mt-1"></i>
+                                            <div>
+                                                <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
+                                                <div class="small"><?php echo $modal_errors; ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                     <div class="text-center mb-3">
                                         <h6 class="fw-semibold text-dark">Specify Quantity to Serve</h6>
                                         <p class="text-muted small mb-0">
@@ -432,13 +363,13 @@
                                     <div class="mb-3">
                                         <!-- Column Labels for Desktop/Tablet -->
                                         <div class="row g-2 mb-2 d-none d-md-flex">
-                                            <div class="col-md-7">
+                                            <div class="col-lg-7">
                                                 <label class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-lg-2">
                                                 <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-lg-3">
                                                 <label class="form-label small fw-semibold text-secondary">Action</label>
                                             </div>
                                         </div>
@@ -446,24 +377,29 @@
                                         <div class="partial-batch-rows" data-request-id="<?php echo $req['request_id']; ?>">
                                             <div class="partial-batch-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle">
                                                 <!-- Inventory dropdown -->
-                                                <div class="col-12 col-md-7">
+                                                <div class="col-lg-7 col-12">
                                                     <label class="form-label small fw-semibold text-secondary d-md-none">Select Inventory <span class="text-danger">*</span></label>
                                                     <select class="form-select input-custom partial-batch-select" name="central_supply_id[]" required style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                                                         <option value="" disabled selected hidden>Select Inventory</option>
-                                                        <?php foreach (($batches_by_code[$req['item_name']] ?? []) as $batch): ?>
+                                                        <?php $batches = $batches_by_code[$req['item_name']] ?? []; ?>
+                                                        <?php if (empty($batches)): ?>
+                                                        <option value="" disabled>No available stock</option>
+                                                        <?php else: ?>
+                                                        <?php foreach ($batches as $batch): ?>
                                                         <option value="<?php echo $batch['central_supply_id']; ?>">
                                                             <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
                                                         </option>
                                                         <?php endforeach; ?>
+                                                        <?php endif; ?>
                                                     </select>
                                                 </div>
                                                 <!-- Qty -->
-                                                <div class="col-12 col-md-2">
+                                                <div class="col-lg-2 col-12">
                                                     <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
                                                     <input type="number" class="form-control input-custom partial-batch-qty" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                                                 </div>
                                                 <!-- Actions -->
-                                                <div class="col-12 col-md-3 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
+                                                <div class="col-lg-3 col-12 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
                                                     <button type="button" onclick="batchRow.add(this)" class="btn btn-add-partial-batch d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                                                         <span>ADD</span>
                                                     </button>
@@ -489,7 +425,7 @@
                                             style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">
-                                        Cancel
+                                        Close
                                     </button>
                                     <button type="submit"
                                             style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -507,7 +443,7 @@
             <?php if ($req['request_status'] === 'Partially Served'): ?>
                 <!-- Complete Partial Serve Modal -->
                 <div class="modal fade" id="completePartialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="completePartialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-dialog modal-dialog-centered modal-md">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                             <div class="modal-header border-bottom px-4">
                                 <h5 class="modal-title fw-bold text-dark" id="completePartialModalLabel_<?php echo $req['request_id']; ?>">Complete Partially Served Request</h5>
@@ -515,6 +451,18 @@
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/complete_partial/' . $req['request_id']); ?>">
                                 <div class="modal-body px-4 py-4 text-center">
+                                    <?php if (session()->getFlashdata('open_modal') === 'completePartialModal_' . $req['request_id'] && $modal_errors = session()->getFlashdata('modal_errors')): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
+                                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fa-solid fa-triangle-exclamation mt-1"></i>
+                                            <div>
+                                                <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
+                                                <div class="small"><?php echo $modal_errors; ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                     <?php $remaining = $req['quantity_requested'] - $req['quantity_served']; ?>
                                     <h5 class="fw-semibold text-dark mb-2">Serve Remaining Quantity</h5>
                                     <p class="text-muted small mb-3">
@@ -522,51 +470,9 @@
                                         Requested: <strong><?php echo $req['quantity_requested']; ?></strong> unit(s), Already Served: <strong><?php echo $req['quantity_served']; ?></strong> unit(s).<br>
                                         Remaining to serve: <strong><?php echo $remaining; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
                                     </p>
-                                    <div class="mb-3 text-start">
-                                        <!-- Column Labels for Desktop/Tablet -->
-                                        <div class="row g-2 mb-2 d-none d-md-flex">
-                                            <div class="col-md-7">
-                                                <label class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label small fw-semibold text-secondary">Action</label>
-                                            </div>
-                                        </div>
-
-                                        <div class="complete-batch-rows" data-request-id="<?php echo $req['request_id']; ?>">
-                                            <div class="complete-batch-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle">
-                                                <!-- Inventory dropdown -->
-                                                <div class="col-12 col-md-7">
-                                                    <label class="form-label small fw-semibold text-secondary d-md-none">Select Inventory <span class="text-danger">*</span></label>
-                                                    <select class="form-select input-custom complete-batch-select" name="central_supply_id[]" required style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                                                        <option value="" disabled selected hidden>Select Inventory</option>
-                                                        <?php foreach (($batches_by_code[$req['item_name']] ?? []) as $batch): ?>
-                                                        <option value="<?php echo $batch['central_supply_id']; ?>">
-                                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
-                                                        </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                </div>
-                                                <!-- Qty -->
-                                                <div class="col-12 col-md-2">
-                                                    <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
-                                                    <input type="number" class="form-control input-custom complete-batch-qty" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                                                </div>
-                                                <!-- Actions -->
-                                                <div class="col-12 col-md-3 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
-                                                    <button type="button" onclick="batchRow.add(this)" class="btn btn-add-complete-batch d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                                                        <span>ADD</span>
-                                                    </button>
-                                                    <button type="button" onclick="batchRow.remove(this)" class="btn-remove-complete-batch btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0 ms-2" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px; display: none;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
-                                                        <i class="fa-regular fa-trash-can"></i> <span>Remove</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <p class="text-muted small mb-3">
+                                        Click "Complete Request" to automatically deduct from inventory batches (FIFO by expiration date).
+                                    </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                     <button type="button"
@@ -574,7 +480,7 @@
                                             style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">
-                                        Cancel
+                                        Close
                                     </button>
                                     <button type="submit"
                                             style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -618,6 +524,8 @@
                                             $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
                                         } elseif ($req['request_status'] === 'Rejected') {
                                             $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                        } elseif ($req['request_status'] === 'Cancelled') {
+                                            $badge = 'bg-secondary-subtle text-dark border border-secondary-subtle';
                                         } else {
                                             $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         }
@@ -697,6 +605,48 @@
                     </div>
                 </div>
             </div>
+
+            <?php if (session()->get('role') === 'encoder' && $req['request_status'] === 'Pending'): ?>
+                <!-- Cancel Modal -->
+                <div class="modal fade" id="cancelModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="cancelModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                            <div class="modal-header border-bottom px-4">
+                                <h5 class="modal-title fw-bold text-dark" id="cancelModalLabel_<?php echo $req['request_id']; ?>">Cancel Request</h5>
+                                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
+                            </div>
+                            <form method="POST" action="<?php echo base_url('requests/cancel/' . $req['request_id']); ?>">
+                                <div class="modal-body px-4 py-4">
+                                    <div class="text-center mb-3">
+                                        <p class="text-muted small mb-0">
+                                            Are you sure you want to cancel request <strong>#<?php echo $req['request_id']; ?></strong> for <strong><?php echo $req['quantity_requested']; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>? This action cannot be undone.
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="cancel_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Reason</label>
+                                        <textarea class="form-control input-custom"
+                                                  id="cancel_notes_<?php echo $req['request_id']; ?>"
+                                                  name="cancel_notes"
+                                                  rows="3"
+                                                   placeholder="Reason for cancellation..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                    <button type="button"
+                                            data-bs-dismiss="modal"
+                                            style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#f9fafb'"
+                                            onmouseout="this.style.background='#fff'">Close</button>
+                                    <button type="submit"
+                                            style="background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(239,68,68,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'"
+                                            onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(239,68,68,0.3)'">Cancel Request</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
 
@@ -734,7 +684,7 @@
                                                 style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                                 onmouseover="this.style.background='#f9fafb'"
                                                 onmouseout="this.style.background='#fff'">
-                                            Cancel
+                                            Close
                                         </button>
                                         <button type="submit"
                                                 style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -772,7 +722,8 @@
 
                         <!-- Validation Errors -->
                         <?php if ($create_errors = session()->getFlashdata('create_request_validation_errors')): ?>
-                        <div class="alert alert-danger border-0 rounded-3 mb-4 py-3 shadow-sm">
+                        <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3 shadow-sm">
+                            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
                             <div class="d-flex align-items-start gap-2">
                                 <i class="fa-solid fa-triangle-exclamation mt-1"></i>
                                 <div>
@@ -783,19 +734,32 @@
                         </div>
                         <?php endif; ?>
 
-                        <!-- Column Labels for Desktop/Tablet -->
-                        <div class="row g-3 mb-2 d-none d-md-flex">
-                            <div class="col-md-3">
+                        <!-- Column Labels for Create Mode -->
+                        <div class="row g-3 mb-2 d-none d-md-flex" id="create-modal-headers">
+                            <div class="col-lg-3">
                                 <label class="form-label small fw-semibold text-secondary">Category</label>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-lg-5">
                                 <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">Action</label>
+                            </div>
+                        </div>
+
+                        <!-- Column Labels for Edit Mode -->
+                        <div class="row g-3 mb-2 d-none" id="edit-modal-headers">
+                            <div class="col-lg-3">
+                                <label class="form-label small fw-semibold text-secondary">Category</label>
+                            </div>
+                            <div class="col-lg-7">
+                                <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
                             </div>
                         </div>
 
@@ -826,7 +790,7 @@
                                 style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                 onmouseover="this.style.background='#f9fafb'"
                                 onmouseout="this.style.background='#fff'">
-                            Cancel
+                            Close
                         </button>
                         <button type="submit"
                                 style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
@@ -856,7 +820,7 @@
             var rowHtml = `
             <div class="request-item-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle" id="${rowId}">
                 <!-- Category select -->
-                <div class="col-12 col-md-3">
+                <div class="col-lg-3 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
                     <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                         <option value="">All Categories</option>
@@ -865,7 +829,7 @@
                 </div>
 
                 <!-- Item search combobox -->
-                <div class="col-12 col-md-5">
+                <div class="col-lg-5 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">Item Name <span class="text-danger">*</span></label>
                     <div class="item-combobox">
                         <div class="position-relative">
@@ -882,13 +846,13 @@
                 </div>
 
                 <!-- Qty -->
-                <div class="col-12 col-md-2">
+                <div class="col-lg-2 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
                     <input type="number" class="form-control input-custom row-quantity-input" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                 </div>
 
                 <!-- Add/Remove Actions -->
-                <div class="col-12 col-md-2 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
+                <div class="col-lg-2 col-12 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
                     <button type="button" class="btn btn-add-row d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                         <span>ADD</span>
                     </button>
@@ -902,7 +866,7 @@
             var newRow = document.getElementById(rowId);
 
             setupRowEvents(newRow);
-            updateRemoveButtons();
+            updateRowButtons();
         }
 
         function setupRowEvents(row) {
@@ -947,7 +911,7 @@
             // Remove button action
             row.querySelector('.btn-remove-row').addEventListener('click', function() {
                 row.remove();
-                updateRemoveButtons();
+                updateRowButtons();
             });
         }
 
@@ -996,14 +960,26 @@
             dropdown.style.display = 'block';
         }
 
-        function updateRemoveButtons() {
+        function updateRowButtons() {
             var rows = container.querySelectorAll('.request-item-row');
             rows.forEach((row, index) => {
                 var removeBtn = row.querySelector('.btn-remove-row');
+                var addBtn = row.querySelector('.btn-add-row');
+                
+                // Only show ADD on the latest row (last row), hide but keep layout space for others
+                if (index === rows.length - 1) {
+                    addBtn.style.removeProperty('visibility');
+                    addBtn.style.setProperty('display', 'inline-flex', 'important');
+                } else {
+                    addBtn.style.setProperty('visibility', 'hidden', 'important');
+                    addBtn.style.setProperty('display', 'inline-flex', 'important');
+                }
+                
+                // Hide remove button if there is only 1 row
                 if (rows.length <= 1) {
                     removeBtn.style.setProperty('display', 'none', 'important');
                 } else {
-                    removeBtn.style.removeProperty('display');
+                    removeBtn.style.setProperty('display', 'inline-flex', 'important');
                 }
             });
         }
@@ -1042,6 +1018,114 @@
                 if (!valid) {
                     e.preventDefault();
                     alert('Please select a valid item from the dropdown list for all rows.');
+                }
+            });
+        }
+
+        var requestModal = document.getElementById('createRequestModal');
+        if (requestModal) {
+            requestModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var mode = button.getAttribute('data-mode') || 'create';
+                var modalTitle = requestModal.querySelector('.modal-title');
+                var modalForm = requestModal.querySelector('form');
+                var submitBtn = requestModal.querySelector('button[type="submit"]');
+                var createHeaders = document.getElementById('create-modal-headers');
+                var editHeaders = document.getElementById('edit-modal-headers');
+
+                if (mode === 'edit') {
+                    var id = button.getAttribute('data-id');
+                    var categoryId = button.getAttribute('data-category');
+                    var itemId = button.getAttribute('data-item-id');
+                    var itemName = button.getAttribute('data-item-name');
+                    var qty = button.getAttribute('data-qty');
+                    var notes = button.getAttribute('data-notes');
+
+                    modalTitle.textContent = 'Edit Request';
+                    modalForm.action = '<?php echo base_url('requests/edit'); ?>/' + id;
+                    submitBtn.textContent = 'Save Changes';
+
+                    if (createHeaders) {
+                        createHeaders.classList.add('d-none');
+                        createHeaders.classList.remove('d-md-flex');
+                    }
+                    if (editHeaders) {
+                        editHeaders.classList.remove('d-none');
+                        editHeaders.classList.add('d-md-flex');
+                    }
+
+                    // Clear container and add exactly one row for editing
+                    container.innerHTML = '';
+                    
+                    var rowId = 'row_edit_' + id;
+                    var rowHtml = `
+                    <div class="request-item-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle" id="${rowId}">
+                        <!-- Category select -->
+                        <div class="col-lg-3 col-12">
+                            <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
+                            <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
+                                <option value="">All Categories</option>
+                                ${categories.map(c => `<option value="${c.category_id}" ${String(c.category_id) === String(categoryId) ? 'selected' : ''}>${escapeHtml(c.category_code + ' - ' + c.category_description)}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Item search combobox -->
+                        <div class="col-lg-7 col-12">
+                            <label class="form-label small fw-semibold text-secondary d-md-none">Item Name <span class="text-danger">*</span></label>
+                            <div class="item-combobox">
+                                <div class="position-relative">
+                                    <input type="text" class="form-control input-custom row-item-search" placeholder="Select Item" autocomplete="off" value="${escapeHtml(itemName)}" style="border-radius: 8px; border-color: #cbd5e1; height: 42px; padding-right: 30px;" required>
+                                    <input type="hidden" name="item_id" class="row-item-id" value="${itemId}">
+                                    <i class="fa-solid fa-xmark position-absolute top-50 end-0 translate-middle-y me-3 row-item-clear" style="color: #9ca3af; font-size: 0.9rem; cursor: pointer; display: block;"></i>
+                                </div>
+                                <div class="item-dropdown row-item-dropdown" style="display: none;">
+                                    <div class="item-dropdown-inner">
+                                        <div class="text-muted text-center py-3 small row-item-empty">No items found</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Qty -->
+                        <div class="col-lg-2 col-12">
+                            <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control input-custom row-quantity-input" name="quantity" min="1" value="${qty}" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
+                        </div>
+                    </div>`;
+
+                    container.insertAdjacentHTML('beforeend', rowHtml);
+                    var newRow = document.getElementById(rowId);
+                    setupRowEvents(newRow);
+
+                    // Pre-fill notes
+                    var notesTextarea = document.getElementById('modal_notes');
+                    if (notesTextarea) {
+                        notesTextarea.value = notes;
+                    }
+                } else {
+                    // Create mode
+                    modalTitle.textContent = 'Create Request';
+                    modalForm.action = '<?php echo base_url('requests/create'); ?>';
+                    submitBtn.textContent = 'Submit Request';
+
+                    if (editHeaders) {
+                        editHeaders.classList.add('d-none');
+                        editHeaders.classList.remove('d-md-flex');
+                    }
+                    if (createHeaders) {
+                        createHeaders.classList.remove('d-none');
+                        createHeaders.classList.add('d-md-flex');
+                    }
+
+                    // Clear notes
+                    var notesTextarea = document.getElementById('modal_notes');
+                    if (notesTextarea) {
+                        notesTextarea.value = '';
+                    }
+
+                    // Reset container to single empty row
+                    container.innerHTML = '';
+                    addNewRow();
                 }
             });
         }
@@ -1091,7 +1175,18 @@
         updateAll: function() {
             document.querySelectorAll('.serve-batch-rows, .partial-batch-rows, .complete-batch-rows').forEach(function(c) {
                 var rows = c.querySelectorAll('.serve-batch-row, .partial-batch-row, .complete-batch-row');
-                rows.forEach(function(r) {
+                rows.forEach(function(r, index) {
+                    var addBtn = r.querySelector('.btn-add-serve-batch, .btn-add-partial-batch, .btn-add-complete-batch');
+                    if (addBtn) {
+                        if (index === rows.length - 1) {
+                            addBtn.style.removeProperty('visibility');
+                            addBtn.style.setProperty('display', 'inline-flex', 'important');
+                        } else {
+                            addBtn.style.setProperty('visibility', 'hidden', 'important');
+                            addBtn.style.setProperty('display', 'inline-flex', 'important');
+                        }
+                    }
+
                     var btn = r.querySelector('.btn-remove-serve-batch, .btn-remove-partial-batch, .btn-remove-complete-batch');
                     if (btn) {
                         if (rows.length > 1) {
@@ -1141,6 +1236,18 @@
                 }
             });
         });
+    });
+
+    <?php if ($openModalId = session()->getFlashdata('open_modal')): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('<?php echo $openModalId; ?>');
+        if (el) new bootstrap.Modal(el).show();
+    });
+    <?php endif; ?>
+
+    document.addEventListener('hidden.bs.modal', function(e) {
+        var err = e.target.querySelector('.modal-body .alert.alert-danger');
+        if (err) err.remove();
     });
     </script>
 

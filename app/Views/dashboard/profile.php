@@ -1,6 +1,6 @@
 <!-- Page Title Section -->
 <div class="page-breadcrumb">
-    <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+    <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
     <span class="separator">/</span>
     <span class="current">Profile Settings</span>
 </div>
@@ -27,11 +27,43 @@
             <div>
                 <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
                 <div class="small">
-                    <?php echo validation_errors('<li>', '</li>'); ?>
-                    <?php if (isset($error)) echo "<li>{$error}</li>"; ?>
-                </div>
-            </div>
+                    <?php
+                    $errs = validation_errors();
+                    if (!empty($errs)):
+                        foreach ($errs as $e):
+                            echo "<li>" . esc($e) . "</li>";
+                        endforeach;
+                    endif;
+                    ?>
+                    <?php if (isset($error)) echo "<li>" . esc($error) . "</li>"; ?>
         </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function togglePasswordVisibility(btnId, inputId) {
+        var btn = document.getElementById(btnId);
+        var input = document.getElementById(inputId);
+        if (!btn || !input) return;
+        btn.addEventListener('click', function() {
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    }
+    togglePasswordVisibility('toggleOldPassword', 'old_password');
+    togglePasswordVisibility('toggleNewPassword', 'password');
+    togglePasswordVisibility('toggleConfirmPassword', 'confirm_password');
+});
+</script>
     </div>
 <?php endif; ?>
 
@@ -59,7 +91,7 @@
             <form method="POST" action="<?php echo base_url('dashboard/profile'); ?>" class="row g-3">
                 
                 <!-- 1. First Name -->
-                <div class="col-12 col-sm-6">
+                <div class="col-lg-6 col-12">
                     <label for="first_name" class="form-label small fw-semibold text-secondary">First Name <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
@@ -73,7 +105,7 @@
 
 
                 <!-- 2. Last Name -->
-                <div class="col-12 col-sm-6">
+                <div class="col-lg-6 col-12">
                     <label for="last_name" class="form-label small fw-semibold text-secondary">Last Name <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
@@ -86,7 +118,7 @@
 
                
                 <!-- 3. Username -->
-                <div class="col-12 col-sm-6">
+                <div class="col-lg-6 col-12">
                     <label for="username" class="form-label small fw-semibold text-secondary">Username <span class="text-danger">*</span></label>
                     <input type="text" 
                            class="form-control input-custom" 
@@ -98,19 +130,60 @@
                 </div>
 
 
-                <!-- 4. New Password -->
-                <div class="col-12 col-sm-6">
+                <!-- 4. Current Password -->
+                <div class="col-lg-6 col-12">
+                    <label for="old_password" class="form-label small fw-semibold text-secondary">Current Password</label>
+                    <div class="position-relative">
+                        <input type="password"
+                               class="form-control input-custom"
+                               id="old_password"
+                               name="old_password"
+                               placeholder="Enter current password"
+                               style="padding-right: 40px;">
+                        <button type="button" id="toggleOldPassword" tabindex="-1"
+                                style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. New Password -->
+                <div class="col-lg-6 col-12">
                     <label for="password" class="form-label small fw-semibold text-secondary">New Password</label>
-                    <input type="password" 
-                           class="form-control input-custom" 
-                           id="password" 
-                           name="password" 
-                           placeholder="Leave blank to keep current">
+                    <div class="position-relative">
+                        <input type="password" 
+                               class="form-control input-custom" 
+                               id="password" 
+                               name="password" 
+                               placeholder="Enter new password"
+                               style="padding-right: 40px;">
+                        <button type="button" id="toggleNewPassword" tabindex="-1"
+                                style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6. Confirm Password -->
+                <div class="col-lg-6 col-12">
+                    <label for="confirm_password" class="form-label small fw-semibold text-secondary">Confirm New Password</label>
+                    <div class="position-relative">
+                        <input type="password"
+                               class="form-control input-custom"
+                               id="confirm_password"
+                               name="confirm_password"
+                               placeholder="Re-enter new password"
+                               style="padding-right: 40px;">
+                        <button type="button" id="toggleConfirmPassword" tabindex="-1"
+                                style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <?php $isAdmin = is_admin_role($user['role']); ?>
                 <!-- 5. Role -->
-                <div class="col-12 col-sm-6">
+                <div class="col-lg-6 col-12">
                     <label for="role_display" class="form-label small fw-semibold text-secondary">Role <span class="text-danger">*</span></label>
                     <select class="form-select input-custom bg-light" id="role_display" disabled style="cursor: not-allowed;">
                         <option value="<?php echo htmlspecialchars($user['role']); ?>" selected>
@@ -121,7 +194,7 @@
                 </div>
 
                 <!-- 6. Department -->
-                <div class="col-12 col-sm-6">
+                <div class="col-lg-6 col-12">
                     <label for="department_id" class="form-label small fw-semibold text-secondary">Department</label>
                     <?php if ($isAdmin): ?>
                         <select class="form-select input-custom" id="department_id" name="department_id">
@@ -152,11 +225,38 @@
                     <button type="submit" class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2 hover-lift">
                         <span>Save Changes</span>
                     </button>
-                    <a href="<?php echo base_url('dashboard'); ?>" class="btn btn-outline-secondary d-flex align-items-center hover-lift">
-                        Cancel
-                    </a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var toggles = [
+        { btn: 'toggleOldPassword', inp: 'old_password' },
+        { btn: 'toggleNewPassword', inp: 'password' },
+        { btn: 'toggleConfirmPassword', inp: 'confirm_password' }
+    ];
+    toggles.forEach(function(t) {
+        var btn = document.getElementById(t.btn);
+        var inp = document.getElementById(t.inp);
+        if (!btn || !inp) return;
+        inp.addEventListener('input', function() {
+            btn.style.display = this.value ? '' : 'none';
+        });
+        btn.addEventListener('click', function() {
+            var icon = btn.querySelector('i');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            } else {
+                inp.type = 'password';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            }
+        });
+    });
+});
+</script>

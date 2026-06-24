@@ -293,7 +293,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[0, 'asc']],
+            order: [[1, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -309,7 +309,7 @@ $(document).ready(function() {
             },
             columnDefs: [
                 { visible: false, targets: [0] },
-                { orderable: false, targets: 7 }
+                { orderable: false, targets: 6 }
             ],
             initComplete: function () {
                 // Add placeholder and clean up the search wrapper
@@ -412,7 +412,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[0, 'asc']],
+            order: [[1, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -476,11 +476,11 @@ $(document).ready(function() {
         });
     }
 
-    // 10. JQUERY DATATABLES: SOURCES SORTING & SEARCH
+    // 10. JQUERY DATATABLES: SUPPLIERS SORTING & SEARCH
     // =========================================================================
-    const $sourcesTable = $('#sourcesTable');
-    if ($sourcesTable.length) {
-        $sourcesTable.DataTable({
+    const $suppliersTable = $('#suppliersTable');
+    if ($suppliersTable.length) {
+        $suppliersTable.DataTable({
             dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
                  "<'row'<'col-sm-12'tr>>" +
                  "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
@@ -494,21 +494,21 @@ $(document).ready(function() {
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
                 search: "",
-                searchPlaceholder: "Search sources...",
-                lengthMenu: "Show _MENU_ sources",
-                info: 'Showing _START_ to _END_ of _TOTAL_ sources',
-                infoEmpty: 'Showing 0 to 0 of 0 sources',
-                zeroRecords: 'No sources found'
+                searchPlaceholder: "Search suppliers...",
+                lengthMenu: "Show _MENU_ suppliers",
+                info: 'Showing _START_ to _END_ of _TOTAL_ suppliers',
+                infoEmpty: 'Showing 0 to 0 of 0 suppliers',
+                zeroRecords: 'No suppliers found'
             },
             columnDefs: [
                 { orderable: false, targets: 2 }
             ],
             initComplete: function () {
-                var $searchInput = $('#sourcesTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search sources...');
+                var $searchInput = $('#suppliersTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Search suppliers...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
-                $('#sourcesTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
-                $('#sourcesTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+                $('#suppliersTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#suppliersTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
         });
     }

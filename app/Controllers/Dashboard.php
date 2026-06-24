@@ -94,6 +94,16 @@ class Dashboard extends BaseController
                 ) AS grouped"
             )->getRowArray()['cnt'];
 
+            $data['total_expired'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh, MAX(expiration_date) AS max_exp
+                    FROM central_supply
+                    WHERE status = 1
+                    GROUP BY item_code, item_name
+                    HAVING max_exp < CURDATE() AND total_qoh > 0
+                ) AS grouped"
+            )->getRowArray()['cnt'];
+
             $data['total_requests'] = $db->table('request')->whereIn('request_status', ['Pending', 'Partially Served'])->countAllResults();
         } else {
             // Staff: count distinct items (grouped by item_code+item_name) for this department,
@@ -136,6 +146,19 @@ class Dashboard extends BaseController
                 [$deptId]
             )->getRowArray()['cnt'];
 
+            $data['total_expired'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh, MAX(i.expiration_date) AS max_exp
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code, i.item_name
+                    HAVING max_exp < CURDATE() AND total_qoh > 0
+                ) AS grouped",
+                [$deptId]
+            )->getRowArray()['cnt'];
+
             $data['total_requests'] = $db->table('request')
                 ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id')
                 ->where('department_supply.department_id', $deptId)
@@ -155,15 +178,38 @@ class Dashboard extends BaseController
              . view('templates/footer');
     }
 
-    /**
-     * Audit Trail log viewer.
-     */
     public function audit_trail()
     {
         if ($res = $this->checkAuth()) return $res;
 
+        $search = $this->request->getGet('search');
+        $action_filter = $this->request->getGet('action_filter');
+
         $data['title'] = 'Audit Trail';
-        $data['logs']  = $this->auditModel->get_audit_logs();
+        $data['search'] = $search;
+        $data['action_filter'] = $action_filter;
+
+        $db = \Config\Database::connect();
+        $builder = $db->table('audit_log')
+                      ->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
+                      ->join('user', 'user.user_id = audit_log.user_id', 'left');
+
+        if (!is_admin_role()) {
+            $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
+        }
+
+        if (!empty($search)) {
+            $builder = $builder->groupStart()
+                               ->like('audit_log.action_description', $search)
+                               ->orLike('user.username', $search)
+                               ->groupEnd();
+        }
+
+        if (!empty($action_filter)) {
+            $builder = $builder->where('audit_log.action_type', $action_filter);
+        }
+
+        $data['logs'] = $builder->orderBy('action_date', 'DESC')->get()->getResultArray();
 
         return view('templates/header', $data)
              . view('audit', $data)

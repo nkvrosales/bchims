@@ -1,6 +1,6 @@
 <!-- Page Title Section -->
 <div class="page-breadcrumb">
-    <a href="<?php echo base_url('dashboard'); ?>"><i class="bi bi-house-door"></i></a>
+    <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
     <span class="separator">/</span>
     <span class="current">User Management</span>
 </div>
@@ -9,18 +9,6 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">User Management</h1>
-        </div>
-        <div>
-            <button type="button"
-                    class="btn d-flex align-items-center gap-2"
-                    id="btnAddNewUser"
-                    data-bs-toggle="modal"
-                    data-bs-target="#userModal"
-                    onclick="setupUserModal('add')"
-                    style="background: #10b981 ; color: #fff; font-weight: 600; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.3); transition: background 0.2s;">
-                <i class="fa-solid fa-user-plus"></i>
-                <span>Add New User</span>
-            </button>
         </div>
     </div>
 </div>
@@ -46,6 +34,52 @@
     </div>
 <?php endif; ?>
 
+<!-- Users Search Bar -->
+<form method="GET" action="<?php echo base_url('users'); ?>" id="usersSearchForm">
+    <div class="db-search-bar">
+        <div class="db-search-field db-search-field--keyword">
+            <label for="users_search_keyword">Search Keyword</label>
+            <input
+                type="text"
+                id="users_search_keyword"
+                name="search"
+                class="db-search-input"
+                placeholder="Search by name, username, or department..."
+                value="<?php echo htmlspecialchars($search ?? ''); ?>"
+                autocomplete="off"
+            >
+        </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <label for="users_search_role">Role Filter</label>
+            <select id="users_search_role" name="role_filter" class="db-search-select">
+                <option value="">All Roles</option>
+                <option value="dev"     <?php echo (($role_filter ?? '') === 'dev')     ? 'selected' : ''; ?>>Dev</option>
+                <option value="admin"   <?php echo (($role_filter ?? '') === 'admin')   ? 'selected' : ''; ?>>Admin</option>
+                <option value="encoder" <?php echo (($role_filter ?? '') === 'encoder') ? 'selected' : ''; ?>>Encoder</option>
+                <option value="viewer"  <?php echo (($role_filter ?? '') === 'viewer')  ? 'selected' : ''; ?>>Viewer</option>
+            </select>
+        </div>
+        <div class="db-search-actions">
+            <button type="submit" class="btn-db-search" id="btnUsersSearch">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+            <a href="<?php echo base_url('users'); ?>" class="btn-db-clear" id="btnUsersClear">
+                Clear
+            </a>
+            <div class="db-search-separator"></div>
+            <button type="button"
+                    class="btn btn-db-search d-inline-flex align-items-center gap-2"
+                    id="btnAddNewUser"
+                    data-bs-toggle="modal"
+                    data-bs-target="#userModal"
+                    onclick="setupUserModal('add')">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add User</span>
+            </button>
+        </div>
+    </div>
+</form>
+
 <!-- Users Table -->
 
     <div class="table-responsive-custom">
@@ -53,13 +87,12 @@
             <thead>
                 <tr>
                     <th style="display:none;">ID</th>
-                    <th style="width: 15%">Username</th>
                     <th style="width: 25%">Name</th>
-                    <th style="width: 12%">Role</th>
-                    <th style="width: 20%">Department</th>
-                    <th style="width: 10%">Status</th>
-                    <th style="width: 15%">Last Login</th>
-                    <th style="width: 8%" class="text-end">Actions</th>
+                    <th style="width: 10%" class="text-center">Username</th>
+                    <th style="width: 10%" class="text-center">Account Level</th>
+                    <th style="width: 10%" class="text-center">Department</th>
+                    <th style="width: 10%" class="text-center">Status</th>
+                    <th style="width: 8%" class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,26 +104,29 @@
                         $initials = strtoupper(substr($u['first_name'], 0, 1)) . strtoupper(substr($u['last_name'], 0, 1));
                         $color = $avatar_palette[ord(strtoupper($u['last_name'][0] ?? 'A')) % count($avatar_palette)];
                         $is_self = ((int)$u['id'] === (int)$current_user_id);
+                        $current_user_role = session()->get('role');
+                        $is_protected = (strtolower($current_user_role) === 'admin' && !$is_self && in_array(strtolower($u['role']), ['dev', 'admin']));
+                        $manage_mode = $is_protected ? 'view' : 'edit';
                     ?>
                     <tr>
                         <!-- Hidden ID -->
                         <td style="display:none;"><?php echo $u['id']; ?></td>
-                        <!-- Username -->
+                        <!-- Name (Last, First) -->
                         <td>
+                            <span class="text-dark" style="font-size: 0.9rem;">
+                                <?php echo htmlspecialchars($u['last_name'] . ', ' . $u['first_name']); ?>
+                            </span>
+                        </td>
+
+                        <!-- Username -->
+                        <td class="text-center">
                             <span class="text-dark" style="font-size: 0.9rem;">
                                 <?php echo htmlspecialchars($u['username']); ?>
                             </span>
                         </td>
 
-                        <!-- Name Only -->
-                        <td>
-                            <span class="text-dark" style="font-size: 0.9rem;">
-                                <?php echo htmlspecialchars($u['full_name']); ?>
-                            </span>
-                        </td>
-
                         <!-- Role -->
-                        <td data-order="<?php
+                        <td class="text-center" data-order="<?php
                             $r = strtolower($u['role']);
                             if ($r === 'dev') echo 0;
                             elseif ($r === 'admin' || $r === 'administrator') echo 1;
@@ -121,7 +157,7 @@
                         </td>
 
                         <!-- Department -->
-                        <td>
+                        <td class="text-center">
                             <span class="text-dark" style="font-size: 0.9rem;">
                                 <?php if (!empty($u['department_name'])): ?>
                                     <?php echo htmlspecialchars($u['department_name']); ?>
@@ -134,96 +170,57 @@
                         </td>
 
                         <!-- Status with dot indicator -->
-                        <td>
+                        <td class="text-center">
                             <?php if ($u['is_active']): ?>
-                                <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
                                     <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0;box-shadow:0 0 0 2px rgba(34,197,94,0.2);"></span>
                                     <span class="small fw-semibold" style="color:#16a34a;">ACTIVE</span>
                                 </div>
                             <?php else: ?>
-                                <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
                                     <span style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0;"></span>
                                     <span class="small fw-semibold text-secondary">INACTIVE</span>
                                 </div>
                             <?php endif; ?>
                         </td>
 
-                        <!-- Last Login -->
-                        <td>
-                            <span class="text-dark" style="font-size: 0.9rem;">
-                                <?php echo !empty($u['last_login']) ? date('M j, Y g:i A', strtotime($u['last_login'])) : '—'; ?>
-                            </span>
-                        </td>
-
                         <!-- Actions -->
-                        <td class="text-end">
-                            <div class="d-inline-flex gap-2">
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                        style="width: 32px; height: 32px;"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#userModal"
-                                        data-id="<?php echo $u['id']; ?>"
-                                        data-username="<?php echo htmlspecialchars($u['username']); ?>"
-                                        data-first-name="<?php echo htmlspecialchars($u['first_name']); ?>"
-                                        data-last-name="<?php echo htmlspecialchars($u['last_name']); ?>"
-                                        data-email="<?php echo htmlspecialchars($u['email'] ?? ''); ?>"
-                                        data-role="<?php echo htmlspecialchars(strtolower($u['role'])); ?>"
-                                        data-department-id="<?php echo htmlspecialchars($u['department_id'] ?? ''); ?>"
-                                        data-is-active="<?php echo htmlspecialchars($u['is_active']); ?>"
-                                        data-is-self="<?php echo $is_self ? 'true' : 'false'; ?>"
-                                        onclick="setupUserModal('view', this.dataset)"
-                                        title="View User">
-                                    <i class="bi bi-eye"></i>
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                    Actions
                                 </button>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center rounded-2"
-                                        style="width: 32px; height: 32px;"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#userModal"
-                                        data-id="<?php echo $u['id']; ?>"
-                                        data-username="<?php echo htmlspecialchars($u['username']); ?>"
-                                        data-first-name="<?php echo htmlspecialchars($u['first_name']); ?>"
-                                        data-last-name="<?php echo htmlspecialchars($u['last_name']); ?>"
-                                        data-email="<?php echo htmlspecialchars($u['email'] ?? ''); ?>"
-                                        data-role="<?php echo htmlspecialchars(strtolower($u['role'])); ?>"
-                                        data-department-id="<?php echo htmlspecialchars($u['department_id'] ?? ''); ?>"
-                                        data-is-active="<?php echo htmlspecialchars($u['is_active']); ?>"
-                                        data-is-self="<?php echo $is_self ? 'true' : 'false'; ?>"
-                                        onclick="setupUserModal('edit', this.dataset)"
-                                        title="Edit User">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-
-                                <?php if ((int)$u['id'] !== (int)$current_user_id): ?>
+                                <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                     <?php if ((int)$u['is_active'] === 1): ?>
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center rounded-2"
-                                            style="width: 32px; height: 32px;"
+                                    <li><a class="dropdown-item" href="#"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#deleteUserModal-<?php echo $u['id']; ?>"
-                                            title="Deactivate User">
-                                        <i class="fa-solid fa-user-slash"></i>
-                                        </button>
-                                    <?php else: ?>
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center rounded-2"
-                                            style="width: 32px; height: 32px;"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#activateUserModal-<?php echo $u['id']; ?>"
-                                            title="Activate User">
-                                        <i class="fa-solid fa-rotate-left"></i>
-                                        </button>
+                                            data-bs-target="#userModal"
+                                            data-id="<?php echo $u['id']; ?>"
+                                            data-username="<?php echo htmlspecialchars($u['username']); ?>"
+                                            data-first-name="<?php echo htmlspecialchars($u['first_name']); ?>"
+                                            data-last-name="<?php echo htmlspecialchars($u['last_name']); ?>"
+                                            data-email="<?php echo htmlspecialchars($u['email'] ?? ''); ?>"
+                                            data-role="<?php echo htmlspecialchars(strtolower($u['role'])); ?>"
+                                            data-department-id="<?php echo htmlspecialchars($u['department_id'] ?? ''); ?>"
+                                            data-is-active="<?php echo htmlspecialchars($u['is_active']); ?>"
+                                            data-is-self="<?php echo $is_self ? 'true' : 'false'; ?>"
+                                            onclick="setupUserModal('<?php echo $manage_mode; ?>', this.dataset)"
+                                            title="Manage User">Manage</a></li>
                                     <?php endif; ?>
-                                <?php else: ?>
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center rounded-2"
-                                            style="width: 32px; height: 32px; padding: 0 !important;"
-                                            title="You cannot modify yourself"
-                                            disabled>
-                                        <i class="fa-solid fa-user-slash"></i>
-                                    </button>
-                                <?php endif; ?>
+                                    <?php if (!$is_protected && (int)$u['id'] !== (int)$current_user_id): ?>
+                                        <?php if ((int)$u['is_active'] === 1): ?>
+                                                <li><a class="dropdown-item" href="#"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deleteUserModal-<?php echo $u['id']; ?>"
+                                                        title="Deactivate User">Deactivate</a></li>
+                                                        <?php else: ?>
+                                                        <li><a class="dropdown-item" href="#"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#activateUserModal-<?php echo $u['id']; ?>"
+                                                                title="Activate User">Reactivate</a></li>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </ul>
                             </div>
                         </td>
                     </tr>
@@ -266,7 +263,8 @@
                     $errors_to_show = $create_errors ?: $edit_errors;
                     if ($has_errors): 
                     ?>
-                    <div class="alert alert-danger border-0 rounded-3 mb-4 py-3">
+                    <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
                         <div class="d-flex align-items-start gap-2">
                             <i class="fa-solid fa-triangle-exclamation mt-1"></i>
                             <div>
@@ -280,7 +278,7 @@
                     <div class="row g-3">
 
                         <!-- First Name -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_first_name" class="form-label small fw-semibold text-secondary">
                                 First Name <span class="text-danger">*</span>
                             </label>
@@ -292,7 +290,7 @@
                         </div>
 
                         <!-- Last Name -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_last_name" class="form-label small fw-semibold text-secondary">
                                 Last Name <span class="text-danger">*</span>
                             </label>
@@ -304,7 +302,7 @@
                         </div>
 
                         <!-- Username -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_username" class="form-label small fw-semibold text-secondary">
                                 Username <span class="text-danger">*</span>
                             </label>
@@ -316,7 +314,7 @@
                         </div>
 
                         <!-- Email -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_email" class="form-label small fw-semibold text-secondary">
                                 Email
                             </label>
@@ -327,7 +325,7 @@
                         </div>
 
                         <!-- Password -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_password" class="form-label small fw-semibold text-secondary" id="label_password">
                                 Password <span class="text-danger">*</span>
                             </label>
@@ -340,29 +338,30 @@
                                        style="padding-right: 40px;">
                                 <button type="button" id="toggleCreatePassword" tabindex="-1"
                                         style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
-                                    <i class="fa-solid fa-eye"></i>
+                                    <i class="bi bi-eye-slash"></i>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Role -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_role" class="form-label small fw-semibold text-secondary">
                                 Role <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom" id="modal_role" name="role" required>
-                                <option value="" disabled selected hidden>Select Role</option>
-                                <option value="admin">Administrator</option>
-                                <option value="encoder">Encoder</option>
-                                <option value="viewer">Viewer</option>
-                            </select>
+                                    <option value="" disabled selected hidden>Select Role</option>
+                                    <option value="dev" hidden>Developer</option>
+                                    <option value="admin">Administrator</option>
+                                    <option value="encoder">Encoder</option>
+                                    <option value="viewer">Viewer</option>
+                                </select>
                             <div class="form-text small text-secondary" id="roleSelfInfo" style="display: none;">
                                 <i class="fa-solid fa-circle-info me-1"></i>You cannot demote your active admin session.
                             </div>
                         </div>
 
                         <!-- Department -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-lg-6 col-12">
                             <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department</label>
                             <select class="form-select input-custom" id="modal_department_id" name="department_id" required>
                                 <option value="" disabled selected hidden>Select Department</option>
@@ -377,22 +376,8 @@
                             </select>
                         </div>
 
-                        <!-- Status -->
-                        <div class="col-12 col-sm-6" id="statusContainer">
-                            <label class="form-label small fw-semibold text-secondary">
-                                Status <span class="text-danger">*</span>
-                            </label>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="form-check form-switch mb-0">
-                                    <input type="hidden" name="is_active" value="0">
-                                    <input type="checkbox" class="form-check-input" role="switch" id="modal_is_active" name="is_active" value="1" checked>
-                                </div>
-                                <span id="statusText" class="fw-semibold small text-dark">Active</span>
-                            </div>
-                            <div class="form-text small text-secondary" id="statusSelfInfo" style="display: none;">
-                                <i class="fa-solid fa-circle-info me-1"></i>You cannot deactivate your active admin session.
-                            </div>
-                        </div>
+                        <!-- Hidden is_active field (always 1 for new users) -->
+                        <input type="hidden" name="is_active" value="1" id="modal_is_active">
 
                     </div><!-- /.row -->
                 </div><!-- /.modal-body -->
@@ -413,7 +398,7 @@
                             "
                             onmouseover="this.style.background='#f9fafb'"
                             onmouseout="this.style.background='#fff'">
-                        Cancel
+                        Close
                     </button>
                     <button type="submit"
                             id="btnSubmitUser"
@@ -537,15 +522,11 @@
         const form = modal.querySelector('form');
         const labelPassword = document.getElementById('label_password');
         const passwordInput = document.getElementById('modal_password');
-        const statusContainer = document.getElementById('statusContainer');
         const modalTitle = document.getElementById('userModalLabel');
         const submitBtn = document.getElementById('btnSubmitUser');
         
         const roleSelect = document.getElementById('modal_role');
-        const statusSwitch = document.getElementById('modal_is_active');
-        const statusText = document.getElementById('statusText');
         const roleSelfInfo = document.getElementById('roleSelfInfo');
-        const statusSelfInfo = document.getElementById('statusSelfInfo');
         
         // Remove existing hidden self-inputs
         form.querySelectorAll('.self-hidden-input').forEach(el => el.remove());
@@ -565,8 +546,6 @@
             passwordInput.placeholder = '';
             passwordInput.disabled = false;
             
-            statusContainer.style.display = 'none';
-            
             // Populate fields
             document.getElementById('modal_first_name').value = data.firstName || '';
             document.getElementById('modal_first_name').disabled = false;
@@ -580,27 +559,21 @@
             roleSelect.value = data.role || '';
             document.getElementById('modal_department_id').value = data.departmentId || '';
             document.getElementById('modal_department_id').disabled = false;
-            statusSwitch.checked = true;
-            statusText.textContent = 'Active';
             
             roleSelect.disabled = false;
-            statusSwitch.disabled = false;
             if (roleSelfInfo) roleSelfInfo.style.display = 'none';
-            if (statusSelfInfo) statusSelfInfo.style.display = 'none';
-            document.getElementById('userModalCancelBtn').textContent = 'Cancel';
+            document.getElementById('userModalCancelBtn').textContent = 'Close';
             
         } else if (mode === 'edit') {
-            modalTitle.textContent = 'Edit User Account';
+            modalTitle.textContent = 'Manage User Account';
             form.action = '<?php echo base_url('users/edit'); ?>/' + data.id;
-            submitBtn.textContent = 'Save Account';
+            submitBtn.textContent = 'Update User';
             submitBtn.style.display = '';
             
-            labelPassword.textContent = 'New Password';
+            labelPassword.textContent = 'Password';
             passwordInput.required = false;
-            passwordInput.placeholder = 'Leave blank to keep current';
+            passwordInput.placeholder = 'Leave blank to keep current password';
             passwordInput.disabled = false;
-            
-            statusContainer.style.display = 'block';
             
             // Populate fields
             document.getElementById('modal_first_name').value = data.firstName || '';
@@ -621,11 +594,6 @@
                 roleSelect.disabled = true;
                 if (roleSelfInfo) roleSelfInfo.style.display = 'block';
                 
-                statusSwitch.checked = true;
-                statusText.textContent = 'Active';
-                statusSwitch.disabled = true;
-                if (statusSelfInfo) statusSelfInfo.style.display = 'block';
-                
                 // Add hidden inputs since disabled fields are not submitted
                 const hiddenRole = document.createElement('input');
                 hiddenRole.type = 'hidden';
@@ -633,28 +601,14 @@
                 hiddenRole.value = data.role || '';
                 hiddenRole.className = 'self-hidden-input';
                 form.appendChild(hiddenRole);
-                
-                const hiddenActive = document.createElement('input');
-                hiddenActive.type = 'hidden';
-                hiddenActive.name = 'is_active';
-                hiddenActive.value = '1';
-                hiddenActive.className = 'self-hidden-input';
-                form.appendChild(hiddenActive);
             } else {
                 roleSelect.value = data.role || '';
                 roleSelect.disabled = false;
                 if (roleSelfInfo) roleSelfInfo.style.display = 'none';
-                
-                const isActive = data.isActive == '1' || data.isActive == 1 || data.isActive === true;
-                statusSwitch.checked = isActive;
-                statusText.textContent = isActive ? 'Active' : 'Inactive';
-                statusText.className = 'fw-semibold small ' + (isActive ? 'text-dark' : 'text-muted');
-                statusSwitch.disabled = false;
-                if (statusSelfInfo) statusSelfInfo.style.display = 'none';
             }
-            document.getElementById('userModalCancelBtn').textContent = 'Cancel';
+            document.getElementById('userModalCancelBtn').textContent = 'Close';
         } else if (mode === 'view') {
-            modalTitle.textContent = 'View User';
+            modalTitle.textContent = 'Manage User Account';
             form.action = '#';
             submitBtn.style.display = 'none';
             
@@ -662,9 +616,6 @@
             passwordInput.required = false;
             passwordInput.placeholder = '••••••••';
             passwordInput.disabled = true;
-            
-            statusContainer.style.display = 'block';
-            statusSwitch.disabled = true;
             
             document.getElementById('modal_first_name').value = data.firstName || '';
             document.getElementById('modal_last_name').value = data.lastName || '';
@@ -674,10 +625,6 @@
             document.getElementById('modal_department_id').value = data.departmentId || '';
             roleSelect.value = data.role || '';
             roleSelect.disabled = true;
-            const isActive = data.isActive == '1' || data.isActive == 1 || data.isActive === true;
-            statusSwitch.checked = isActive;
-            statusText.textContent = isActive ? 'Active' : 'Inactive';
-            statusText.className = 'fw-semibold small ' + (isActive ? 'text-dark' : 'text-muted');
             
             document.getElementById('modal_first_name').disabled = true;
             document.getElementById('modal_last_name').disabled = true;
@@ -686,27 +633,17 @@
             document.getElementById('modal_department_id').disabled = true;
             
             if (roleSelfInfo) roleSelfInfo.style.display = 'none';
-            if (statusSelfInfo) statusSelfInfo.style.display = 'none';
             document.getElementById('userModalCancelBtn').textContent = 'Close';
         }
 
         toggleAdminDept();
     }
 
-    document.getElementById('modal_is_active')?.addEventListener('change', function () {
-        const st = document.getElementById('statusText');
-        if (st) {
-            st.textContent = this.checked ? 'Active' : 'Inactive';
-            st.className = 'fw-semibold small ' + (this.checked ? 'text-dark' : 'text-muted');
-        }
-    });
-
     document.getElementById('userModal')?.addEventListener('hidden.bs.modal', function () {
         const form = this.querySelector('form');
         form.reset();
         form.querySelectorAll('.self-hidden-input').forEach(el => el.remove());
         document.getElementById('modal_role').disabled = false;
-        document.getElementById('modal_is_active').disabled = false;
         document.getElementById('modal_password').disabled = false;
         document.getElementById('modal_first_name').disabled = false;
         document.getElementById('modal_last_name').disabled = false;
@@ -724,6 +661,9 @@
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
         }
+
+        var errorAlert = this.querySelector('.modal-body .alert.alert-danger');
+        if (errorAlert) errorAlert.remove();
     });
 
     // Password visibility toggle
@@ -740,12 +680,12 @@
         var icon = this.querySelector('i');
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
         } else {
             passwordInput.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
         }
     });
 
