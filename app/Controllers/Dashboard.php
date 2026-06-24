@@ -184,10 +184,12 @@ class Dashboard extends BaseController
 
         $search = $this->request->getGet('search');
         $action_filter = $this->request->getGet('action_filter');
+        $date_filter = $this->request->getGet('date_filter');
 
         $data['title'] = 'Audit Trail';
         $data['search'] = $search;
         $data['action_filter'] = $action_filter;
+        $data['date_filter'] = $date_filter;
 
         $db = \Config\Database::connect();
         $builder = $db->table('audit_log')
@@ -207,6 +209,11 @@ class Dashboard extends BaseController
 
         if (!empty($action_filter)) {
             $builder = $builder->where('audit_log.action_type', $action_filter);
+        }
+
+        if (!empty($date_filter)) {
+            $builder = $builder->where('audit_log.action_date >=', $date_filter . ' 00:00:00')
+                               ->where('audit_log.action_date <=', $date_filter . ' 23:59:59');
         }
 
         $data['logs'] = $builder->orderBy('action_date', 'DESC')->get()->getResultArray();

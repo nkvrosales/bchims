@@ -51,6 +51,7 @@ class Users extends BaseController
 
         $search      = trim((string) $this->request->getGet('search'));
         $role_filter = trim((string) $this->request->getGet('role_filter'));
+        $dept_filter = trim((string) $this->request->getGet('dept_filter'));
 
         $users = $this->userModel->get_users();
 
@@ -81,12 +82,20 @@ class Users extends BaseController
             }));
         }
 
+        // Department filter
+        if ($dept_filter !== '') {
+            $users = array_values(array_filter($users, static function ($u) use ($dept_filter) {
+                return (string)($u['department_id'] ?? '') === $dept_filter;
+            }));
+        }
+
         $data['title']             = 'User Management';
         $data['users']             = $users;
         $data['departments']       = $this->departmentModel->get_departments();
         $data['current_user_role'] = session()->get('role');
         $data['search']            = $search;
         $data['role_filter']       = $role_filter;
+        $data['dept_filter']       = $dept_filter;
 
         return view('templates/header', $data)
              . view('users', $data)

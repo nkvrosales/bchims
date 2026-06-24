@@ -59,6 +59,20 @@
                 <option value="viewer"  <?php echo (($role_filter ?? '') === 'viewer')  ? 'selected' : ''; ?>>Viewer</option>
             </select>
         </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <label for="users_search_dept">Department Filter</label>
+            <select id="users_search_dept" name="dept_filter" class="db-search-select">
+                <option value="">All Departments</option>
+                <option value="0" <?php echo (($dept_filter ?? '') === '0') ? 'selected' : ''; ?>>Administrator</option>
+                <?php if (!empty($departments)): ?>
+                    <?php foreach ($departments as $d): ?>
+                        <option value="<?php echo $d['id']; ?>" <?php echo (($dept_filter ?? '') === (string)$d['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($d['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnUsersSearch">
                 <i class="fa-solid fa-magnifying-glass"></i> Search
@@ -755,7 +769,15 @@
 
 <!-- Hover style for Add New User button -->
 <style>
-    #btnAddNewUser:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
+    #btnAddNewUser,
+    #btnAddNewUser:hover,
+    #btnAddNewUser:focus,
+    #btnAddNewUser:active,
+    #btnAddNewUser:focus-visible {
+        color: #fff !important;
+        box-shadow: none !important;
+    }
+    #btnAddNewUser:hover { background: #059669 !important; }
     #modal_is_active:checked { background-color: #198754; border-color: #198754; }
     .form-switch .form-check-input { width: 3em; height: 1.5em; }
     .form-switch .form-check-input:focus { box-shadow: none; outline: none; border-color: #198754; }

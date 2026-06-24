@@ -412,6 +412,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
+            retrieve: true,
             order: [[1, 'asc']],
             language: {
                 paginate: {
@@ -450,7 +451,8 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[1, 'asc']],
+            retrieve: true,
+            order: [[0, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -487,6 +489,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
+            retrieve: true,
             order: [[1, 'asc']],
             language: {
                 paginate: {

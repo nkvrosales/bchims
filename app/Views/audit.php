@@ -76,6 +76,16 @@
                 <option value="REJECT_REQUEST"  <?php echo (($action_filter ?? '') === 'REJECT_REQUEST')  ? 'selected' : ''; ?>>REJECT_REQUEST</option>
             </select>
         </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <label for="audit_date_filter">Date</label>
+            <input 
+                type="date" 
+                id="audit_date_filter" 
+                name="date_filter" 
+                class="db-search-input" 
+                value="<?php echo htmlspecialchars($date_filter ?? ''); ?>"
+            >
+        </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnAuditSearch">
                 <i class="fa-solid fa-magnifying-glass"></i> Search

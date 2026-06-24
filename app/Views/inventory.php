@@ -783,5 +783,13 @@ function openConsumeModal(data) {
 </script>
 
 <style>
-    #btnAddNewItem:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
+    #btnAddNewItem,
+    #btnAddNewItem:hover,
+    #btnAddNewItem:focus,
+    #btnAddNewItem:active,
+    #btnAddNewItem:focus-visible {
+        color: #fff !important;
+        box-shadow: none !important;
+    }
+    #btnAddNewItem:hover { background: #059669 !important; }
 </style>

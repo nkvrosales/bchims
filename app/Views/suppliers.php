@@ -104,13 +104,6 @@
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="text-center py-5 text-muted">
-                            <i class="fa-regular fa-folder-open d-block fs-2 mb-2 text-secondary"></i>
-                            <span class="fw-medium">No suppliers found.</span>
-                        </td>
-                    </tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -358,6 +351,4 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
     <?php endforeach; ?>
 <?php endif; ?>
 
-<style>
-    #btnAddNewSupplier:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(16,185,129,0.4) !important; }
-</style>
+

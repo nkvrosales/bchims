@@ -1308,10 +1308,11 @@ h1, h2, h3, h4, h5, h6 {
 .dataTables_filter input {
     border-radius: 8px !important;
     padding: 0.5rem 0.9rem !important;
-    border: 1.5px solid var(--border-color) !important;
-    background-color: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
     font-size: 0.875rem !important;
-    font-weight: 500 !important;
+    font-family: var(--font-body) !important;
     outline: none !important;
     transition: all 0.2s ease-in-out !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
@@ -1320,8 +1321,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dataTables_filter input:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px var(--primary-glow) !important;
+    border-color: #10b981 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.12) !important;
 }
 
 /* DataTables length menu custom design */
@@ -1387,13 +1389,13 @@ h1, h2, h3, h4, h5, h6 {
 
 /* The search input itself */
 .dataTables_filter input[type="search"] {
-    border: 1.5px solid var(--border-color) !important;
+    border: 1.5px solid #e2e8f0 !important;
     border-radius: 8px !important;
     padding: 0.4rem 0.85rem !important;
     font-size: 0.875rem !important;
     font-family: var(--font-body) !important;
-    color: var(--text-primary) !important;
-    background-color: #ffffff !important;
+    color: #0f172a !important;
+    background-color: #f8fafc !important;
     width: 220px !important;
     max-width: 100% !important;
     outline: none !important;
@@ -1402,8 +1404,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dataTables_filter input[type="search"]:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px var(--primary-glow) !important;
+    border-color: #10b981 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.12) !important;
 }
 
 .dataTables_filter input[type="search"]::placeholder {
@@ -1495,6 +1498,8 @@ h1, h2, h3, h4, h5, h6 {
     align-items: flex-end;
     gap: 0.75rem;
     flex-wrap: wrap;
+    /* Prevent horizontal overflow on any viewport */
+    overflow: hidden;
 }
 
 .db-search-field {
@@ -1514,12 +1519,16 @@ h1, h2, h3, h4, h5, h6 {
     white-space: nowrap;
 }
 
+/* Keyword field grows to fill remaining space, min 160px */
 .db-search-field--keyword {
-    flex: 1 1 220px;
+    flex: 1 1 160px;
+    min-width: 160px;
 }
 
+/* Dropdown filter fields shrink more gracefully */
 .db-search-field--dropdown {
-    flex: 0 1 180px;
+    flex: 0 1 160px;
+    min-width: 130px;
 }
 
 .db-search-input {
@@ -1534,6 +1543,8 @@ h1, h2, h3, h4, h5, h6 {
     transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     width: 100%;
     outline: none;
+    /* Prevent the input from blowing out its container */
+    min-width: 0;
 }
 
 .db-search-input::placeholder {
@@ -1550,36 +1561,50 @@ h1, h2, h3, h4, h5, h6 {
     height: 38px;
     border: 1.5px solid #e2e8f0;
     border-radius: 8px;
-    padding: 0 0.75rem;
+    padding: 0 2rem 0 0.75rem;
     font-size: 0.875rem;
     font-family: var(--font-body);
     color: #0f172a;
-    background: #f8fafc;
-    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    background-color: #f8fafc;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    transition: border-color 0.18s, box-shadow 0.18s, background-color 0.18s;
     width: 100%;
     outline: none;
     cursor: pointer;
-    appearance: auto;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    min-width: 0;
 }
 
 .db-search-select:focus {
     border-color: #10b981;
-    background: #fff;
+    background-color: #fff;
     box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
 }
 
 .db-search-actions {
     display: flex;
+    flex-wrap: wrap;          /* allow buttons to wrap on tight screens */
     gap: 0.5rem;
     align-items: flex-end;
-    flex-shrink: 0;
+    /* Remove flex-shrink:0 so actions can shrink/wrap rather than clip */
+    flex-shrink: 1;
+    min-width: 0;
     padding-bottom: 0;
 }
 
 .btn-db-search {
+    --bs-btn-color: #fff;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-color: #fff;
+    --bs-btn-disabled-color: #fff;
     height: 38px;
     padding: 0 1.15rem;
-    min-width: 100px;
+    min-width: 90px;
     justify-content: center;
     background: #10b981;
     color: #fff;
@@ -1592,26 +1617,34 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 0.4rem;
     cursor: pointer;
-    transition: background 0.18s, box-shadow 0.18s, transform 0.1s;
+    transition: background 0.18s;
     white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+    box-shadow: none;
     text-decoration: none;
 }
 
 .btn-db-search:hover {
     background: #059669;
-    box-shadow: 0 4px 12px rgba(16,185,129,0.35);
-    transform: translateY(-1px);
+    box-shadow: none;
+    color: #fff;
+}
+
+.db-search-actions .btn-db-search:hover,
+.db-search-actions .btn-db-search:focus,
+.db-search-actions .btn-db-search:active,
+.db-search-actions .btn-db-search:focus-visible {
+    color: #fff !important;
+    box-shadow: none !important;
 }
 
 .btn-db-search:active {
-    transform: translateY(0);
+    transform: none;
 }
 
 .btn-db-clear {
     height: 38px;
     padding: 0 1.15rem;
-    min-width: 100px;
+    min-width: 90px;
     justify-content: center;
     background: #fff;
     color: #ef4444;
@@ -1624,7 +1657,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 0.4rem;
     cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.1s;
+    transition: background 0.18s, color 0.18s;
     white-space: nowrap;
     text-decoration: none;
 }
@@ -1632,12 +1665,12 @@ h1, h2, h3, h4, h5, h6 {
 .btn-db-clear:hover {
     background: #ef4444;
     color: #fff;
-    box-shadow: 0 4px 12px rgba(239,68,68,0.25);
-    transform: translateY(-1px);
+    box-shadow: none;
 }
 
 .btn-db-clear:active {
-    transform: translateY(0);
+    transform: none;
+    box-shadow: none;
 }
 
 /* Vertical separator between Clear and Add button */
@@ -1650,16 +1683,72 @@ h1, h2, h3, h4, h5, h6 {
     align-self: center;
 }
 
+/* ---- Tablet breakpoint: stack dropdowns when viewport is mid-range ---- */
+@media (max-width: 860px) {
+    .db-search-field--dropdown {
+        flex: 1 1 140px;
+    }
+    /* Push the actions row to its own full-width line */
+    .db-search-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .db-search-separator {
+        display: none; /* hide vertical rule; spacing handled by gap */
+    }
+}
+
+/* ---- Small phone breakpoint: everything stacks ---- */
 @media (max-width: 640px) {
     .db-search-bar {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.6rem;
     }
     .db-search-field--keyword,
     .db-search-field--dropdown {
         flex: 1 1 100%;
+        min-width: 0;
     }
     .db-search-actions {
-        justify-content: flex-end;
+        width: 100%;
+        justify-content: stretch;
+    }
+    .db-search-actions > .btn-db-search,
+    .db-search-actions > .btn-db-clear {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+    #btnReqSearch,
+    #btnReqClear,
+    #btnCatSearch,
+    #btnCatClear,
+    #btnUsersSearch,
+    #btnUsersClear,
+    #btnDeptSearch,
+    #btnDeptClear,
+    #btnInvSearch,
+    #btnInvClear,
+    #btnSupSearch,
+    #btnSupClear,
+    #btnAuditSearch,
+    #btnAuditClear {
+        min-width: 0;
+        width: 0;
+    }
+    #btnNewSupplyRequest,
+    #btnAddNewCategory,
+    #btnAddNewUser,
+    #btnAddNewDept,
+    #btnAddNewItem,
+    #btnAddNewSupplier {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+    /* The "Add" button should always be on its own line on phone */
+    .db-search-separator {
+        display: none;
     }
 }
+
+

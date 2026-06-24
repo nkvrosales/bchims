@@ -84,7 +84,12 @@
                     <?php foreach ($departments as $dept): ?>
                         <tr>
                             <td>
-                                <span class="fw text-dark"><?php echo htmlspecialchars($dept['name']); ?></span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw text-dark"><?php echo htmlspecialchars($dept['name']); ?></span>
+                                    <?php if (isset($dept['status']) && $dept['status'] == 0): ?>
+                                        <span class="badge" style="font-size:0.68rem;font-weight:600;background:rgba(239,68,68,0.1);color:#ef4444;border-radius:6px;padding:2px 8px;letter-spacing:0.02em;">Archived</span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
 
                             <td>
@@ -93,24 +98,19 @@
 
                             <td class="text-end">
                                 <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
-                                        Actions
-                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">Actions</button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openDeptModal('edit', <?php echo $dept['id']; ?>, '<?php echo htmlspecialchars($dept['code'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($dept['name'], ENT_QUOTES); ?>')" title="Manage Department">Manage</a></li>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveDeptModal-<?php echo $dept['id']; ?>" title="Archive Department">Archive</a></li>
+                                        <?php if (!isset($dept['status']) || $dept['status'] == 1): ?>
+                                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="openDeptModal('edit', <?php echo $dept['id']; ?>, '<?php echo htmlspecialchars($dept['code'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($dept['name'], ENT_QUOTES); ?>')" title="Manage Department">Manage</a></li>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveDeptModal-<?php echo $dept['id']; ?>" title="Archive Department">Archive</a></li>
+                                        <?php else: ?>
+                                            <li><a class="dropdown-item" href="<?php echo base_url('departments/restore/' . $dept['id']); ?>" title="Restore Department">Restore</a></li>
+                                        <?php endif; ?>
                                     </ul>
                                 </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="text-center py-5 text-muted">
-                            <i class="fa-regular fa-folder-open d-block fs-2 mb-2 text-secondary"></i>
-                            <span class="fw-medium">No departments found.</span>
-                        </td>
-                    </tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -245,6 +245,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
 
 <?php if (!empty($departments)): ?>
     <?php foreach ($departments as $dept): ?>
+    <?php if (!isset($dept['status']) || $dept['status'] == 1): ?>
     <!-- ===================== ARCHIVE DEPARTMENT MODAL ===================== -->
     <div class="modal fade" id="archiveDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
          aria-labelledby="archiveDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
@@ -295,7 +296,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                     </button>
                     <a href="<?php echo base_url('departments/archive/' . $dept['id']); ?>"
                        style="
-                               background: #ef4444;;
+                               background: #ef4444;
                                color: #fff;
                                border: 1px solid transparent;
                                border-radius: 8px;
@@ -304,14 +305,14 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                                font-weight: 600;
                                text-decoration: none;
                                cursor: pointer;
-                               box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+                               box-shadow: 0 2px 8px rgba(239,68,68,0.3);
                                transition: background 0.15s, box-shadow 0.15s;
                                display: inline-flex;
                                align-items: center;
                                height: 38px;
                            "
-                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
-                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'"
+                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(239,68,68,0.3)'">
                         Archive Department
                     </a>
                 </div>
@@ -319,9 +320,10 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
             </div>
         </div>
     </div>
+    <?php endif; ?>
     <?php endforeach; ?>
 <?php endif; ?>
 
-<style>
-    #btnAddNewDept:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(16,185,129,0.4) !important; }
-</style>
+
+
+

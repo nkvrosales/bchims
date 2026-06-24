@@ -61,6 +61,21 @@
                     <option value="Cancelled"         <?php echo (($status_filter ?? '') === 'Cancelled')         ? 'selected' : ''; ?>>Cancelled</option>
                 </select>
             </div>
+            <?php if (is_admin_role()): ?>
+            <div class="db-search-field db-search-field--dropdown">
+                <label for="req_search_dept">Department Filter</label>
+                <select id="req_search_dept" name="dept_filter" class="db-search-select">
+                    <option value="">All Departments</option>
+                    <?php if (!empty($departments)): ?>
+                        <?php foreach ($departments as $d): ?>
+                            <option value="<?php echo $d['id']; ?>" <?php echo (($dept_filter ?? '') === (string)$d['id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($d['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+            <?php endif; ?>
             <div class="db-search-actions">
                 <button type="submit" class="btn-db-search" id="btnReqSearch">
                     <i class="fa-solid fa-magnifying-glass"></i> Search
@@ -852,11 +867,11 @@
                 </div>
 
                 <!-- Add/Remove Actions -->
-                <div class="col-lg-2 col-12 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
+                <div class="request-item-actions col-lg-2 col-12 d-flex gap-2 align-items-center justify-content-start">
                     <button type="button" class="btn btn-add-row d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                         <span>ADD</span>
                     </button>
-                    <button type="button" class="btn-remove-row btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0 ms-2" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
+                    <button type="button" class="btn-remove-row btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
                         <i class="fa-regular fa-trash-can"></i> <span>Remove</span>
                     </button>
                 </div>
@@ -966,13 +981,13 @@
                 var removeBtn = row.querySelector('.btn-remove-row');
                 var addBtn = row.querySelector('.btn-add-row');
                 
-                // Only show ADD on the latest row (last row), hide but keep layout space for others
+                // Only show ADD on the latest row (last row).
                 if (index === rows.length - 1) {
                     addBtn.style.removeProperty('visibility');
                     addBtn.style.setProperty('display', 'inline-flex', 'important');
                 } else {
-                    addBtn.style.setProperty('visibility', 'hidden', 'important');
-                    addBtn.style.setProperty('display', 'inline-flex', 'important');
+                    addBtn.style.removeProperty('visibility');
+                    addBtn.style.setProperty('display', 'none', 'important');
                 }
                 
                 // Hide remove button if there is only 1 row
@@ -1252,7 +1267,18 @@
     </script>
 
     <style>
-        #btnNewSupplyRequest:hover { background: #059669 !important; box-shadow: 0 4px 12px rgba(34,197,94,0.4) !important; }
+        #btnNewSupplyRequest,
+        #btnNewSupplyRequest:hover,
+        #btnNewSupplyRequest:focus,
+        #btnNewSupplyRequest:active,
+        #btnNewSupplyRequest:focus-visible {
+            color: #fff !important;
+            box-shadow: none !important;
+        }
+
+        #btnNewSupplyRequest:hover {
+            background: #059669 !important;
+        }
 
         <?php if (session()->get('role') === 'encoder'): ?>
         #supplyRequestsTable th:nth-child(1),
@@ -1282,6 +1308,29 @@
             border-color: #cbd5e1 !important;
         }
 
+        #createRequestModal .btn-add-row,
+        #createRequestModal .btn-add-row:hover,
+        #createRequestModal .btn-add-row:focus,
+        #createRequestModal .btn-add-row:active,
+        #createRequestModal .btn-add-row:focus-visible {
+            color: #fff !important;
+            box-shadow: none !important;
+        }
+
+        #createRequestModal .btn-add-row:hover,
+        #createRequestModal .btn-add-row:focus,
+        #createRequestModal .btn-add-row:active,
+        #createRequestModal .btn-add-row:focus-visible {
+            background: #059669 !important;
+        }
+
+        #createRequestModal .btn-remove-row:hover,
+        #createRequestModal .btn-remove-row:focus,
+        #createRequestModal .btn-remove-row:active,
+        #createRequestModal .btn-remove-row:focus-visible {
+            box-shadow: none !important;
+        }
+
         .item-combobox { position: relative; }
         .item-dropdown {
             position: absolute;
@@ -1301,4 +1350,36 @@
         .item-dropdown::-webkit-scrollbar { width: 6px; }
         .item-dropdown::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .item-dropdown::-webkit-scrollbar-track { background: transparent; }
+
+        @media (max-width: 767.98px) {
+            #create-modal-headers,
+            #edit-modal-headers {
+                display: none !important;
+            }
+
+            #createRequestModal .request-item-actions {
+                display: grid !important;
+                grid-template-columns: minmax(84px, max-content) minmax(0, 1fr);
+                align-items: center !important;
+                column-gap: 0.75rem !important;
+                width: 100%;
+            }
+
+            #createRequestModal .btn-add-row,
+            #createRequestModal .btn-remove-row {
+                height: 42px !important;
+                min-width: 0;
+            }
+
+            #createRequestModal .btn-add-row {
+                justify-content: center !important;
+                padding-inline: 1rem !important;
+            }
+
+            #createRequestModal .btn-remove-row {
+                justify-content: flex-start !important;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+        }
     </style>

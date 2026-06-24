@@ -45,14 +45,17 @@ class Departments extends BaseController
 
         $search = trim((string) $this->request->getGet('search'));
 
-        $departments = $this->departmentModel->get_departments();
-
+        // When searching, include archived entries so they can be found
         if ($search !== '') {
-            $departments = array_values(array_filter($departments, static function ($d) use ($search) {
+            $all = $this->departmentModel->get_all_departments();
+            $departments = array_values(array_filter($all, static function ($d) use ($search) {
                 $needle = mb_strtolower($search);
                 return mb_stripos((string)($d['name'] ?? ''), $needle) !== false
                     || mb_stripos((string)($d['code'] ?? ''), $needle) !== false;
             }));
+        } else {
+            // Default view: only active departments
+            $departments = $this->departmentModel->get_departments();
         }
 
         $data['title']       = 'Departments';
@@ -82,7 +85,7 @@ class Departments extends BaseController
         ];
 
         if ($this->validate($rules)) {
-            $code = $this->request->getPost('code');
+            $code = strtoupper((string)$this->request->getPost('code'));
             $name = ucwords(strtolower($this->request->getPost('name')));
             $insert_data = ['code' => $code, 'name' => $name];
 
@@ -138,7 +141,7 @@ class Departments extends BaseController
         ];
 
         if ($this->validate($rules)) {
-            $code     = $this->request->getPost('code');
+            $code     = strtoupper((string)$this->request->getPost('code'));
             $name     = ucwords(strtolower($this->request->getPost('name')));
             $old_name = $dept['name'];
             $old_code = $dept['code'];

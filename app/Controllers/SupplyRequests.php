@@ -60,11 +60,16 @@ class SupplyRequests extends BaseController
         $role   = session()->get('role');
         $search        = trim((string) $this->request->getGet('search'));
         $status_filter = trim((string) $this->request->getGet('status_filter'));
+        $dept_filter   = trim((string) $this->request->getGet('dept_filter'));
 
+        $departments = [];
         if (is_admin_role()) {
             $requests = $this->requestModel->get_requests();
             $items    = [];
             $categories = [];
+            
+            $deptModel = new \App\Models\DepartmentModel();
+            $departments = $deptModel->get_departments();
         } else {
             // Staff sees their own department's requests
             $requests = $this->requestModel->get_requests(null, $user['department_id'] ?? 0);
@@ -130,6 +135,13 @@ class SupplyRequests extends BaseController
             }));
         }
 
+        // Filter by department dropdown (admin only)
+        if (is_admin_role() && $dept_filter !== '') {
+            $requests = array_values(array_filter($requests, static function ($req) use ($dept_filter) {
+                return (string)($req['department_id'] ?? '') === $dept_filter;
+            }));
+        }
+
         $data['title']         = is_admin_role() ? 'Central Requests' : ($user['department_name'] ?? 'My') . ' Requests';
         $data['requests']      = $requests;
         $data['user']          = $user;
@@ -137,6 +149,8 @@ class SupplyRequests extends BaseController
         $data['categories']    = $categories;
         $data['search']        = $search;
         $data['status_filter'] = $status_filter;
+        $data['dept_filter']   = $dept_filter;
+        $data['departments']   = $departments;
         $data['batches_by_code'] = $batchesByCode;
 
         return view('templates/header', $data)
