@@ -14,15 +14,15 @@ class ItemModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['inventory_id', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id', 'status', 'remarks'];
+    protected $allowedFields = ['inventory_id', 'inventory_code', 'item_code', 'item_name', 'batch_num', 'lot_num', 'expiration_date', 'manufacturing_date', 'unit', 'quantity', 'quantity_on_hand', 'category_id', 'source_id', 'status', 'remarks'];
 
     protected $useTimestamps = false;
 
     /**
-     * Generate auto item code based on category code and current date
+     * Generate auto inventory code based on category code and current date
      * Format: CATEGORY-YYYY-MM-NNNN (e.g., MED-2026-06-0001)
      */
-    public function generate_item_code($category_id)
+    public function generate_inventory_code($category_id)
     {
         $db = \Config\Database::connect();
         
@@ -35,26 +35,26 @@ class ItemModel extends Model
         $categoryCode = strtoupper($category['category_code']);
         $currentDate = date('Y-m');
         
-        // Find the last item code for this category and month across both tables
+        // Find the last inventory code for this category and month across both tables
         $prefix = $categoryCode . '-' . $currentDate . '-';
         $csItem = $db->table('central_supply')
-                      ->select('item_code')
-                      ->like('item_code', $prefix, 'after')
-                      ->orderBy('item_code', 'DESC')
+                      ->select('inventory_code')
+                      ->like('inventory_code', $prefix, 'after')
+                      ->orderBy('inventory_code', 'DESC')
                       ->limit(1)
                       ->get()
                       ->getRowArray();
         $invItem = $db->table('inventory')
-                       ->select('item_code')
-                       ->like('item_code', $prefix, 'after')
-                       ->orderBy('item_code', 'DESC')
+                       ->select('inventory_code')
+                       ->like('inventory_code', $prefix, 'after')
+                       ->orderBy('inventory_code', 'DESC')
                        ->limit(1)
                        ->get()
                        ->getRowArray();
 
         $lastItem = null;
         if ($csItem && $invItem) {
-            $lastItem = $csItem['item_code'] >= $invItem['item_code'] ? $csItem : $invItem;
+            $lastItem = $csItem['inventory_code'] >= $invItem['inventory_code'] ? $csItem : $invItem;
         } elseif ($csItem) {
             $lastItem = $csItem;
         } elseif ($invItem) {
@@ -63,7 +63,7 @@ class ItemModel extends Model
 
         $sequence = 1;
         if ($lastItem) {
-            $lastSequence = (int)substr($lastItem['item_code'], strlen($prefix));
+            $lastSequence = (int)substr($lastItem['inventory_code'], strlen($prefix));
             $sequence = $lastSequence + 1;
         }
         
@@ -99,6 +99,7 @@ class ItemModel extends Model
                                 ->select('MAX(central_supply.central_supply_id) AS id')
                                 ->select('MAX(central_supply.central_supply_id) AS central_supply_id')
                                 ->select('central_supply.item_code')
+                                ->select('central_supply.inventory_code')
                                 ->select('central_supply.item_name')
                                 ->select('MAX(central_supply.unit) AS unit')
                                 ->select('SUM(central_supply.quantity) AS quantity')
@@ -120,6 +121,7 @@ class ItemModel extends Model
                 $builder = $builder->groupStart()
                                    ->like('central_supply.item_code', $search)
                                    ->orLike('central_supply.item_name', $search)
+                                   ->orLike('central_supply.inventory_code', $search)
                                    ->groupEnd();
             }
 
@@ -140,6 +142,8 @@ class ItemModel extends Model
                     $builder = $builder->having('SUM(central_supply.quantity_on_hand) > SUM(central_supply.quantity) * 0.15', null, false);
                 } elseif ($stock_status === 'expired') {
                     $builder = $builder->having('MAX(central_supply.expiration_date) < CURDATE() AND SUM(central_supply.quantity_on_hand) > 0', null, false);
+                } elseif ($stock_status === 'near_expiry') {
+                    $builder = $builder->having('MAX(central_supply.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(central_supply.quantity_on_hand) > 0', null, false);
                 }
             }
 
@@ -150,6 +154,7 @@ class ItemModel extends Model
                                 ->select('MAX(inventory.inventory_id) AS id')
                                 ->select('MAX(inventory.inventory_id) AS inventory_id')
                                 ->select('inventory.item_code')
+                                ->select('inventory.inventory_code')
                                 ->select('inventory.item_name')
                                 ->select('MAX(inventory.unit) AS unit')
                                 ->select('SUM(department_supply.quantity_received) AS total_quantity')
@@ -175,6 +180,7 @@ class ItemModel extends Model
                 $builder = $builder->groupStart()
                                    ->like('inventory.item_code', $search)
                                    ->orLike('inventory.item_name', $search)
+                                   ->orLike('inventory.inventory_code', $search)
                                    ->groupEnd();
             }
 
@@ -193,11 +199,46 @@ class ItemModel extends Model
                     $builder = $builder->having('SUM(department_supply.quantity_on_hand) > SUM(department_supply.quantity_received) * 0.15', null, false);
                 } elseif ($stock_status === 'expired') {
                     $builder = $builder->having('MAX(inventory.expiration_date) < CURDATE() AND SUM(department_supply.quantity_on_hand) > 0', null, false);
+                } elseif ($stock_status === 'near_expiry') {
+                    $builder = $builder->having('MAX(inventory.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(department_supply.quantity_on_hand) > 0', null, false);
                 }
             }
 
             return $builder->orderBy('SUM(department_supply.quantity_on_hand) = 0', 'ASC', false)
                            ->orderBy('inventory.item_name', 'ASC')->get()->getResultArray();
+        }
+    }
+
+    /**
+     * Fetch individual batches for the given item codes.
+     */
+    public function get_batches_by_item_codes(array $itemCodes, $isAdmin = true, $department_id = null)
+    {
+        if (empty($itemCodes)) {
+            return [];
+        }
+
+        if ($isAdmin) {
+            return $this->db->table('central_supply')
+                            ->select('central_supply_id AS id, item_code, inventory_code, item_name, batch_num, lot_num, expiration_date, manufacturing_date, unit, quantity, quantity_on_hand, remarks, category_id')
+                            ->whereIn('item_code', $itemCodes)
+                            ->where('status', 1)
+                            ->orderBy('item_code', 'ASC')
+                            ->orderBy('expiration_date', 'ASC')
+                            ->get()
+                            ->getResultArray();
+        } else {
+            return $this->db->table('inventory')
+                            ->select('inventory.inventory_id AS id, inventory.item_code, inventory.inventory_code, inventory.item_name, inventory.batch_num, inventory.lot_num, inventory.expiration_date, inventory.manufacturing_date, inventory.unit, department_supply.quantity_received AS quantity, department_supply.quantity_on_hand, inventory.remarks, inventory.category_id')
+                            ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
+                            ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
+                            ->whereIn('inventory.item_code', $itemCodes)
+                            ->where('inventory.status', 1)
+                            ->where('department_supply.department_id', $department_id)
+                            ->orderBy('inventory.item_code', 'ASC')
+                            ->orderBy('inventory.expiration_date', 'ASC')
+                            ->get()
+                            ->getResultArray();
         }
     }
 }

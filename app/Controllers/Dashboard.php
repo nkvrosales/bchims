@@ -48,7 +48,6 @@ class Dashboard extends BaseController
         if ($res = $this->checkAuth()) return $res;
 
         $db = \Config\Database::connect();
-        $requestModel = new \App\Models\SupplyRequestModel();
 
         $role = session()->get('role');
 
@@ -104,7 +103,25 @@ class Dashboard extends BaseController
                 ) AS grouped"
             )->getRowArray()['cnt'];
 
-            $data['total_requests'] = $db->table('request')->whereIn('request_status', ['Pending', 'Partially Served'])->countAllResults();
+            $data['total_near_expiry'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh, MAX(expiration_date) AS max_exp
+                    FROM central_supply
+                    WHERE status = 1
+                    GROUP BY item_code, item_name
+                    HAVING max_exp BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND total_qoh > 0
+                ) AS grouped"
+            )->getRowArray()['cnt'];
+
+            $data['near_expiry_items'] = $db->query(
+                "SELECT item_code, item_name, SUM(quantity_on_hand) AS quantity_on_hand, MAX(expiration_date) AS expiration_date
+                FROM central_supply
+                WHERE status = 1
+                GROUP BY item_code, item_name
+                HAVING MAX(expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(quantity_on_hand) > 0
+                ORDER BY expiration_date ASC
+                LIMIT 5"
+            )->getResultArray();
         } else {
             // Staff: count distinct items (grouped by item_code+item_name) for this department,
             // matching the inventory page's get_items() grouping logic.
@@ -159,18 +176,31 @@ class Dashboard extends BaseController
                 [$deptId]
             )->getRowArray()['cnt'];
 
-            $data['total_requests'] = $db->table('request')
-                ->join('department_supply', 'department_supply.department_supply_id = request.department_supply_id')
-                ->where('department_supply.department_id', $deptId)
-                ->whereIn('request.request_status', ['Pending', 'Partially Served'])
-                ->countAllResults();
-        }
+            $data['total_near_expiry'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh, MAX(i.expiration_date) AS max_exp
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code, i.item_name
+                    HAVING max_exp BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND total_qoh > 0
+                ) AS grouped",
+                [$deptId]
+            )->getRowArray()['cnt'];
 
-        // Fetch recent requests: if staff, filter by department
-        if (is_admin_role()) {
-            $data['recent_requests'] = array_slice($requestModel->get_requests(), 0, 5);
-        } else {
-            $data['recent_requests'] = array_slice($requestModel->get_requests(null, $deptId), 0, 5);
+            $data['near_expiry_items'] = $db->query(
+                "SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS quantity_on_hand, MAX(i.expiration_date) AS expiration_date
+                FROM inventory i
+                INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                WHERE ds.department_id = ? AND i.status = 1
+                GROUP BY i.item_code, i.item_name
+                HAVING MAX(i.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(ds.quantity_on_hand) > 0
+                ORDER BY expiration_date ASC
+                LIMIT 5",
+                [$deptId]
+            )->getResultArray();
         }
 
         return view('templates/header', $data)

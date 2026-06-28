@@ -374,7 +374,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[1, 'asc']],
+            order: [[0, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -388,7 +388,7 @@ $(document).ready(function() {
                 zeroRecords: 'No inventory items found'
             },
             columnDefs: [
-                { orderable: false, targets: 8 }
+                { orderable: false, targets: 6 }
             ],
             initComplete: function () {
                 var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');

@@ -31,7 +31,7 @@ $routes->group('inventory', function($routes) {
     $routes->get('archive/(:num)', 'Inventory::archive/$1');
     $routes->get('restore/(:num)', 'Inventory::restore/$1');
     $routes->get('delete/(:num)', 'Inventory::delete/$1');
-    $routes->post('generate_item_code', 'Inventory::generate_item_code');
+    $routes->post('generate_inventory_code', 'Inventory::generate_inventory_code');
     $routes->post('consume', 'Inventory::consume');
 });
 

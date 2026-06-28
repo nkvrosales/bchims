@@ -101,7 +101,7 @@
             <thead>
                 <tr>
                     <th style="display:none;">ID</th>
-                    <th style="width: 25%">Name</th>
+                    <th style="width: 25%">Full Name</th>
                     <th style="width: 10%" class="text-center">Username</th>
                     <th style="width: 10%" class="text-center">Account Level</th>
                     <th style="width: 10%" class="text-center">Department</th>
@@ -416,9 +416,9 @@
                     </button>
                     <button type="submit"
                             id="btnSubmitUser"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
                         Add User
                     </button>
                 </div>
@@ -473,9 +473,9 @@
                                     onmouseover="this.style.background='#f9fafb'"
                                     onmouseout="this.style.background='#fff'">Cancel</button>
                             <a href="<?php echo base_url('users/delete/' . $u['id']); ?>"
-                               style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                               onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
-                               onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">Deactivate Account</a>
+                               style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                               onmouseover="this.style.background='#dc2626'"
+                               onmouseout="this.style.background='#ef4444'">Deactivate Account</a>
                         </div>
                     </div>
                 </div>
@@ -514,9 +514,9 @@
                                     onmouseover="this.style.background='#f9fafb'"
                                     onmouseout="this.style.background='#fff'">Cancel</button>
                             <a href="<?php echo base_url('users/activate/' . $u['id']); ?>"
-                               style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                               onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                               onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">Activate Account</a>
+                               style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                               onmouseover="this.style.background='#059669'"
+                               onmouseout="this.style.background='#10b981'">Activate Account</a>
                         </div>
                     </div>
                 </div>

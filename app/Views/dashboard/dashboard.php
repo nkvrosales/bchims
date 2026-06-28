@@ -36,6 +36,26 @@
         </div>
     </div>
     
+    <!-- Near Expiry Count -->
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=near_expiry'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #f59e0b; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Near Expiry</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_near_expiry; ?></h3>
+        </div>
+    </div>
+</div>
+
+    <!-- Expired Count -->
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=expired'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--danger); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Expired Count</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_expired; ?></h3>
+            </div>
+        </div>
+    </div>
+
     <!-- No Stock Count -->
     <div class="col-lg-6 col-xl-3 col-12">
         <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=out_of_stock'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--danger); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
@@ -46,39 +66,16 @@
         </div>
     </div>
 
-    <!-- Expired Count -->
-    <div class="col-lg-6 col-xl-3 col-12">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory?stock_status=expired'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid #6b7280; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
-            <div>
-                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Expired Count</div>
-                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_expired; ?></h3>
-            </div>
-        </div>
-    </div>
-
-    <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
-    <!-- Supply Requests -->
-    <div class="col-lg-6 col-xl-3 col-12">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
-            <div>
-                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Supply Requests</div>
-                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_requests; ?></h3>
-        </div>
-    </div>
-</div>
-    <?php endif; ?>
-
 <!-- Main Row Content (Stacked Tables layout) -->
 <div class="row g-4 fade-in-up" style="animation-delay: 0.1s;">
-    <!-- 1. Recent Supply Requests Panel (Top Full-Width Column) -->
-    <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
+    <!-- 1. Near Expiry Items Panel (Top Full-Width Column) -->
     <div class="col-12">
         <div class="standard-card">
             <div class="card-header-styled">
                 <h5 class="card-title-styled">
-                    <span>Recent Supply Requests</span>
+                    <span>Near Expiry Items</span>
                 </h5>
-                <a href="<?php echo base_url('requests'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2" id="supplyQuickActionBtn">
+                <a href="<?php echo base_url('inventory?stock_status=near_expiry'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2" id="nearExpiryQuickActionBtn">
                     <span>View All</span>
                 </a>
             </div>
@@ -87,52 +84,48 @@
                 <table class="table table-custom table-hover w-100">
                     <thead>
                         <tr>
-                            <th style="width: 8%">ID</th>
-                            <th style="width: 20%">Date</th>
-                            <th style="width: 22%">Requester / Department</th>
-                            <th>Item Requested</th>
-                            <th style="width: 15%">Status</th>
+                            <th style="width: 25%">Item Code</th>
+                            <th style="width: 30%">Item Name</th>
+                            <th style="width: 20%">Expiration Date</th>
+                            <th style="width: 15%">Qty On Hand</th>
+                            <th style="width: 10%">Days Left</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($recent_requests)): ?>
-                            <?php foreach ($recent_requests as $req): ?>
+                        <?php if (!empty($near_expiry_items)): ?>
+                            <?php foreach ($near_expiry_items as $item): ?>
                                 <tr>
                                     <td class="text-dark" style="font-size: 0.85rem; color: var(--text-secondary);">
-                                        #<?php echo $req['request_id']; ?>
+                                        <?php echo htmlspecialchars($item['item_code']); ?>
                                     </td>
                                     <td>
-                                        <span class="text-dark" style="font-size: 0.88rem;">
-                                            <?php echo date('M d, Y h:i A', strtotime($req['request_date'])); ?>
+                                        <span class="text-dark" style="font-size: 0.88rem; font-weight: 600;">
+                                            <?php echo htmlspecialchars($item['item_name']); ?>
                                         </span>
                                     </td>
                                     <td>
                                         <span class="text-dark" style="font-size: 0.88rem;">
-                                            <?php echo htmlspecialchars($req['department_name']); ?>
+                                            <?php echo date('M d, Y', strtotime($item['expiration_date'])); ?>
                                         </span>
                                     </td>
                                     <td>
-                                        <div style="font-size: 0.88rem; font-weight: 600;" class="text-dark">
-                                            <?php echo htmlspecialchars($req['item_name']); ?>
-                                        </div>
-                                        <small class="text-muted" style="font-size: 0.75rem;">
-                                            Quantity Requested: <?php echo $req['quantity_requested']; ?> unit(s)
-                                        </small>
+                                        <span class="text-dark" style="font-size: 0.88rem;">
+                                            <?php echo (int)$item['quantity_on_hand']; ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <?php 
-                                            if ($req['request_status'] === 'Served') {
-                                                $badge = 'bg-success-subtle text-dark border border-success-subtle';
-                                            } elseif ($req['request_status'] === 'Partially Served') {
-                                                $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
-                                            } elseif ($req['request_status'] === 'Rejected') {
+                                            $daysLeft = floor((strtotime($item['expiration_date']) - time()) / 86400);
+                                            if ($daysLeft <= 7) {
                                                 $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                            } else {
+                                            } elseif ($daysLeft <= 14) {
                                                 $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
+                                            } else {
+                                                $badge = 'bg-info-subtle text-dark border border-info-subtle';
                                             }
                                         ?>
                                         <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
-                                            <?php echo $req['request_status']; ?>
+                                            <?php echo $daysLeft; ?> days
                                         </span>
                                     </td>
                                 </tr>
@@ -140,8 +133,8 @@
                         <?php else: ?>
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="fa-regular fa-folder-open d-block fs-3 mb-2 text-secondary"></i>
-                                    <span class="fw-medium">No recent requests found.</span>
+                                    <i class="fa-regular fa-calendar-check d-block fs-3 mb-2 text-secondary"></i>
+                                    <span class="fw-medium">No items near expiry.</span>
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -150,7 +143,6 @@
             </div>
         </div>
     </div>
-    <?php endif; ?>
 
     <!-- 2. Recent Activities Panel (Bottom Full-Width Column) -->
     <div class="col-12 mt-4">

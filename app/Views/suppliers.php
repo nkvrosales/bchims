@@ -216,9 +216,9 @@
                         Close
                     </button>
                     <button type="submit" id="supplierFormSubmitBtn"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
                         Add Supplier
                     </button>
                 </div>
@@ -332,16 +332,14 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                                font-size: 0.9rem;
                                font-weight: 600;
                                text-decoration: none;
-                               cursor: pointer;
-                               box-shadow: 0 2px 8px rgba(245,158,11,0.3);
-                               transition: background 0.15s, box-shadow 0.15s;
-                               display: inline-flex;
-                               align-items: center;
-                               height: 38px;
-                           "
-                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
-                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
-                        Archive Supplier
+                                cursor: pointer;
+                                display: inline-flex;
+                                align-items: center;
+                                height: 38px;
+                            "
+                            onmouseover="this.style.background='#dc2626'"
+                            onmouseout="this.style.background='#ef4444'">
+                         Archive Supplier
                     </a>
                 </div>
 

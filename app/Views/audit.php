@@ -61,19 +61,37 @@
             <label for="audit_search_action">Action</label>
             <select id="audit_search_action" name="action_filter" class="db-search-select">
                 <option value="">All Actions</option>
-                <option value="LOGIN"           <?php echo (($action_filter ?? '') === 'LOGIN')           ? 'selected' : ''; ?>>LOGIN</option>
-                <option value="LOGOUT"          <?php echo (($action_filter ?? '') === 'LOGOUT')          ? 'selected' : ''; ?>>LOGOUT</option>
-                <option value="LOGIN_FAIL"      <?php echo (($action_filter ?? '') === 'LOGIN_FAIL')      ? 'selected' : ''; ?>>LOGIN_FAIL</option>
-                <option value="PAGE_VIEW"       <?php echo (($action_filter ?? '') === 'PAGE_VIEW')       ? 'selected' : ''; ?>>PAGE_VIEW</option>
-                <option value="CREATE_USER"     <?php echo (($action_filter ?? '') === 'CREATE_USER')     ? 'selected' : ''; ?>>CREATE_USER</option>
-                <option value="UPDATE_USER"     <?php echo (($action_filter ?? '') === 'UPDATE_USER')     ? 'selected' : ''; ?>>UPDATE_USER</option>
-                <option value="DELETE_USER"     <?php echo (($action_filter ?? '') === 'DELETE_USER')     ? 'selected' : ''; ?>>DELETE_USER</option>
-                <option value="ADD_ITEM"        <?php echo (($action_filter ?? '') === 'ADD_ITEM')        ? 'selected' : ''; ?>>ADD_ITEM</option>
-                <option value="UPDATE_ITEM"     <?php echo (($action_filter ?? '') === 'UPDATE_ITEM')     ? 'selected' : ''; ?>>UPDATE_ITEM</option>
-                <option value="CONSUME_ITEM"    <?php echo (($action_filter ?? '') === 'CONSUME_ITEM')    ? 'selected' : ''; ?>>CONSUME_ITEM</option>
-                <option value="SUBMIT_REQUEST"  <?php echo (($action_filter ?? '') === 'SUBMIT_REQUEST')  ? 'selected' : ''; ?>>SUBMIT_REQUEST</option>
-                <option value="SERVE_REQUEST"   <?php echo (($action_filter ?? '') === 'SERVE_REQUEST')   ? 'selected' : ''; ?>>SERVE_REQUEST</option>
-                <option value="REJECT_REQUEST"  <?php echo (($action_filter ?? '') === 'REJECT_REQUEST')  ? 'selected' : ''; ?>>REJECT_REQUEST</option>
+                <option value="LOGIN"                          <?php echo (($action_filter ?? '') === 'LOGIN')                          ? 'selected' : ''; ?>>LOGIN</option>
+                <option value="LOGOUT"                         <?php echo (($action_filter ?? '') === 'LOGOUT')                         ? 'selected' : ''; ?>>LOGOUT</option>
+                <option value="CREATE_USER"                    <?php echo (($action_filter ?? '') === 'CREATE_USER')                    ? 'selected' : ''; ?>>CREATE_USER</option>
+                <option value="UPDATE_USER"                    <?php echo (($action_filter ?? '') === 'UPDATE_USER')                    ? 'selected' : ''; ?>>UPDATE_USER</option>
+                <option value="ACTIVATE_USER"                  <?php echo (($action_filter ?? '') === 'ACTIVATE_USER')                  ? 'selected' : ''; ?>>ACTIVATE_USER</option>
+                <option value="DEACTIVATE_USER"                <?php echo (($action_filter ?? '') === 'DEACTIVATE_USER')                ? 'selected' : ''; ?>>DEACTIVATE_USER</option>
+                <option value="ADD_ITEM"                       <?php echo (($action_filter ?? '') === 'ADD_ITEM')                       ? 'selected' : ''; ?>>ADD_ITEM</option>
+                <option value="UPDATE_ITEM"                    <?php echo (($action_filter ?? '') === 'UPDATE_ITEM')                    ? 'selected' : ''; ?>>UPDATE_ITEM</option>
+                <option value="ARCHIVE_ITEM"                   <?php echo (($action_filter ?? '') === 'ARCHIVE_ITEM')                   ? 'selected' : ''; ?>>ARCHIVE_ITEM</option>
+                <option value="RESTORE_ITEM"                   <?php echo (($action_filter ?? '') === 'RESTORE_ITEM')                   ? 'selected' : ''; ?>>RESTORE_ITEM</option>
+                <option value="CONSUME_ITEM"                   <?php echo (($action_filter ?? '') === 'CONSUME_ITEM')                   ? 'selected' : ''; ?>>CONSUME_ITEM</option>
+                <option value="CREATE_CATEGORY"                <?php echo (($action_filter ?? '') === 'CREATE_CATEGORY')                ? 'selected' : ''; ?>>CREATE_CATEGORY</option>
+                <option value="UPDATE_CATEGORY"                <?php echo (($action_filter ?? '') === 'UPDATE_CATEGORY')                ? 'selected' : ''; ?>>UPDATE_CATEGORY</option>
+                <option value="ARCHIVE_CATEGORY"               <?php echo (($action_filter ?? '') === 'ARCHIVE_CATEGORY')               ? 'selected' : ''; ?>>ARCHIVE_CATEGORY</option>
+                <option value="RESTORE_CATEGORY"               <?php echo (($action_filter ?? '') === 'RESTORE_CATEGORY')               ? 'selected' : ''; ?>>RESTORE_CATEGORY</option>
+                <option value="CREATE_DEPT"                    <?php echo (($action_filter ?? '') === 'CREATE_DEPT')                    ? 'selected' : ''; ?>>CREATE_DEPT</option>
+                <option value="UPDATE_DEPT"                    <?php echo (($action_filter ?? '') === 'UPDATE_DEPT')                    ? 'selected' : ''; ?>>UPDATE_DEPT</option>
+                <option value="ARCHIVE_DEPT"                   <?php echo (($action_filter ?? '') === 'ARCHIVE_DEPT')                   ? 'selected' : ''; ?>>ARCHIVE_DEPT</option>
+                <option value="RESTORE_DEPT"                   <?php echo (($action_filter ?? '') === 'RESTORE_DEPT')                   ? 'selected' : ''; ?>>RESTORE_DEPT</option>
+                <option value="CREATE_SOURCE"                  <?php echo (($action_filter ?? '') === 'CREATE_SOURCE')                  ? 'selected' : ''; ?>>CREATE_SOURCE</option>
+                <option value="UPDATE_SOURCE"                  <?php echo (($action_filter ?? '') === 'UPDATE_SOURCE')                  ? 'selected' : ''; ?>>UPDATE_SOURCE</option>
+                <option value="ARCHIVE_SOURCE"                 <?php echo (($action_filter ?? '') === 'ARCHIVE_SOURCE')                 ? 'selected' : ''; ?>>ARCHIVE_SOURCE</option>
+                <option value="RESTORE_SOURCE"                 <?php echo (($action_filter ?? '') === 'RESTORE_SOURCE')                 ? 'selected' : ''; ?>>RESTORE_SOURCE</option>
+                <option value="CREATE_SUPPLY_REQUEST"          <?php echo (($action_filter ?? '') === 'CREATE_SUPPLY_REQUEST')          ? 'selected' : ''; ?>>CREATE_SUPPLY_REQUEST</option>
+                <option value="SERVE_SUPPLY_REQUEST"           <?php echo (($action_filter ?? '') === 'SERVE_SUPPLY_REQUEST')           ? 'selected' : ''; ?>>SERVE_SUPPLY_REQUEST</option>
+                <option value="PARTIAL_SERVE_SUPPLY_REQUEST"   <?php echo (($action_filter ?? '') === 'PARTIAL_SERVE_SUPPLY_REQUEST')   ? 'selected' : ''; ?>>PARTIAL_SERVE_SUPPLY_REQUEST</option>
+                <option value="COMPLETE_PARTIAL_SUPPLY_REQUEST" <?php echo (($action_filter ?? '') === 'COMPLETE_PARTIAL_SUPPLY_REQUEST') ? 'selected' : ''; ?>>COMPLETE_PARTIAL_SUPPLY_REQUEST</option>
+                <option value="REJECT_SUPPLY_REQUEST"          <?php echo (($action_filter ?? '') === 'REJECT_SUPPLY_REQUEST')          ? 'selected' : ''; ?>>REJECT_SUPPLY_REQUEST</option>
+                <option value="ARCHIVE_SUPPLY_REQUEST"         <?php echo (($action_filter ?? '') === 'ARCHIVE_SUPPLY_REQUEST')         ? 'selected' : ''; ?>>ARCHIVE_SUPPLY_REQUEST</option>
+                <option value="RESTORE_SUPPLY_REQUEST"         <?php echo (($action_filter ?? '') === 'RESTORE_SUPPLY_REQUEST')         ? 'selected' : ''; ?>>RESTORE_SUPPLY_REQUEST</option>
+                <option value="UPDATE_PROFILE"                 <?php echo (($action_filter ?? '') === 'UPDATE_PROFILE')                 ? 'selected' : ''; ?>>UPDATE_PROFILE</option>
             </select>
         </div>
         <div class="db-search-field db-search-field--dropdown">

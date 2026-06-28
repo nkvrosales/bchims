@@ -155,14 +155,14 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.75rem 1.5rem !important;
     border-radius: 8px !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+    box-shadow: none !important;
     transition: all 0.2s ease;
 }
 
 .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .btn-primary.show, .show > .btn-primary.dropdown-toggle, .btn-primary:first-child:active, :not(.btn-check)+.btn-primary:active, :not(.btn-check)+.btn-primary.active {
     background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
     background-color: #059669 !important;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
+    box-shadow: none !important;
     color: #ffffff !important;
     border: none !important;
 }
@@ -194,7 +194,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #10b981 !important;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
     border-color: #10b981 !important;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .btn-outline-primary.rounded-pill {
@@ -374,7 +374,7 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     font-weight: 700;
     font-size: 0.95rem;
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
+    box-shadow: none;
 }
 
 /* Main Panel Layout */
@@ -513,7 +513,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     font-size: 0.85rem;
     position: relative;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+    box-shadow: none;
 }
 
 
@@ -643,14 +643,14 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    box-shadow: none;
 }
 
 .navbar-action-btn:hover {
     background-color: #f1f5f9;
     border-color: #cbd5e1;
     color: var(--text-primary);
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+    box-shadow: none;
 }
 
 /* Main Content Area */
@@ -1222,7 +1222,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #ffffff !important;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%) !important;
     border-color: transparent !important;
-    box-shadow: 0 4px 12px var(--primary-glow) !important;
+    box-shadow: none !important;
     font-weight: 600;
 }
 
@@ -1259,7 +1259,7 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--primary) !important;
     border: 1.5px solid var(--primary) !important;
     color: #ffffff !important;
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1) !important;
+    box-shadow: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -1271,7 +1271,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--primary) !important;
     border-color: var(--primary) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15) !important;
+    box-shadow: none !important;
 }
 
 /* Bootstrap Theme Overrides for Green Palette */
@@ -1446,7 +1446,6 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600 !important;
     border-radius: 999px !important;
     transition: all 0.15s ease !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
     letter-spacing: 0.03em;
 }
 .table-custom td.text-end .btn:hover .bi,
@@ -1597,6 +1596,21 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: 0;
 }
 
+.db-search-actions > .btn-db-search,
+.db-search-actions > .btn-db-clear {
+    flex: 1;
+    justify-content: center;
+}
+
+#btnNewSupplyRequest,
+#btnAddNewCategory,
+#btnAddNewUser,
+#btnAddNewDept,
+#btnAddNewItem,
+#btnAddNewSupplier {
+    flex: none;
+}
+
 .btn-db-search {
     --bs-btn-color: #fff;
     --bs-btn-hover-color: #fff;
@@ -1633,6 +1647,7 @@ h1, h2, h3, h4, h5, h6 {
 .db-search-actions .btn-db-search:focus,
 .db-search-actions .btn-db-search:active,
 .db-search-actions .btn-db-search:focus-visible {
+    background: #059669 !important;
     color: #fff !important;
     box-shadow: none !important;
 }
@@ -1714,28 +1729,6 @@ h1, h2, h3, h4, h5, h6 {
         width: 100%;
         justify-content: stretch;
     }
-    .db-search-actions > .btn-db-search,
-    .db-search-actions > .btn-db-clear {
-        flex: 1 1 0;
-        justify-content: center;
-    }
-    #btnReqSearch,
-    #btnReqClear,
-    #btnCatSearch,
-    #btnCatClear,
-    #btnUsersSearch,
-    #btnUsersClear,
-    #btnDeptSearch,
-    #btnDeptClear,
-    #btnInvSearch,
-    #btnInvClear,
-    #btnSupSearch,
-    #btnSupClear,
-    #btnAuditSearch,
-    #btnAuditClear {
-        min-width: 0;
-        width: 0;
-    }
     #btnNewSupplyRequest,
     #btnAddNewCategory,
     #btnAddNewUser,
@@ -1750,5 +1743,4 @@ h1, h2, h3, h4, h5, h6 {
         display: none;
     }
 }
-
 

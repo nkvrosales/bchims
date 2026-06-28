@@ -116,6 +116,15 @@ class Inventory extends BaseController
         $data['show_archived'] = false;
 
         $data['items'] = $this->itemModel->get_items($search, $isAdmin ? 'admin' : 'staff', $deptId, $stock_status, $category_id);
+
+        // Fetch individual batches for expandable row details
+        $itemCodes = array_column($data['items'], 'item_code');
+        $batches = $this->itemModel->get_batches_by_item_codes($itemCodes, $isAdmin, $deptId);
+        $data['batches_by_code'] = [];
+        foreach ($batches as $batch) {
+            $data['batches_by_code'][$batch['item_code']][] = $batch;
+        }
+
         $data['categories'] = \Config\Database::connect()
             ->table('category')
             ->where('status', 1)
@@ -161,7 +170,7 @@ class Inventory extends BaseController
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
         $rules = [
-            'item_code'   => 'permit_empty|alpha_dash|max_length[50]',
+            'item_code'        => 'required|alpha_dash|max_length[50]',
             'name'        => 'required|max_length[150]',
             'category_id' => 'required|integer',
             'source_type' => 'required|in_list[supplier,donation,others]',
@@ -180,30 +189,28 @@ class Inventory extends BaseController
                 return redirect()->to('inventory')->withInput();
             }
 
-            // Check for duplicate item_code
+            $categoryId = (int)$this->request->getPost('category_id');
             $itemCode = strtoupper($this->request->getPost('item_code'));
-            if (!empty($itemCode)) {
-                $dbCheck = \Config\Database::connect();
-                $existsInCentral = $dbCheck->table('central_supply')->where('item_code', $itemCode)->get()->getRow();
-                $existsInInv     = $dbCheck->table('inventory')->where('item_code', $itemCode)->get()->getRow();
-                if ($existsInCentral || $existsInInv) {
-                    session()->setFlashdata('modal_mode', 'create');
-                    session()->setFlashdata('modal_errors', '<li>Inventory code "' . htmlspecialchars($itemCode) . '" already exists. Please use a different code.</li>');
-                    return redirect()->to('inventory')->withInput();
-                }
+            $inventoryCode = $this->itemModel->generate_inventory_code($categoryId);
+
+            if (empty($inventoryCode)) {
+                session()->setFlashdata('modal_mode', 'create');
+                session()->setFlashdata('modal_errors', '<li>Failed to generate inventory code. Please check the category.</li>');
+                return redirect()->to('inventory')->withInput();
+            }
+
+            $dbCheck = \Config\Database::connect();
+            $existsInCentral = $dbCheck->table('central_supply')->where('inventory_code', $inventoryCode)->get()->getRow();
+            $existsInInv     = $dbCheck->table('inventory')->where('inventory_code', $inventoryCode)->get()->getRow();
+            if ($existsInCentral || $existsInInv) {
+                session()->setFlashdata('modal_mode', 'create');
+                session()->setFlashdata('modal_errors', '<li>Could not generate a unique inventory code. Please try again.</li>');
+                return redirect()->to('inventory')->withInput();
             }
 
             $db = \Config\Database::connect();
             $db->transStart();
 
-            $categoryId = (int)$this->request->getPost('category_id');
-            
-            // Auto-generate item code if not provided
-            $itemCode = strtoupper($this->request->getPost('item_code'));
-            if (empty($itemCode)) {
-                $itemCode = $this->itemModel->generate_item_code($categoryId);
-            }
-            
             $itemName   = ucwords(strtolower($this->request->getPost('name')));
             $quantity   = (int)$this->request->getPost('quantity');
             $sourceId   = $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name'));
@@ -218,6 +225,7 @@ class Inventory extends BaseController
                 // Insert into central_supply
                 $this->itemModel->set_table('central_supply');
                 $insert_data = [
+                    'inventory_code'   => $inventoryCode,
                     'item_code'        => $itemCode,
                     'item_name'        => $itemName,
                     'batch_num'        => $batchNum,
@@ -237,6 +245,7 @@ class Inventory extends BaseController
                 // Insert into inventory (department stock)
                 $this->itemModel->set_table('inventory');
                 $insert_data = [
+                    'inventory_code'   => $inventoryCode,
                     'item_code'       => $itemCode,
                     'item_name'       => $itemName,
                     'batch_num'       => $batchNum,
@@ -251,10 +260,11 @@ class Inventory extends BaseController
                 $this->itemModel->insert($insert_data);
                 $itemId = $db->insertID();
 
-                // Get or create central_supply entry for the item_code
-                $csItem = $db->table('central_supply')->where('item_code', $itemCode)->get()->getRowArray();
+                // Get or create central_supply entry for this batch
+                $csItem = $db->table('central_supply')->where('inventory_code', $inventoryCode)->get()->getRowArray();
                 if (!$csItem) {
                     $db->table('central_supply')->insert([
+                        'inventory_code'   => $inventoryCode,
                         'item_code'        => $itemCode,
                         'item_name'        => $itemName,
                         'batch_num'        => $batchNum,
@@ -310,7 +320,7 @@ class Inventory extends BaseController
             if ($db->transStatus() === false) {
                 session()->setFlashdata('error', 'An error occurred while creating the item.');
             } else {
-                $auditDesc = "Added new item: {$itemName} (Code: {$itemCode}) with initial quantity of {$quantity}.";
+                $auditDesc = "Added new item: {$itemName} (Item Code: {$itemCode}, Inventory Code: {$inventoryCode}) with initial quantity of {$quantity}.";
                 if ($remarks) {
                     $auditDesc .= " Remarks: {$remarks}";
                 }
@@ -453,7 +463,7 @@ class Inventory extends BaseController
                 return redirect()->to('inventory')->withInput();
             } else {
                 $changes = [];
-                $fields = ['item_name' => 'Name', 'item_code' => 'Code', 'quantity' => 'Quantity', 'unit' => 'Unit', 'batch_num' => 'Batch', 'lot_num' => 'Lot', 'expiration_date' => 'Expiration', 'manufacturing_date' => 'Manufacturing', 'remarks' => 'Remarks'];
+                $fields = ['item_name' => 'Name', 'item_code' => 'Item Code', 'quantity' => 'Quantity', 'unit' => 'Unit', 'batch_num' => 'Batch', 'lot_num' => 'Lot', 'expiration_date' => 'Expiration', 'manufacturing_date' => 'Manufacturing', 'remarks' => 'Remarks'];
                 foreach ($fields as $key => $label) {
                     $oldVal = $oldItem[$key] ?? '';
                     $newVal = $update_data[$key] ?? '';
@@ -461,7 +471,7 @@ class Inventory extends BaseController
                         $changes[] = "{$label}: '{$oldVal}' → '{$newVal}'";
                     }
                 }
-                $auditDesc = "Updated item: {$update_data['item_name']} (Code: {$update_data['item_code']}).";
+                $auditDesc = "Updated item: {$update_data['item_name']} (Item Code: {$update_data['item_code']}).";
                 if ($changes) {
                     $auditDesc .= ' Changes: ' . implode(', ', $changes);
                 }
@@ -483,9 +493,9 @@ class Inventory extends BaseController
     }
 
     /**
-     * Generate next item code for a category (AJAX endpoint)
+     * Generate next inventory code for a category (AJAX endpoint)
      */
-    public function generate_item_code()
+    public function generate_inventory_code()
     {
         // Skip auth check for AJAX to avoid redirect issues
         if (!session()->get('logged_in')) {
@@ -498,12 +508,12 @@ class Inventory extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Category ID is required']);
         }
 
-        $itemCode = $this->itemModel->generate_item_code((int)$categoryId);
+        $itemCode = $this->itemModel->generate_inventory_code((int)$categoryId);
         
         if ($itemCode) {
-            return $this->response->setJSON(['success' => true, 'item_code' => $itemCode]);
+            return $this->response->setJSON(['success' => true, 'inventory_code' => $itemCode]);
         } else {
-            return $this->response->setJSON(['success' => false, 'message' => 'Failed to generate item code']);
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to generate inventory code']);
         }
     }
 
@@ -550,7 +560,7 @@ class Inventory extends BaseController
             $this->auditModel->log_activity(
                 'ARCHIVE_ITEM',
                 'Inventory',
-                "Archived inventory item: {$item['item_name']} (Code: {$item['item_code']}).",
+                "Archived inventory item: {$item['item_name']} (Item Code: {$item['item_code']}).",
                 $id
             );
 
@@ -603,7 +613,7 @@ class Inventory extends BaseController
             $this->auditModel->log_activity(
                 'RESTORE_ITEM',
                 'Inventory',
-                "Restored inventory item: {$item['item_name']} (Code: {$item['item_code']}).",
+                "Restored inventory item: {$item['item_name']} (Item Code: {$item['item_code']}).",
                 $id
             );
 
@@ -671,7 +681,7 @@ class Inventory extends BaseController
             $this->auditModel->log_activity(
                 'DELETE_ITEM',
                 'Inventory',
-                "Deleted inventory item: {$item['item_name']} (Code: {$item['item_code']}).",
+                "Deleted inventory item: {$item['item_name']} (Item Code: {$item['item_code']}).",
                 $id
             );
 

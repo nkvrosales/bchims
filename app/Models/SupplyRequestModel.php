@@ -31,6 +31,7 @@ class SupplyRequestModel extends Model
             central_supply.central_supply_id AS central_supply_id,
             central_supply.item_name AS item_name,
             central_supply.item_code AS item_code,
+            central_supply.inventory_code AS inventory_code,
             central_supply.quantity_on_hand AS item_current_stock,
             'pcs' AS item_unit,
             user.username AS requester_username,

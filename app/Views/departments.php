@@ -193,9 +193,9 @@
                         Close
                     </button>
                     <button type="submit" id="deptFormSubmitBtn"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s;"
-                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
                         Add Department
                     </button>
                 </div>
@@ -304,16 +304,14 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                                font-size: 0.9rem;
                                font-weight: 600;
                                text-decoration: none;
-                               cursor: pointer;
-                               box-shadow: 0 2px 8px rgba(239,68,68,0.3);
-                               transition: background 0.15s, box-shadow 0.15s;
-                               display: inline-flex;
-                               align-items: center;
-                               height: 38px;
-                           "
-                           onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'"
-                           onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(239,68,68,0.3)'">
-                        Archive Department
+                                cursor: pointer;
+                                display: inline-flex;
+                                align-items: center;
+                                height: 38px;
+                            "
+                            onmouseover="this.style.background='#dc2626'"
+                            onmouseout="this.style.background='#ef4444'">
+                         Archive Department
                     </a>
                 </div>
 

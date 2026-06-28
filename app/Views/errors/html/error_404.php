@@ -64,12 +64,12 @@ body {
     border-radius: 10px;
     border: none;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+    transition: background 0.2s;
+    box-shadow: none;
 }
 .btn-dashboard:hover {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+    box-shadow: none;
 }
 .btn-dashboard:active {
     transform: translateY(0);

@@ -213,9 +213,11 @@
                                                 Actions
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <?php if (session()->get('role') !== 'encoder'): ?>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                                <?php endif; ?>
                                                 <?php if (session()->get('role') === 'encoder'): ?>
-                                                    <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Edit Request">Edit</a></li>
+                                                    <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Manage Request">Manage</a></li>
                                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
                                                 <?php endif; ?>
                                             </ul>
@@ -254,7 +256,6 @@
                                         </div>
                                     </div>
                                     <?php endif; ?>
-                                    <h5 class="fw-semibold text-dark mb-2">Confirm Full Serve</h5>
                                     <p class="text-muted small mb-3">
                                         Transfer <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
                                         to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).
@@ -265,9 +266,8 @@
                                             <div class="text-muted">Requested</div>
                                         </div>
                                     </div>
-                                    <div class="text-center small text-muted mb-3">
-                                        <i class="fa-solid fa-circle-info me-1"></i>
-                                        This will serve <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> from available inventory using the earliest expiring batches first.
+                                    <div class="text-muted mb-3">
+                                       Are you sure you want to serve this supply request?
                                     </div>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
@@ -279,9 +279,9 @@
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#059669'"
+                                            onmouseout="this.style.background='#10b981'">
                                         Serve Supplies
                                     </button>
                                 </div>
@@ -324,9 +324,9 @@
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
-                                            onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                                            style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#dc2626'"
+                                            onmouseout="this.style.background='#ef4444'">
                                         Reject Request
                                     </button>
                                 </div>
@@ -443,9 +443,9 @@
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#059669'"
+                                            onmouseout="this.style.background='#10b981'">
                                         Serve Partial
                                     </button>
                                 </div>
@@ -485,8 +485,8 @@
                                         Requested: <strong><?php echo $req['quantity_requested']; ?></strong> unit(s), Already Served: <strong><?php echo $req['quantity_served']; ?></strong> unit(s).<br>
                                         Remaining to serve: <strong><?php echo $remaining; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
                                     </p>
-                                    <p class="text-muted small mb-3">
-                                        Click "Complete Request" to automatically deduct from inventory batches (FIFO by expiration date).
+                                    <p class="text-muted mb-3">
+                                        Are you sure you want to complete this supply request?
                                     </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
@@ -498,9 +498,9 @@
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                                            onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'">
+                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#059669'"
+                                            onmouseout="this.style.background='#10b981'">
                                         Complete Request
                                     </button>
                                 </div>
@@ -653,9 +653,9 @@
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">Close</button>
                                     <button type="submit"
-                                            style="background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(239,68,68,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'"
-                                            onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(239,68,68,0.3)'">Cancel Request</button>
+                                            style="background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                            onmouseover="this.style.background='#dc2626'"
+                                            onmouseout="this.style.background='#ef4444'">Cancel Request</button>
                                 </div>
                             </form>
                         </div>
@@ -702,9 +702,9 @@
                                             Close
                                         </button>
                                         <button type="submit"
-                                                style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(245,158,11,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                                onmouseover="this.style.background='#dc2626';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'"
-                                                onmouseout="this.style.background='#ef4444';this.style.boxShadow='0 2px 8px rgba(245,158,11,0.3)'">
+                                                style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                                onmouseover="this.style.background='#dc2626'"
+                                                onmouseout="this.style.background='#ef4444'">
                                             Archive Supply Request
                                         </button>
                                     </div>
@@ -808,9 +808,9 @@
                             Close
                         </button>
                         <button type="submit"
-                                style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: background 0.15s, box-shadow 0.15s; display: inline-flex; align-items: center; height: 38px;"
-                                onmouseover="this.style.background='#059669';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'"
-                                onmouseout="this.style.background='#10b981';this.style.boxShadow='0 2px 8px rgba(16,185,129,0.3)'"
+                                style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                onmouseover="this.style.background='#059669'"
+                                onmouseout="this.style.background='#10b981'"
                                 id="btnSubmitSupplyRequest">
                             Submit Request
                         </button>
@@ -1056,7 +1056,7 @@
                     var qty = button.getAttribute('data-qty');
                     var notes = button.getAttribute('data-notes');
 
-                    modalTitle.textContent = 'Edit Request';
+                    modalTitle.textContent = '<?php echo session()->get('role') === 'encoder' ? 'Manage' : 'Edit'; ?> Request';
                     modalForm.action = '<?php echo base_url('requests/edit'); ?>/' + id;
                     submitBtn.textContent = 'Save Changes';
 

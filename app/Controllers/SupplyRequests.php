@@ -80,7 +80,7 @@ class SupplyRequests extends BaseController
                                    ->get()->getResultArray();
             // Fetch in-stock Central Supply items for the request dropdown (one per item name)
             $items = $this->db->table('central_supply')
-                              ->select('MAX(central_supply_id) AS id, item_name AS name, MAX(item_code) AS item_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id')
+                              ->select('MAX(central_supply_id) AS id, item_name AS name, MAX(item_code) AS item_code, MAX(inventory_code) AS inventory_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id')
                               ->groupBy('item_name')
                               ->orderBy('item_name', 'ASC')
                               ->get()->getResultArray();
@@ -88,7 +88,7 @@ class SupplyRequests extends BaseController
 
         // Fetch all available central_supply batches for batch selection in serve modals
         $batches = $this->db->table('central_supply')
-                            ->select('central_supply_id, item_code, item_name, batch_num, lot_num, expiration_date, quantity_on_hand, unit')
+                            ->select('central_supply_id, item_code, inventory_code, item_name, batch_num, lot_num, expiration_date, quantity_on_hand, unit')
                             ->where('status', 1)
                             ->where('quantity_on_hand >', 0)
                             ->orderBy('item_code, expiration_date', 'ASC')
@@ -243,11 +243,12 @@ class SupplyRequests extends BaseController
 
             // 1. Get or create inventory item for the department
             $invItem = $db->table('inventory')
-                                ->where('item_code', $item['item_code'])
+                                ->where('inventory_code', $item['inventory_code'])
                                 ->get()->getRowArray();
             if (!$invItem) {
                 $db->table('inventory')->insert([
-                    'item_code'       => $item['item_code'],
+                    'item_code'        => $item['item_code'],
+                    'inventory_code'   => $item['inventory_code'],
                     'item_name'       => $item['item_name'],
                     'batch_num'       => $item['batch_num'],
                     'lot_num'         => $item['lot_num'],
@@ -573,12 +574,13 @@ class SupplyRequests extends BaseController
 
         // Find or create inventory item for the department
         $invItem = $db->table('inventory')
-                      ->where('item_code', $firstBatch['item_code'])
+                      ->where('inventory_code', $firstBatch['inventory_code'])
                       ->get()->getRowArray();
 
         if (!$invItem) {
             $db->table('inventory')->insert([
                 'item_code'       => $firstBatch['item_code'],
+                'inventory_code'  => $firstBatch['inventory_code'],
                 'item_name'       => $firstBatch['item_name'],
                 'batch_num'       => $firstBatch['batch_num'],
                 'lot_num'         => $firstBatch['lot_num'],
@@ -827,12 +829,13 @@ class SupplyRequests extends BaseController
 
         // Find or create inventory item for the department
         $invItem = $db->table('inventory')
-                      ->where('item_code', $firstBatch['item_code'])
+                      ->where('inventory_code', $firstBatch['inventory_code'])
                       ->get()->getRowArray();
 
         if (!$invItem) {
             $db->table('inventory')->insert([
                 'item_code'       => $firstBatch['item_code'],
+                'inventory_code'  => $firstBatch['inventory_code'],
                 'item_name'       => $firstBatch['item_name'],
                 'batch_num'       => $firstBatch['batch_num'],
                 'lot_num'         => $firstBatch['lot_num'],
