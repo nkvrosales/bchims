@@ -51,7 +51,7 @@
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnDeptSearch">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
+                 Search
             </button>
             <a href="<?php echo base_url('departments'); ?>" class="btn-db-clear" id="btnDeptClear">
                 Clear

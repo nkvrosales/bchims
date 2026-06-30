@@ -78,7 +78,7 @@
             <?php endif; ?>
             <div class="db-search-actions">
                 <button type="submit" class="btn-db-search" id="btnReqSearch">
-                    <i class="fa-solid fa-magnifying-glass"></i> Search
+                     Search
                 </button>
                 <a href="<?php echo base_url('requests'); ?>" class="btn-db-clear" id="btnReqClear">
                     Clear
@@ -295,7 +295,7 @@
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
                             <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="rejectModalLabel_<?php echo $req['request_id']; ?>">Reject Supply Request</h5>
+                                <h5 class="modal-title fw-bold text-dark" id="rejectModalLabel_<?php echo $req['request_id']; ?>">Reject Request</h5>
                                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/reject/' . $req['request_id']); ?>">
@@ -674,7 +674,7 @@
                                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                                     <div class="d-flex align-items-center gap-3">
                                         <h5 class="modal-title fw-bold mb-0" id="archiveSingleModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                                            Archive Supply Request
+                                            Archive Request
                                         </h5>
                                     </div>
                                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
@@ -705,7 +705,7 @@
                                                 style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
                                                 onmouseover="this.style.background='#dc2626'"
                                                 onmouseout="this.style.background='#ef4444'">
-                                            Archive Supply Request
+                                            Archive Request
                                         </button>
                                     </div>
                                 </form>

@@ -85,6 +85,7 @@
             <div class="dropdown">
                 <button class="navbar-user-profile-btn d-flex align-items-center gap-2 bg-transparent border-0 p-0 shadow-none" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; outline: none;">
                     <div style="border-left: 1px solid #cbd5e1; height: 32px; margin-right: 0.5rem; margin-left: 0.25rem;"></div>
+                    <i class="bi bi-person-circle" style="font-size: 2.3rem; color: #cbd5e1; line-height: 1;"></i>
                     <div class="navbar-user-info text-start d-none d-sm-block" style="font-size: 0.95rem; color: #64748b; font-weight: 500; font-family: var(--font-body);">
                         <?php 
                             $roleLower = strtolower((string)session()->get('role'));
@@ -92,7 +93,7 @@
                         ?>
                         <span class="navbar-user-username" style="color: #1e293b; text-transform: uppercase;"><?php echo htmlspecialchars($username); ?></span>
                     </div>
-                    <i class="bi bi-person-circle" style="font-size: 2.3rem; color: #cbd5e1; line-height: 1;"></i>
+                    <i class="bi bi-chevron-down" style="font-size: 0.7rem; color: #94a3b8; line-height: 1;"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end navbar-user-dropdown-menu" aria-labelledby="userDropdownMenu">
                     <li class="navbar-dropdown-user-info" style="padding: 0.75rem 1.25rem;">

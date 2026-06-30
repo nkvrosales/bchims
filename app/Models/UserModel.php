@@ -57,7 +57,50 @@ class UserModel extends Model
                     ->join('roles', 'roles.role_id = user.role_id', 'inner')
                     ->orderBy('user.last_name', 'ASC')
                     ->orderBy('user.first_name', 'ASC')
-                    ->findAll();
+                    ->limit(100)
+                    ->find();
+                    
+    }
+
+    /**
+     * Search and retrieve user accounts with filters and limit from database.
+     */
+    public function search($keyword = null, $role_filter = null, $dept_filter = null, $limit = 3)
+    {
+        $current_user_id = session()->get('user_id');
+
+        $builder = $this->select("user.user_id AS id, user.username, user.email, user.last_name, user.first_name, CONCAT(user.first_name, ' ', user.last_name) AS full_name, roles.role_name AS role, user.status, user.created_at, user.department_id, departments.department_name AS department_name, departments.department_code AS department_code, (user.status = 1) AS is_active, (SELECT MAX(action_date) FROM audit_log WHERE audit_log.user_id = user.user_id AND audit_log.action_type = 'LOGIN') AS last_login")
+                        ->join('departments', 'departments.department_id = user.department_id', 'left')
+                        ->join('roles', 'roles.role_id = user.role_id', 'inner');
+
+        // Hide own account and dev accounts (role_id = 0) only if no search filters/keywords are applied
+        if (empty($keyword) && empty($role_filter) && empty($dept_filter)) {
+            $builder->where('user.user_id !=', $current_user_id)
+                    ->where('user.role_id !=', 0);
+        }
+
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                    ->like('user.username', $keyword)
+                    ->orLike('user.first_name', $keyword)
+                    ->orLike('user.last_name', $keyword)
+                    ->orLike("CONCAT(user.first_name, ' ', user.last_name)", $keyword)
+                    ->orLike('departments.department_name', $keyword)
+                    ->groupEnd();
+        }
+
+        if (!empty($role_filter)) {
+            $builder->where('roles.role_name', $role_filter);
+        }
+
+        if (!empty($dept_filter)) {
+            $builder->where('user.department_id', $dept_filter);
+        }
+
+        return $builder->orderBy('user.last_name', 'ASC')
+                       ->orderBy('user.first_name', 'ASC')
+                       ->limit($limit)
+                       ->find();
     }
 
     /**

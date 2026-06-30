@@ -19,7 +19,7 @@ class SupplyRequestModel extends Model
     /**
      * Fetch all requests with item, department, and user details joined.
      */
-    public function get_requests($user_id = null, $department_id = null)
+    public function get_requests($user_id = null, $department_id = null, $limit = 1000)
     {
         $builder = $this->select("
             request.*,
@@ -50,6 +50,10 @@ class SupplyRequestModel extends Model
             $builder = $builder->where('department_supply.department_id', $department_id);
         }
 
-        return $builder->groupBy('request.request_id')->orderBy('request.request_id', 'DESC')->findAll();
+        if ($limit !== null) {
+            $builder = $builder->limit($limit);
+        }
+
+        return $builder->groupBy('request.request_id')->orderBy('request.request_id', 'DESC')->find();
     }
 }

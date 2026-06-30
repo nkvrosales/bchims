@@ -47,24 +47,25 @@ class Suppliers extends BaseController
         $search      = trim((string) $this->request->getGet('search'));
         $type_filter = trim((string) $this->request->getGet('type_filter'));
 
-        $sources = $this->supplierModel
-            ->where('status', 1)
-            ->orderBy('supplier_name', 'ASC')
-            ->findAll();
+        $builder = $this->supplierModel->orderBy('supplier_name', 'ASC');
 
-        if ($search !== '') {
-            $sources = array_values(array_filter($sources, static function ($s) use ($search) {
-                $needle = mb_strtolower($search);
-                return mb_stripos((string)($s['supplier_name'] ?? ''), $needle) !== false
-                    || mb_stripos((string)($s['contact_person'] ?? ''), $needle) !== false;
-            }));
+        // Only hide inactive/archived suppliers if no search/filter is active
+        if (empty($search) && empty($type_filter)) {
+            $builder->where('status', 1);
         }
 
-        if ($type_filter !== '') {
-            $sources = array_values(array_filter($sources, static function ($s) use ($type_filter) {
-                return strcasecmp((string)($s['source_type'] ?? ''), $type_filter) === 0;
-            }));
+        if (!empty($search)) {
+            $builder->groupStart()
+                    ->like('supplier_name', $search)
+                    ->orLike('contact_person', $search)
+                    ->groupEnd();
         }
+
+        if (!empty($type_filter)) {
+            $builder->where('source_type', $type_filter);
+        }
+
+        $sources = $builder->findAll();
 
         $data['title']       = 'Suppliers';
         $data['sources']     = $sources;

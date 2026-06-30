@@ -90,7 +90,7 @@ class ItemModel extends Model
     /**
      * Fetch list of inventory items based on search query, department_id, role, stock status, and category.
      */
-    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null)
+    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null, $limit = 1000)
     {
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
@@ -129,7 +129,9 @@ class ItemModel extends Model
                 $builder = $builder->where('central_supply.category_id', (int)$category_id);
             }
 
-            $builder = $builder->where('central_supply.status', 1);
+            if (empty($search)) {
+                $builder = $builder->where('central_supply.status', 1);
+            }
 
             $builder = $builder->groupBy('central_supply.item_code, central_supply.item_name');
 
@@ -145,6 +147,10 @@ class ItemModel extends Model
                 } elseif ($stock_status === 'near_expiry') {
                     $builder = $builder->having('MAX(central_supply.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(central_supply.quantity_on_hand) > 0', null, false);
                 }
+            }
+
+            if ($limit !== null) {
+                $builder = $builder->limit($limit);
             }
 
             return $builder->orderBy('SUM(central_supply.quantity_on_hand) = 0', 'ASC', false)
@@ -172,9 +178,11 @@ class ItemModel extends Model
                                 ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
                                 ->join('category', 'category.category_id = inventory.category_id', 'left')
                                 ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
-                                ->join('source', 'source.source_id = central_supply.source_id', 'left')
-                                ->where('department_supply.department_id', $department_id)
-                                ->where('inventory.status', 1);
+                                ->where('department_supply.department_id', $department_id);
+
+            if (empty($search)) {
+                $builder = $builder->where('inventory.status', 1);
+            }
 
             if (!empty($search)) {
                 $builder = $builder->groupStart()
@@ -202,6 +210,10 @@ class ItemModel extends Model
                 } elseif ($stock_status === 'near_expiry') {
                     $builder = $builder->having('MAX(inventory.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(department_supply.quantity_on_hand) > 0', null, false);
                 }
+            }
+
+            if ($limit !== null) {
+                $builder = $builder->limit($limit);
             }
 
             return $builder->orderBy('SUM(department_supply.quantity_on_hand) = 0', 'ASC', false)

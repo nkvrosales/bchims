@@ -47,7 +47,7 @@
                 id="inv_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Search by item code or name..."
+                placeholder="Enter item code / name"
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
@@ -77,7 +77,7 @@
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnInvSearch">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
+                 Search
             </button>
             <a href="<?php echo base_url('inventory'); ?>" class="btn-db-clear" id="btnInvClear">
                 Clear
@@ -326,7 +326,7 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-
+                        <div class="row g-3" id="itemFormFields">
                         <div class="col-lg-4 col-12">
                             <label for="item_inventory_code" class="form-label small fw-semibold text-secondary">Inventory Code</label>
                             <input type="text"
@@ -398,7 +398,7 @@
                             </select>
                         </div>
 
-                        <div class="col-lg-3 col-12">
+                        <div class="col-lg-4 col-12">
                             <label for="item_quantity" class="form-label small fw-semibold text-secondary">
                                 Quantity <span class="text-danger">*</span>
                             </label>
@@ -411,7 +411,7 @@
                                    required>
                         </div>
 
-                        <div class="col-lg-3 col-12">
+                        <div class="col-lg-4 col-12">
                             <label for="item_batch_num" class="form-label small fw-semibold text-secondary">Batch No.</label>
                             <input type="text"
                                    class="form-control input-custom"
@@ -420,7 +420,7 @@
                                    value="<?php echo old('batch_num'); ?>">
                         </div>
 
-                        <div class="col-lg-3 col-12">
+                        <div class="col-lg-4 col-12">
                             <label for="item_lot_num" class="form-label small fw-semibold text-secondary">Lot No.</label>
                             <input type="text"
                                    class="form-control input-custom"
@@ -429,7 +429,7 @@
                                    value="<?php echo old('lot_num'); ?>">
                         </div>
 
-                        <div class="col-lg-6 col-12">
+                        <div class="col-lg-4 col-12">
                             <label for="item_source_type" class="form-label small fw-semibold text-secondary">
                                 Source Type <span class="text-danger">*</span>
                             </label>
@@ -445,7 +445,7 @@
                             </select>
                         </div>
 
-                        <div class="col-lg-6 col-12" id="sourceNameCol">
+                        <div class="col-lg-4 col-12" id="sourceNameCol">
                             <label for="item_source_name_select" class="form-label small fw-semibold text-secondary">
                                 Source <span class="text-danger">*</span>
                             </label>

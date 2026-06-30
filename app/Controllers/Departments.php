@@ -45,18 +45,22 @@ class Departments extends BaseController
 
         $search = trim((string) $this->request->getGet('search'));
 
-        // When searching, include archived entries so they can be found
-        if ($search !== '') {
-            $all = $this->departmentModel->get_all_departments();
-            $departments = array_values(array_filter($all, static function ($d) use ($search) {
-                $needle = mb_strtolower($search);
-                return mb_stripos((string)($d['name'] ?? ''), $needle) !== false
-                    || mb_stripos((string)($d['code'] ?? ''), $needle) !== false;
-            }));
-        } else {
-            // Default view: only active departments
-            $departments = $this->departmentModel->get_departments();
+        $builder = $this->departmentModel->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
+                                         ->orderBy('department_name', 'ASC');
+
+        // Only hide inactive/archived departments if no search is active
+        if (empty($search)) {
+            $builder->where('status', 1);
         }
+
+        if (!empty($search)) {
+            $builder->groupStart()
+                    ->like('department_name', $search)
+                    ->orLike('department_code', $search)
+                    ->groupEnd();
+        }
+
+        $departments = $builder->findAll();
 
         $data['title']       = 'Departments';
         $data['departments'] = $departments;

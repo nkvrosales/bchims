@@ -504,7 +504,7 @@ $(document).ready(function() {
                 zeroRecords: 'No suppliers found'
             },
             columnDefs: [
-                { orderable: false, targets: 2 }
+                { orderable: false, targets: 3 }
             ],
             initComplete: function () {
                 var $searchInput = $('#suppliersTable_wrapper .dataTables_filter input');

@@ -46,18 +46,21 @@ class Categories extends BaseController
 
         $search = trim((string) $this->request->getGet('search'));
 
-        $categories = $this->categoryModel
-            ->where('status', 1)
-            ->orderBy('category_code', 'ASC')
-            ->findAll();
+        $builder = $this->categoryModel->orderBy('category_code', 'ASC');
 
-        if ($search !== '') {
-            $categories = array_values(array_filter($categories, static function ($c) use ($search) {
-                $needle = mb_strtolower($search);
-                return mb_stripos((string)($c['category_description'] ?? ''), $needle) !== false
-                    || mb_stripos((string)($c['category_code'] ?? ''), $needle) !== false;
-            }));
+        // Only hide inactive/archived categories if no search is active
+        if (empty($search)) {
+            $builder->where('status', 1);
         }
+
+        if (!empty($search)) {
+            $builder->groupStart()
+                    ->like('category_description', $search)
+                    ->orLike('category_code', $search)
+                    ->groupEnd();
+        }
+
+        $categories = $builder->findAll();
 
         $data['title']      = 'Categories';
         $data['categories'] = $categories;

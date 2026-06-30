@@ -53,41 +53,8 @@ class Users extends BaseController
         $role_filter = trim((string) $this->request->getGet('role_filter'));
         $dept_filter = trim((string) $this->request->getGet('dept_filter'));
 
-        $users = $this->userModel->get_users();
-
-        // Keyword filter
-        if ($search !== '') {
-            $users = array_values(array_filter($users, static function ($u) use ($search) {
-                $needle = mb_strtolower($search);
-                $haystacks = [
-                    (string)($u['first_name'] ?? ''),
-                    (string)($u['last_name'] ?? ''),
-                    (string)($u['full_name'] ?? ''),
-                    (string)($u['username'] ?? ''),
-                    (string)($u['department_name'] ?? ''),
-                ];
-                foreach ($haystacks as $value) {
-                    if (mb_stripos($value, $needle) !== false) {
-                        return true;
-                    }
-                }
-                return false;
-            }));
-        }
-
-        // Role filter
-        if ($role_filter !== '') {
-            $users = array_values(array_filter($users, static function ($u) use ($role_filter) {
-                return strcasecmp((string)($u['role'] ?? ''), $role_filter) === 0;
-            }));
-        }
-
-        // Department filter
-        if ($dept_filter !== '') {
-            $users = array_values(array_filter($users, static function ($u) use ($dept_filter) {
-                return (string)($u['department_id'] ?? '') === $dept_filter;
-            }));
-        }
+        // Query database directly with filters (uses default limit in the Model)
+        $users = $this->userModel->search($search, $role_filter, $dept_filter);
 
         $data['title']             = 'User Management';
         $data['users']             = $users;

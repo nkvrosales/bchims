@@ -43,7 +43,7 @@
                 id="sup_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Search by supplier name or contact person..."
+                placeholder="Enter Supplier Name / Type"
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
@@ -59,7 +59,7 @@
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnSupSearch">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
+                 Search
             </button>
             <a href="<?php echo base_url('suppliers'); ?>" class="btn-db-clear" id="btnSupClear">
                 Clear
@@ -82,6 +82,7 @@
                 <tr>
                     <th>Supplier Name</th>
                     <th>Type</th>
+                    <th class="text-center" style="width: 100px;">Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -91,6 +92,13 @@
                         <tr>
                             <td class="fw text-dark"><?php echo htmlspecialchars($source['supplier_name']); ?></td>
                             <td><?php echo htmlspecialchars($source['source_type']); ?></td>
+                            <td class="text-center">
+                                <?php if (($source['status'] ?? 1) == 1): ?>
+                                    <span class="badge bg-success">Active</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Inactive</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-end">
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">

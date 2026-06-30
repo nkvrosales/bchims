@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
                 <!-- 4. Current Password -->
+                <div class="w-100"></div>
                 <div class="col-lg-6 col-12">
                     <label for="old_password" class="form-label small fw-semibold text-secondary">Current Password</label>
                     <div class="position-relative">
@@ -148,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- 5. New Password -->
+                <div class="w-100"></div>
                 <div class="col-lg-6 col-12">
                     <label for="password" class="form-label small fw-semibold text-secondary">New Password</label>
                     <div class="position-relative">
@@ -179,45 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="bi bi-eye-slash"></i>
                         </button>
                     </div>
-                </div>
-
-                <?php $isAdmin = is_admin_role($user['role']); ?>
-                <!-- 5. Role -->
-                <div class="col-lg-6 col-12">
-                    <label for="role_display" class="form-label small fw-semibold text-secondary">Role <span class="text-danger">*</span></label>
-                    <select class="form-select input-custom bg-light" id="role_display" disabled style="cursor: not-allowed;">
-                        <option value="<?php echo htmlspecialchars($user['role']); ?>" selected>
-                            <?php echo ucfirst($user['role']); ?>
-                        </option>
-                    </select>
-                    <input type="hidden" name="role" value="<?php echo htmlspecialchars($user['role']); ?>">
-                </div>
-
-                <!-- 6. Department -->
-                <div class="col-lg-6 col-12">
-                    <label for="department_id" class="form-label small fw-semibold text-secondary">Department</label>
-                    <?php if ($isAdmin): ?>
-                        <select class="form-select input-custom" id="department_id" name="department_id">
-                            <option value="">Administrator</option>
-                            <?php if (!empty($departments)): ?>
-                                <?php foreach ($departments as $d): ?>
-                                    <option value="<?php echo $d['id']; ?>" <?php echo ($user['department_id'] == $d['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($d['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    <?php else: ?>
-                        <select class="form-select input-custom bg-light" id="department_id" disabled style="cursor: not-allowed;">
-                            <option value="" selected>
-                                <?php if (!empty($user['department_code'])): ?>
-                                    <?php echo htmlspecialchars($user['department_name']); ?>
-                                <?php else: ?>
-                                    Administrator
-                                <?php endif; ?>
-                            </option>
-                        </select>
-                    <?php endif; ?>
                 </div>
 
                 <!-- Submission Actions -->

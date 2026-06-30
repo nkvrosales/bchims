@@ -106,7 +106,7 @@
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnAuditSearch">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
+                 Search
             </button>
             <a href="<?php echo base_url('audit'); ?>" class="btn-db-clear" id="btnAuditClear">
                 Clear
