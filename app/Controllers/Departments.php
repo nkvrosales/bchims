@@ -45,22 +45,7 @@ class Departments extends BaseController
 
         $search = trim((string) $this->request->getGet('search'));
 
-        $builder = $this->departmentModel->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
-                                         ->orderBy('department_name', 'ASC');
-
-        // Only hide inactive/archived departments if no search is active
-        if (empty($search)) {
-            $builder->where('status', 1);
-        }
-
-        if (!empty($search)) {
-            $builder->groupStart()
-                    ->like('department_name', $search)
-                    ->orLike('department_code', $search)
-                    ->groupEnd();
-        }
-
-        $departments = $builder->findAll();
+        $departments = $this->departmentModel->search_departments($search);
 
         $data['title']       = 'Departments';
         $data['departments'] = $departments;

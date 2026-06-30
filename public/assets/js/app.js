@@ -219,8 +219,8 @@ $(document).ready(function() {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search logs...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ logs",
                 info: 'Showing _START_ to _END_ of _TOTAL_ operations logs',
                 infoFiltered: '(filtered from _MAX_ total entries)',
@@ -228,7 +228,7 @@ $(document).ready(function() {
             },
             initComplete: function () {
                 var $searchInput = $('#auditLogsTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search logs...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#auditLogsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#auditLogsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
@@ -299,8 +299,8 @@ $(document).ready(function() {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search users...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ users",
                 info: 'Showing _START_ to _END_ of _TOTAL_ users',
                 infoEmpty: 'Showing 0 to 0 of 0 users',
@@ -314,7 +314,7 @@ $(document).ready(function() {
             initComplete: function () {
                 // Add placeholder and clean up the search wrapper
                 var $searchInput = $('#usersTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search users...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 // Remove the stray label margin
                 $('#usersTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
@@ -335,14 +335,14 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[7, 'asc'], [0, 'desc']],
+            order: [[0, 'desc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search requests...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ requests",
                 info: 'Showing _START_ to _END_ of _TOTAL_ supply requests',
                 infoEmpty: 'Showing 0 to 0 of 0 supply requests',
@@ -350,11 +350,12 @@ $(document).ready(function() {
             },
             columnDefs: [
                 { orderable: false, targets: 8 },
-                { type: 'num', targets: 0 }
+                { type: 'num', targets: 0 },
+                { className: 'text-center', targets: [4, 5, 6, 7, 8] }
             ],
             initComplete: function () {
                 var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search requests...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#supplyRequestsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#supplyRequestsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
@@ -380,8 +381,8 @@ $(document).ready(function() {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search inventory...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ items",
                 info: 'Showing _START_ to _END_ of _TOTAL_ inventory items',
                 infoEmpty: 'Showing 0 to 0 of 0 inventory items',
@@ -392,7 +393,7 @@ $(document).ready(function() {
             ],
             initComplete: function () {
                 var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search inventory...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#inventoryTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#inventoryTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
@@ -419,19 +420,20 @@ $(document).ready(function() {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search categories...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ categories",
                 info: 'Showing _START_ to _END_ of _TOTAL_ categories',
                 infoEmpty: 'Showing 0 to 0 of 0 categories',
                 zeroRecords: 'No categories found'
             },
             columnDefs: [
-                { orderable: false, targets: 2 }
+                { orderable: false, targets: 2 },
+                { className: 'text-center', targets: [1, 2] }
             ],
             initComplete: function () {
                 var $searchInput = $('#categoriesTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search categories...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#categoriesTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#categoriesTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
@@ -458,19 +460,20 @@ $(document).ready(function() {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search departments...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ departments",
                 info: 'Showing _START_ to _END_ of _TOTAL_ departments',
                 infoEmpty: 'Showing 0 to 0 of 0 departments',
                 zeroRecords: 'No departments found'
             },
             columnDefs: [
-                { orderable: false, targets: 2 }
+                { orderable: false, targets: 2 },
+                { className: 'text-center', targets: [1, 2] }
             ],
             initComplete: function () {
                 var $searchInput = $('#departmentsTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search departments...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#departmentsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#departmentsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
@@ -496,19 +499,20 @@ $(document).ready(function() {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
                     next: '<i class="fa-solid fa-angle-right"></i>'
                 },
-                search: "",
-                searchPlaceholder: "Search suppliers...",
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ suppliers",
                 info: 'Showing _START_ to _END_ of _TOTAL_ suppliers',
                 infoEmpty: 'Showing 0 to 0 of 0 suppliers',
                 zeroRecords: 'No suppliers found'
             },
             columnDefs: [
-                { orderable: false, targets: 3 }
+                { orderable: false, targets: 3 },
+                { className: 'text-center', targets: [1, 3] }
             ],
             initComplete: function () {
                 var $searchInput = $('#suppliersTable_wrapper .dataTables_filter input');
-                $searchInput.attr('placeholder', 'Search suppliers...');
+                $searchInput.attr('placeholder', 'Type to search...');
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#suppliersTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#suppliersTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });

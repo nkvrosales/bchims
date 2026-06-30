@@ -15,4 +15,29 @@ class CategoryModel extends Model
 
     protected $allowedFields = ['category_code', 'category_description', 'status'];
     protected $useTimestamps = false;
+
+    /**
+     * Get categories with search and optional limit (limit skipped when searching).
+     */
+    public function search_categories($search = '', $limit = 1000)
+    {
+        $builder = $this->orderBy('category_code', 'ASC');
+
+        if (empty($search)) {
+            $builder = $builder->where('status', 1);
+        }
+
+        if (!empty($search)) {
+            $builder = $builder->groupStart()
+                               ->like('category_description', $search)
+                               ->orLike('category_code', $search)
+                               ->groupEnd();
+        }
+
+        if ($limit !== null && empty($search)) {
+            $builder = $builder->limit($limit);
+        }
+
+        return $builder->findAll();
+    }
 }

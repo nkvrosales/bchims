@@ -44,16 +44,15 @@
                 id="users_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Search by name, username, or department..."
+                placeholder="Enter Full Name / Username / Department"
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="users_search_role">Role Filter</label>
+            <label for="users_search_role">Account Level Filter</label>
             <select id="users_search_role" name="role_filter" class="db-search-select">
-                <option value="">All Roles</option>
-                <option value="dev"     <?php echo (($role_filter ?? '') === 'dev')     ? 'selected' : ''; ?>>Dev</option>
+                <option value="">Select Account Level</option>
                 <option value="admin"   <?php echo (($role_filter ?? '') === 'admin')   ? 'selected' : ''; ?>>Admin</option>
                 <option value="encoder" <?php echo (($role_filter ?? '') === 'encoder') ? 'selected' : ''; ?>>Encoder</option>
                 <option value="viewer"  <?php echo (($role_filter ?? '') === 'viewer')  ? 'selected' : ''; ?>>Viewer</option>
@@ -62,7 +61,7 @@
         <div class="db-search-field db-search-field--dropdown">
             <label for="users_search_dept">Department Filter</label>
             <select id="users_search_dept" name="dept_filter" class="db-search-select">
-                <option value="">All Departments</option>
+                <option value="">Select Department</option>
                 <option value="0" <?php echo (($dept_filter ?? '') === '0') ? 'selected' : ''; ?>>Administrator</option>
                 <?php if (!empty($departments)): ?>
                     <?php foreach ($departments as $d): ?>
@@ -357,13 +356,13 @@
                             </div>
                         </div>
 
-                        <!-- Role -->
+                        <!-- Account Level -->
                         <div class="col-lg-6 col-12">
                             <label for="modal_role" class="form-label small fw-semibold text-secondary">
-                                Role <span class="text-danger">*</span>
+                                Account Level <span class="text-danger">*</span>
                             </label>
                             <select class="form-select input-custom" id="modal_role" name="role" required>
-                                    <option value="" disabled selected hidden>Select Role</option>
+                                    <option value="" disabled selected hidden>Select Account Level</option>
                                     <option value="dev" hidden>Developer</option>
                                     <option value="admin">Administrator</option>
                                     <option value="encoder">Encoder</option>
@@ -767,19 +766,8 @@
 <?php endif; ?>
 <?php endif; ?>
 
-<!-- Hover style for Add New User button -->
 <style>
-    #btnAddNewUser,
-    #btnAddNewUser:hover,
-    #btnAddNewUser:focus,
-    #btnAddNewUser:active,
-    #btnAddNewUser:focus-visible {
-        color: #fff !important;
-        box-shadow: none !important;
-    }
-    #btnAddNewUser:hover { background: #059669 !important; }
     #modal_is_active:checked { background-color: #198754; border-color: #198754; }
-    .form-switch .form-check-input { width: 3em; height: 1.5em; }
     .form-switch .form-check-input:focus { box-shadow: none; outline: none; border-color: #198754; }
     .form-switch .form-check-input:focus-visible { outline: none; }
 </style>

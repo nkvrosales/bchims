@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=1.1.1'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=1.1.2'); ?>">
 
 
     <link rel="icon" href="<?php echo base_url('bchlogo.ico'); ?>" type="image/x-icon">
@@ -91,7 +91,7 @@
                             $roleLower = strtolower((string)session()->get('role'));
                             $displayRole = ($roleLower === 'dev') ? 'DEVELOPER' : strtoupper($roleLower);
                         ?>
-                        <span class="navbar-user-username" style="color: #1e293b; text-transform: uppercase;"><?php echo htmlspecialchars($username); ?></span>
+                        <span class="navbar-user-username" style=" text-transform: uppercase;"><?php echo htmlspecialchars($username); ?></span>
                     </div>
                     <i class="bi bi-chevron-down" style="font-size: 0.7rem; color: #94a3b8; line-height: 1;"></i>
                 </button>

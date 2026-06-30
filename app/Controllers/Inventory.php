@@ -296,7 +296,7 @@ class Inventory extends BaseController
                     'department_supply_id' => $deptSupplyId,
                     'quantity_requested'   => $quantity,
                     'quantity_served'      => $quantity,
-                    'request_status'               => 'Manually Added',
+                    'request_status'               => 1,
                 ]);
                 $reqId = $db->insertID();
 

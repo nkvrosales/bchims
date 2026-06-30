@@ -19,7 +19,7 @@ class SupplyRequestModel extends Model
     /**
      * Fetch all requests with item, department, and user details joined.
      */
-    public function get_requests($user_id = null, $department_id = null, $limit = 1000)
+    public function get_requests($user_id = null, $department_id = null, $search = '', $status_filter = '', $dept_filter = null, $limit = 1000)
     {
         $builder = $this->select("
             request.*,
@@ -46,11 +46,37 @@ class SupplyRequestModel extends Model
         ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id', 'left')
         ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left');
 
+        $builder = $builder->where('request.status >', 0);
+
         if ($department_id !== null) {
             $builder = $builder->where('department_supply.department_id', $department_id);
         }
 
-        if ($limit !== null) {
+        if (!empty($search)) {
+            $builder = $builder->groupStart()
+                ->like('request.request_id', $search)
+                ->orLike('user.username', $search)
+                ->orLike('user.first_name', $search)
+                ->orLike('user.last_name', $search)
+                ->orLike("CONCAT(user.first_name, ' ', user.last_name)", $search)
+                ->orLike('departments.department_name', $search)
+                ->orLike('central_supply.item_name', $search)
+                ->orLike('central_supply.item_code', $search)
+                ->orLike('request.notes', $search)
+                ->orLike('request.quantity_requested', $search)
+                ->orLike('request.quantity_served', $search)
+                ->groupEnd();
+        }
+
+        if (!empty($status_filter)) {
+            $builder = $builder->where('request.request_status', (int)$status_filter);
+        }
+
+        if (!empty($dept_filter)) {
+            $builder = $builder->where('departments.department_id', (int)$dept_filter);
+        }
+
+        if ($limit !== null && empty($search) && empty($status_filter) && empty($dept_filter)) {
             $builder = $builder->limit($limit);
         }
 

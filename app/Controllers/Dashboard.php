@@ -221,32 +221,19 @@ class Dashboard extends BaseController
         $data['action_filter'] = $action_filter;
         $data['date_filter'] = $date_filter;
 
-        $db = \Config\Database::connect();
-        $builder = $db->table('audit_log')
-                      ->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
-                      ->join('user', 'user.user_id = audit_log.user_id', 'left');
-
-        if (!is_admin_role()) {
-            $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
-        }
-
+        $auditModel = new \App\Models\AuditModel();
+        $filters = [];
         if (!empty($search)) {
-            $builder = $builder->groupStart()
-                               ->like('audit_log.action_description', $search)
-                               ->orLike('user.username', $search)
-                               ->groupEnd();
+            $filters['search'] = $search;
         }
-
         if (!empty($action_filter)) {
-            $builder = $builder->where('audit_log.action_type', $action_filter);
+            $filters['action'] = $action_filter;
         }
-
         if (!empty($date_filter)) {
-            $builder = $builder->where('audit_log.action_date >=', $date_filter . ' 00:00:00')
-                               ->where('audit_log.action_date <=', $date_filter . ' 23:59:59');
+            $filters['start_date'] = $date_filter;
+            $filters['end_date'] = $date_filter;
         }
-
-        $data['logs'] = $builder->orderBy('action_date', 'DESC')->get()->getResultArray();
+        $data['logs'] = $auditModel->get_audit_logs($filters);
 
         return view('templates/header', $data)
              . view('audit', $data)
@@ -301,39 +288,47 @@ class Dashboard extends BaseController
         $data['user'] = $user;
         $data['departments'] = $departmentModel->get_departments();
 
-        $isAdmin = is_admin_role();
-
         $rules = [
             'username'   => 'required|alpha_numeric_punct|min_length[4]|max_length[30]',
             'last_name'  => 'required|max_length[50]',
             'first_name' => 'required|max_length[50]',
+            'email'      => 'permit_empty|valid_email|max_length[100]',
             'password'   => 'permit_empty|min_length[4]|max_length[50]',
+            'confirm_password' => 'permit_empty|matches[password]',
+            'old_password'     => 'required',
         ];
 
-        if ($isAdmin) {
-            $rules['role'] = 'required|in_list[admin,staff]';
-            $rules['department_id'] = 'permit_empty|numeric';
-        }
+        $validationMessages = [
+            'confirm_password' => [
+                'matches' => 'The new passwords do not match.',
+            ],
+            'old_password' => [
+                'required' => 'Current password is required to save changes.',
+            ],
+        ];
 
-        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules)) {
+        if (strcasecmp($this->request->getMethod(), 'post') === 0 && $this->validate($rules, $validationMessages)) {
             $username = $this->request->getPost('username');
+            $old_password = $this->request->getPost('old_password');
+            $password = $this->request->getPost('password');
+            $email = $this->request->getPost('email');
+
+            // Verify current password
+            if (!password_verify($old_password, $user['password'])) {
+                $data['error'] = 'Current password is incorrect.';
+            }
+
+            if (!isset($data['error'])) {
             $update_data = [
                 'username'   => $username,
                 'last_name'  => $this->request->getPost('last_name'),
                 'first_name' => $this->request->getPost('first_name'),
+                'email'      => !empty($email) ? $email : null,
             ];
-
-            if ($isAdmin) {
-                $role = $this->request->getPost('role');
-                $update_data['role_id'] = ($role === 'admin') ? 1 : 2;
-                $dept_id = $this->request->getPost('department_id');
-                $update_data['department_id'] = !empty($dept_id) ? (int)$dept_id : NULL;
-            }
 
             if ($username !== $user['username'] && $userModel->get_user_by_username($username)) {
                 $data['error'] = 'That username is already taken. Please choose another one.';
             } else {
-                $password = $this->request->getPost('password');
                 if (!empty($password)) {
                     $update_data['password'] = $password;
                 }
@@ -345,9 +340,6 @@ class Dashboard extends BaseController
                     session()->set('first_name', $update_data['first_name']);
                     session()->set('full_name', $combined_name);
                     session()->set('username', $username);
-                    if ($isAdmin) {
-                        session()->set('role', $role);
-                    }
 
                     // Log activity
                     $auditDesc = "Updated own profile details.";
@@ -364,6 +356,9 @@ class Dashboard extends BaseController
                     if ($update_data['username'] !== $user['username']) {
                         $changes[] = "Username";
                     }
+                    if ($update_data['email'] !== ($user['email'] ?? '')) {
+                        $changes[] = "Email";
+                    }
                     if (!empty($changes)) {
                         $auditDesc .= " Changed " . implode(', ', $changes) . ".";
                     }
@@ -374,6 +369,7 @@ class Dashboard extends BaseController
                 }
 
                 $data['error'] = 'An error occurred while updating your profile. Please try again.';
+            }
             }
         }
 

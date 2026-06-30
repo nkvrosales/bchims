@@ -44,7 +44,7 @@
                 id="dept_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Search by department name or code..."
+                placeholder="Enter Department Name / Code"
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
@@ -159,18 +159,6 @@
                     <?php endif; ?>
 
                     <div class="mb-3">
-                        <label for="dept_code" class="form-label small fw-semibold text-secondary">
-                            Department Code <span class="text-danger">*</span>
-                        </label>
-                        <input type="text"
-                               class="form-control input-custom"
-                               id="dept_code"
-                               name="code"
-                               value="<?php echo old('code'); ?>"
-                               required>
-                    </div>
-
-                    <div>
                         <label for="dept_name" class="form-label small fw-semibold text-secondary">
                             Department Name <span class="text-danger">*</span>
                         </label>
@@ -179,6 +167,18 @@
                                id="dept_name"
                                name="name"
                                value="<?php echo old('name'); ?>"
+                               required>
+                    </div>
+
+                    <div>
+                        <label for="dept_code" class="form-label small fw-semibold text-secondary">
+                            Department Code <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control input-custom"
+                               id="dept_code"
+                               name="code"
+                               value="<?php echo old('code'); ?>"
                                required>
                     </div>
 

@@ -47,25 +47,7 @@ class Suppliers extends BaseController
         $search      = trim((string) $this->request->getGet('search'));
         $type_filter = trim((string) $this->request->getGet('type_filter'));
 
-        $builder = $this->supplierModel->orderBy('supplier_name', 'ASC');
-
-        // Only hide inactive/archived suppliers if no search/filter is active
-        if (empty($search) && empty($type_filter)) {
-            $builder->where('status', 1);
-        }
-
-        if (!empty($search)) {
-            $builder->groupStart()
-                    ->like('supplier_name', $search)
-                    ->orLike('contact_person', $search)
-                    ->groupEnd();
-        }
-
-        if (!empty($type_filter)) {
-            $builder->where('source_type', $type_filter);
-        }
-
-        $sources = $builder->findAll();
+        $sources = $this->supplierModel->search_suppliers($search, $type_filter);
 
         $data['title']       = 'Suppliers';
         $data['sources']     = $sources;

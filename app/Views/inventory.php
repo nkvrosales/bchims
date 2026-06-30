@@ -47,7 +47,7 @@
                 id="inv_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Enter item code / name"
+                placeholder="Enter Name / Item code"
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
@@ -326,7 +326,7 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="row g-3" id="itemFormFields">
+                        <div class="w-50"></div>
                         <div class="col-lg-4 col-12">
                             <label for="item_inventory_code" class="form-label small fw-semibold text-secondary">Inventory Code</label>
                             <input type="text"
@@ -976,14 +976,3 @@ function openConsumeModal(data) {
 }
 </script>
 
-<style>
-    #btnAddNewItem,
-    #btnAddNewItem:hover,
-    #btnAddNewItem:focus,
-    #btnAddNewItem:active,
-    #btnAddNewItem:focus-visible {
-        color: #fff !important;
-        box-shadow: none !important;
-    }
-    #btnAddNewItem:hover { background: #059669 !important; }
-</style>

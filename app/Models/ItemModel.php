@@ -149,7 +149,7 @@ class ItemModel extends Model
                 }
             }
 
-            if ($limit !== null) {
+            if ($limit !== null && empty($search) && empty($stock_status) && empty($category_id)) {
                 $builder = $builder->limit($limit);
             }
 
@@ -212,7 +212,7 @@ class ItemModel extends Model
                 }
             }
 
-            if ($limit !== null) {
+            if ($limit !== null && empty($search) && empty($stock_status) && empty($category_id)) {
                 $builder = $builder->limit($limit);
             }
 

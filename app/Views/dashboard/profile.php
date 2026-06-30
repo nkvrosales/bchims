@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Profile Settings Form Card -->
 <div class="row fade-in-up" style="animation-delay: 0.1s;">
-    <div class="col-12 col-lg-8 col-xl-6">
+    <div class="col-lg-6 col-12">
         <div class="standard-card">
             <div class="card-header-styled mb-4">
                 <h5 class="card-title-styled">
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                            class="form-control input-custom" 
                            id="first_name" 
                            name="first_name" 
-                           placeholder="e.g. Juan"
+                           placeholder="Enter first name"
                            value="<?php echo set_value('first_name', $user['first_name']); ?>"
                            required>
                 </div>
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
                            class="form-control input-custom" 
                            id="last_name" 
                            name="last_name" 
-                           placeholder="e.g. Dela Cruz"
+                           placeholder="Enter last name"
                            value="<?php echo set_value('last_name', $user['last_name']); ?>"
                            required>
                 </div>
@@ -124,14 +124,24 @@ document.addEventListener('DOMContentLoaded', function() {
                            class="form-control input-custom" 
                            id="username" 
                            name="username"
-                           placeholder="e.g. juan.delacruz"
+                           placeholder="Enter username"
                            value="<?php echo set_value('username', $user['username']); ?>"
                            required>
                 </div>
 
 
-                <!-- 4. Current Password -->
-                <div class="w-100"></div>
+                <!-- 4. Email -->
+                <div class="col-lg-6 col-12">
+                    <label for="email" class="form-label small fw-semibold text-secondary">Email</label>
+                    <input type="email"
+                           class="form-control input-custom"
+                           id="email"
+                           name="email"
+                           placeholder="Enter email"
+                           value="<?php echo set_value('email', $user['email'] ?? ''); ?>">
+                </div>
+
+                <!-- 5. Current Password -->
                 <div class="col-lg-6 col-12">
                     <label for="old_password" class="form-label small fw-semibold text-secondary">Current Password</label>
                     <div class="position-relative">
@@ -149,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- 5. New Password -->
-                <div class="w-100"></div>
+                <div class="w-50"></div>
                 <div class="col-lg-6 col-12">
                     <label for="password" class="form-label small fw-semibold text-secondary">New Password</label>
                     <div class="position-relative">
@@ -185,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <!-- Submission Actions -->
                 <div class="col-12 d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2 hover-lift">
+                    <button type="submit" class="btn btn-primary-custom px-4 py-2 d-flex align-items-center gap-2 hover-lift">
                         <span>Save Changes</span>
                     </button>
                 </div>

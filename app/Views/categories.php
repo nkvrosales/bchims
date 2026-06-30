@@ -43,7 +43,7 @@
                 id="cat_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Search by category name or code..."
+                placeholder="Enter Category Name / Code"
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
@@ -95,7 +95,9 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="openCategoryModal('edit', <?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['category_description'] ?? '', ENT_QUOTES); ?>')" title="Manage Category">Manage</a></li>
+                                        <?php if (($category['status'] ?? 1) == 1): ?>
                                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveCategoryModal-<?php echo $category['category_id']; ?>" title="Archive Category">Archive</a></li>
+                                        <?php endif; ?>
                                     </ul>
                                 </div>
                             </td>
@@ -147,18 +149,6 @@
                     <?php endif; ?>
 
                     <div class="mb-3">
-                        <label for="category_code" class="form-label small fw-semibold text-secondary">
-                            Category Code <span class="text-danger">*</span>
-                        </label>
-                        <input type="text"
-                               class="form-control input-custom text-uppercase"
-                               id="category_code"
-                               name="category_code"
-                               value="<?php echo old('category_code'); ?>"
-                               required>
-                    </div>
-
-                    <div>
                         <label for="category_description" class="form-label small fw-semibold text-secondary">
                             Category Name <span class="text-danger">*</span>
                         </label>
@@ -167,6 +157,18 @@
                                id="category_description"
                                name="category_description"
                                value="<?php echo old('category_description'); ?>"
+                               required>
+                    </div>
+
+                    <div>
+                        <label for="category_code" class="form-label small fw-semibold text-secondary">
+                            Category Code <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control input-custom text-uppercase"
+                               id="category_code"
+                               name="category_code"
+                               value="<?php echo old('category_code'); ?>"
                                required>
                     </div>
 

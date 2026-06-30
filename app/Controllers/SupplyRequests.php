@@ -64,7 +64,7 @@ class SupplyRequests extends BaseController
 
         $departments = [];
         if (is_admin_role()) {
-            $requests = $this->requestModel->get_requests();
+            $requests = $this->requestModel->get_requests(null, null, $search, $status_filter, $dept_filter);
             $items    = [];
             $categories = [];
             
@@ -72,7 +72,7 @@ class SupplyRequests extends BaseController
             $departments = $deptModel->get_departments();
         } else {
             // Staff sees their own department's requests
-            $requests = $this->requestModel->get_requests(null, $user['department_id'] ?? 0);
+            $requests = $this->requestModel->get_requests(null, $user['department_id'] ?? 0, $search, $status_filter);
             // Fetch categories for the filter dropdown
             $categories = $this->db->table('category')
                                    ->where('status', 1)
@@ -100,46 +100,6 @@ class SupplyRequests extends BaseController
                 $batchesByCode[$name] = [];
             }
             $batchesByCode[$name][] = $b;
-        }
-
-        if ($search !== '') {
-            $requests = array_values(array_filter($requests, static function ($req) use ($search) {
-                $needle = mb_strtolower($search);
-                $haystacks = [
-                    (string)($req['request_id'] ?? ''),
-                    (string)($req['requester_full_name'] ?? ''),
-                    (string)($req['requester_username'] ?? ''),
-                    (string)($req['department_name'] ?? ''),
-                    (string)($req['item_name'] ?? ''),
-                    (string)($req['item_code'] ?? ''),
-                    (string)($req['request_status'] ?? ''),
-                    (string)($req['notes'] ?? ''),
-                    (string)($req['quantity_requested'] ?? ''),
-                    (string)($req['quantity_served'] ?? ''),
-                ];
-
-                foreach ($haystacks as $value) {
-                    if (mb_stripos($value, $needle) !== false) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }));
-        }
-
-        // Filter by status dropdown
-        if ($status_filter !== '') {
-            $requests = array_values(array_filter($requests, static function ($req) use ($status_filter) {
-                return strcasecmp((string)($req['request_status'] ?? ''), $status_filter) === 0;
-            }));
-        }
-
-        // Filter by department dropdown (admin only)
-        if (is_admin_role() && $dept_filter !== '') {
-            $requests = array_values(array_filter($requests, static function ($req) use ($dept_filter) {
-                return (string)($req['department_id'] ?? '') === $dept_filter;
-            }));
         }
 
         $data['title']         = is_admin_role() ? 'Central Requests' : ($user['department_name'] ?? 'My') . ' Requests';
@@ -275,7 +235,7 @@ class SupplyRequests extends BaseController
                 'department_supply_id' => $deptSupplyId,
                 'quantity_requested'   => $quantity,
                 'quantity_served'      => 0,
-                'request_status'       => 'Pending',
+                'request_status'       => 1,
                 'user_id'              => $userId,
                 'notes'                => $notes ? $notes : null,
             ];
@@ -347,7 +307,7 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        if ($request['request_status'] !== 'Pending') {
+        if ($request['request_status'] !== 1) {
             session()->setFlashdata('error', 'This request has already been processed.');
             return redirect()->to('requests');
         }
@@ -460,7 +420,7 @@ class SupplyRequests extends BaseController
         }
 
         $this->requestModel->update($id, [
-            'request_status'      => 'Served',
+            'request_status'      => 3,
             'quantity_served'     => $totalServed,
             'department_supply_id' => $deptSupplyId,
             'served_date'         => date('Y-m-d H:i:s'),
@@ -506,7 +466,7 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        if (!in_array($request['request_status'], ['Pending', 'Partially Served'])) {
+        if (!in_array($request['request_status'], [1, 2])) {
             session()->setFlashdata('error', 'This request has already been processed.');
             return redirect()->to('requests');
         }
@@ -648,7 +608,7 @@ class SupplyRequests extends BaseController
 
         // Update request
         $updateData = [
-            'request_status'      => 'Partially Served',
+            'request_status'      => 2,
             'quantity_served'     => $qtyServed + $totalServed,
             'department_supply_id' => $deptSupplyId,
             'partial_date'        => date('Y-m-d H:i:s'),
@@ -704,14 +664,14 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        if ($request['request_status'] !== 'Pending') {
+        if ($request['request_status'] !== 1) {
             session()->setFlashdata('error', 'This request has already been processed.');
             return redirect()->to('requests');
         }
 
         $notes = trim((string) $this->request->getPost('reject_notes'));
 
-        $updateData = ['request_status' => 'Rejected', 'cancelled_date' => date('Y-m-d H:i:s')];
+        $updateData = ['request_status' => 4, 'cancelled_date' => date('Y-m-d H:i:s')];
         if ($notes !== '') {
             $updateData['notes'] = $notes;
         }
@@ -757,7 +717,7 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        if ($request['request_status'] !== 'Partially Served') {
+        if ($request['request_status'] !== 2) {
             session()->setFlashdata('error', 'Only partially served requests can be completed.');
             return redirect()->to('requests');
         }
@@ -903,7 +863,7 @@ class SupplyRequests extends BaseController
 
         // Update request to Served and clear notes
         $this->requestModel->update($id, [
-            'request_status'      => 'Served',
+            'request_status'      => 3,
             'quantity_served'     => $qtyRequested,
             'department_supply_id' => $deptSupplyId,
             'served_date'         => date('Y-m-d H:i:s'),
@@ -935,11 +895,6 @@ class SupplyRequests extends BaseController
     public function archive($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
-
-        if (!is_admin_role()) {
-            session()->setFlashdata('error', 'Only administrators can archive supply requests.');
-            return redirect()->to('requests');
-        }
 
         if (empty($id)) {
             return redirect()->to('requests');

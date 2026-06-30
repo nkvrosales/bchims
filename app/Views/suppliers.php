@@ -51,7 +51,7 @@
         <div class="db-search-field db-search-field--dropdown">
             <label for="sup_search_type">Type Filter</label>
             <select id="sup_search_type" name="type_filter" class="db-search-select">
-                <option value="">All Types</option>
+                <option value="">Select Type</option>
                 <option value="Supplier" <?php echo (($type_filter ?? '') === 'Supplier') ? 'selected' : ''; ?>>Supplier</option>
                 <option value="Donation" <?php echo (($type_filter ?? '') === 'Donation') ? 'selected' : ''; ?>>Donation</option>
                 <option value="Others"   <?php echo (($type_filter ?? '') === 'Others')   ? 'selected' : ''; ?>>Others</option>
@@ -106,7 +106,9 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="openSupplierModal('edit', <?php echo $source['source_id']; ?>, '<?php echo htmlspecialchars($source['source_type'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['supplier_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_person'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_number'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['address'] ?? '', ENT_QUOTES); ?>')" title="Manage Supplier">Manage</a></li>
+                                        <?php if (($source['status'] ?? 1) == 1): ?>
                                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSupplierModal-<?php echo $source['source_id']; ?>" title="Archive Supplier">Archive</a></li>
+                                        <?php endif; ?>
                                     </ul>
                                 </div>
                             </td>
@@ -158,18 +160,6 @@
                     <?php endif; ?>
 
                     <div class="mb-3">
-                        <label for="source_type" class="form-label small fw-semibold text-secondary">
-                            Supplier Type <span class="text-danger">*</span>
-                        </label>
-                        <select class="form-select input-custom" id="source_type" name="source_type" required>
-                            <option value="" disabled selected hidden>Select Type</option>
-                            <option value="Supplier" <?php echo old('source_type') === 'Supplier' ? 'selected' : ''; ?>>Supplier</option>
-                            <option value="Donation" <?php echo old('source_type') === 'Donation' ? 'selected' : ''; ?>>Donation</option>
-                            <option value="Others" <?php echo old('source_type') === 'Others' ? 'selected' : ''; ?> style="display:none;">Others</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
                         <label for="supplier_name" class="form-label small fw-semibold text-secondary">
                             Supplier Name <span class="text-danger">*</span>
                         </label>
@@ -179,6 +169,18 @@
                                name="supplier_name"
                                value="<?php echo old('supplier_name'); ?>"
                                required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="source_type" class="form-label small fw-semibold text-secondary">
+                            Supplier Type <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select input-custom" id="source_type" name="source_type" required>
+                            <option value="" disabled selected hidden>Select Type</option>
+                            <option value="Supplier" <?php echo old('source_type') === 'Supplier' ? 'selected' : ''; ?>>Supplier</option>
+                            <option value="Donation" <?php echo old('source_type') === 'Donation' ? 'selected' : ''; ?>>Donation</option>
+                            <option value="Others" <?php echo old('source_type') === 'Others' ? 'selected' : ''; ?> style="display:none;">Others</option>
+                        </select>
                     </div>
 
                     <div class="mb-3">

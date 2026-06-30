@@ -52,7 +52,7 @@ class AuditModel extends Model
     /**
      * Retrieve audit logs based on various optional filters.
      */
-    public function get_audit_logs($filters = array())
+    public function get_audit_logs($filters = array(), $limit = 1000)
     {
         $builder = $this->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
                         ->join('user', 'user.user_id = audit_log.user_id', 'left');
@@ -72,12 +72,25 @@ class AuditModel extends Model
             $builder = $builder->like('user.username', $filters['username']);
         }
 
+        if (!empty($filters['search'])) {
+            $builder = $builder->groupStart()
+                               ->like('audit_log.action_description', $filters['search'])
+                               ->orLike('user.username', $filters['search'])
+                               ->groupEnd();
+        }
+
         if (!empty($filters['action'])) {
             $builder = $builder->where('action_type', strtoupper($filters['action']));
         }
 
         if (!empty($filters['module'])) {
             $builder = $builder->like('action_description', '[' . ucfirst($filters['module']) . ']');
+        }
+
+        $hasFilter = !empty($filters['start_date']) || !empty($filters['end_date']) || !empty($filters['search']) || !empty($filters['username']) || !empty($filters['action']) || !empty($filters['module']);
+
+        if ($limit !== null && !$hasFilter) {
+            return $builder->orderBy('action_date', 'DESC')->findAll($limit);
         }
 
         return $builder->orderBy('action_date', 'DESC')->findAll();

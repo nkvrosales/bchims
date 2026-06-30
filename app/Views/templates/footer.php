@@ -3,7 +3,7 @@
         </div>
     </div>
     <footer class="text-center text-muted py-3 small border-top" style="font-size: 0.85rem;">
-		&copy; Copyright 2026 <strong>Binan City Hospital Inventory System</strong>
+		&copy; Copyright 2026 <strong>Biñan City Hospital Inventory Management System</strong>
     </footer>
 <?php endif; ?>
 

@@ -1,3 +1,19 @@
+<?php
+$requestStatusMap = [
+    1 => 'Pending',
+    2 => 'Partially Served',
+    3 => 'Served',
+    4 => 'Rejected',
+    5 => 'Cancelled',
+];
+$requestBadgeMap = [
+    1 => 'bg-warning-subtle text-dark border border-warning-subtle',
+    2 => 'bg-primary-subtle text-dark border border-primary-subtle',
+    3 => 'bg-success-subtle text-dark border border-success-subtle',
+    4 => 'bg-danger-subtle text-dark border border-danger-subtle',
+    5 => 'bg-secondary-subtle text-dark border border-secondary-subtle',
+];
+?>
     <!-- Page Title Section -->
     <div class="page-breadcrumb">
         <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
@@ -45,7 +61,7 @@
                     id="req_search_keyword"
                     name="search"
                     class="db-search-input"
-                    placeholder="Search by ID, requester, department, item, status, notes..."
+                    placeholder="Enter ID / Requester / Item"
                     value="<?php echo htmlspecialchars($search ?? ''); ?>"
                     autocomplete="off"
                 >
@@ -53,19 +69,19 @@
             <div class="db-search-field db-search-field--dropdown">
                 <label for="req_search_status">Status Filter</label>
                 <select id="req_search_status" name="status_filter" class="db-search-select">
-                    <option value="">All Statuses</option>
-                    <option value="Pending"           <?php echo (($status_filter ?? '') === 'Pending')           ? 'selected' : ''; ?>>Pending</option>
-                    <option value="Served"            <?php echo (($status_filter ?? '') === 'Served')            ? 'selected' : ''; ?>>Served</option>
-                    <option value="Partially Served"  <?php echo (($status_filter ?? '') === 'Partially Served')  ? 'selected' : ''; ?>>Partially Served</option>
-                    <option value="Rejected"          <?php echo (($status_filter ?? '') === 'Rejected')          ? 'selected' : ''; ?>>Rejected</option>
-                    <option value="Cancelled"         <?php echo (($status_filter ?? '') === 'Cancelled')         ? 'selected' : ''; ?>>Cancelled</option>
+                    <option value="">Select Status</option>
+                    <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Pending</option>
+                    <option value="3" <?php echo (($status_filter ?? '') === '3') ? 'selected' : ''; ?>>Served</option>
+                    <option value="2" <?php echo (($status_filter ?? '') === '2') ? 'selected' : ''; ?>>Partially Served</option>
+                    <option value="4" <?php echo (($status_filter ?? '') === '4') ? 'selected' : ''; ?>>Rejected</option>
+                    <option value="5" <?php echo (($status_filter ?? '') === '5') ? 'selected' : ''; ?>>Cancelled</option>
                 </select>
             </div>
             <?php if (is_admin_role()): ?>
             <div class="db-search-field db-search-field--dropdown">
                 <label for="req_search_dept">Department Filter</label>
                 <select id="req_search_dept" name="dept_filter" class="db-search-select">
-                    <option value="">All Departments</option>
+                    <option value="">Select Department</option>
                     <?php if (!empty($departments)): ?>
                         <?php foreach ($departments as $d): ?>
                             <option value="<?php echo $d['id']; ?>" <?php echo (($dept_filter ?? '') === (string)$d['id']) ? 'selected' : ''; ?>>
@@ -140,9 +156,9 @@
                                 <td>
                                     <?php $servedQty = (int)($req['quantity_served'] ?? 0); ?>
                                     <div>
-                                        <?php if ($req['request_status'] === 'Served'): ?>
+                                        <?php if ($req['request_status'] === 3): ?>
                                             <span class="text-success fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
-                                        <?php elseif ($req['request_status'] === 'Partially Served'): ?>
+                                        <?php elseif ($req['request_status'] === 2): ?>
                                             <span class="text-primary fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
                                         <?php else: ?>
                                             <span class="fw-bold text-dark" title="Served Quantity"><?php echo $servedQty; ?></span>
@@ -151,26 +167,14 @@
                                         <small class="text-muted">pcs</small>
                                     </div>
                                 </td>
-                                <td data-order="<?php echo ($req['request_status'] === 'Served' || $req['request_status'] === 'Rejected' || $req['request_status'] === 'Cancelled') ? 1 : 0; ?>">
-                                    <?php 
-                                        if ($req['request_status'] === 'Served') {
-                                            $badge = 'bg-success-subtle text-dark border border-success-subtle';
-                                        } elseif ($req['request_status'] === 'Partially Served') {
-                                            $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
-                                        } elseif ($req['request_status'] === 'Rejected') {
-                                            $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                        } elseif ($req['request_status'] === 'Cancelled') {
-                                            $badge = 'bg-secondary-subtle text-dark border border-secondary-subtle';
-                                        } else {
-                                            $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
-                                        }
-                                    ?>
+                                <td data-order="<?php echo ($req['request_status'] === 3 || $req['request_status'] === 4 || $req['request_status'] === 5) ? 1 : 0; ?>">
+                                    <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
                                     <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
-                                        <?php echo $req['request_status']; ?>
+                                        <?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?>
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <?php if (is_admin_role() && $req['request_status'] === 'Pending'): ?>
+                                    <?php if (1 === 1 && $req['request_status'] === 1): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
@@ -180,10 +184,12 @@
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#serveModal_<?php echo $req['request_id']; ?>" id="btnTriggerServe_<?php echo $req['request_id']; ?>" title="Serve Request">Serve</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#partialModal_<?php echo $req['request_id']; ?>" id="btnTriggerPartial_<?php echo $req['request_id']; ?>" title="Serve Partially">Partial</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#rejectModal_<?php echo $req['request_id']; ?>" id="btnTriggerReject_<?php echo $req['request_id']; ?>" title="Reject Request">Reject</a></li>
+                                                <?php if (($req['status'] ?? 1) == 1): ?>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php endif; ?>
                                             </ul>
                                         </div>
-                                    <?php elseif (is_admin_role() && $req['request_status'] === 'Partially Served'): ?>
+                                    <?php elseif (is_admin_role() && $req['request_status'] === 2): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
@@ -192,10 +198,12 @@
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>" id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>" title="Complete Partially Served Request">Complete</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#partialModal_<?php echo $req['request_id']; ?>" id="btnTriggerPartial_<?php echo $req['request_id']; ?>" title="Serve Partially">Partial</a></li>
+                                                <?php if (($req['status'] ?? 1) == 1): ?>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php endif; ?>
                                             </ul>
                                         </div>
-                                    <?php elseif ($req['request_status'] !== 'Pending'): ?>
+                                    <?php elseif ($req['request_status'] !== 1): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
@@ -203,7 +211,9 @@
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
                                                 <?php if (is_admin_role()): ?>
+                                                <?php if (($req['status'] ?? 1) == 1): ?>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php endif; ?>
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
@@ -219,6 +229,9 @@
                                                 <?php if (session()->get('role') === 'encoder'): ?>
                                                     <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Manage Request">Manage</a></li>
                                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
+                                                    <?php if (($req['status'] ?? 1) == 1): ?>
+                                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
@@ -233,7 +246,7 @@
 
     <?php if (is_admin_role() && !empty($requests)): ?>
         <?php foreach ($requests as $req): ?>
-            <?php if ($req['request_status'] === 'Pending'): ?>
+            <?php if ($req['request_status'] === 1): ?>
                 <!-- Serve Modal -->
                 <div class="modal fade" id="serveModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="serveModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-md">
@@ -336,7 +349,7 @@
                 </div>
             <?php endif; ?>
 
-            <?php if ($req['request_status'] === 'Pending' || $req['request_status'] === 'Partially Served'): ?>
+            <?php if ($req['request_status'] === 1 || $req['request_status'] === 2): ?>
                 <?php
                     $remaining = $req['quantity_requested'] - $req['quantity_served'];
                     $partialMax = $remaining > 0 ? $remaining - 1 : 0;
@@ -455,7 +468,7 @@
                 </div>
             <?php endif; ?>
 
-            <?php if ($req['request_status'] === 'Partially Served'): ?>
+            <?php if ($req['request_status'] === 2): ?>
                 <!-- Complete Partial Serve Modal -->
                 <div class="modal fade" id="completePartialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="completePartialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-md">
@@ -532,20 +545,8 @@
                                 </div>
                                 <div class="col-6">
                                     <label class="small fw-semibold text-secondary d-block">Status</label>
-                                    <?php 
-                                        if ($req['request_status'] === 'Served') {
-                                            $badge = 'bg-success-subtle text-dark border border-success-subtle';
-                                        } elseif ($req['request_status'] === 'Partially Served') {
-                                            $badge = 'bg-primary-subtle text-dark border border-primary-subtle';
-                                        } elseif ($req['request_status'] === 'Rejected') {
-                                            $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                        } elseif ($req['request_status'] === 'Cancelled') {
-                                            $badge = 'bg-secondary-subtle text-dark border border-secondary-subtle';
-                                        } else {
-                                            $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
-                                        }
-                                    ?>
-                                    <span class="badge rounded-pill <?php echo $badge; ?>"><?php echo $req['request_status']; ?></span>
+                                    <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
+                                    <span class="badge rounded-pill <?php echo $badge; ?>"><?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?></span>
                                 </div>
                                 <div class="col-12"><hr class="my-1"></div>
                                 <div class="col-6">
@@ -621,7 +622,7 @@
                 </div>
             </div>
 
-            <?php if (session()->get('role') === 'encoder' && $req['request_status'] === 'Pending'): ?>
+            <?php if (session()->get('role') === 'encoder' && $req['request_status'] === 1): ?>
                 <!-- Cancel Modal -->
                 <div class="modal fade" id="cancelModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="cancelModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">

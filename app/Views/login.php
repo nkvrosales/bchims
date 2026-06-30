@@ -98,7 +98,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2" id="btnSubmit">
+        <button type="submit" class="btn btn-primary-custom w-100 d-flex align-items-center justify-content-center gap-2 py-2" id="btnSubmit">
             <span class="spinner-border spinner-border-sm d-none me-2" role="status" id="btnSpinner"></span>
             <span id="btnText">Sign In</span>
         </button>

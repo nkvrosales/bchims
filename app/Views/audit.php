@@ -52,7 +52,7 @@
                 id="audit_search_keyword" 
                 name="search" 
                 class="db-search-input" 
-                placeholder="Search by description or user..." 
+                placeholder="Enter Description / User" 
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
@@ -60,7 +60,7 @@
         <div class="db-search-field db-search-field--dropdown">
             <label for="audit_search_action">Action</label>
             <select id="audit_search_action" name="action_filter" class="db-search-select">
-                <option value="">All Actions</option>
+                <option value="">Select Action</option>
                 <option value="LOGIN"                          <?php echo (($action_filter ?? '') === 'LOGIN')                          ? 'selected' : ''; ?>>LOGIN</option>
                 <option value="LOGOUT"                         <?php echo (($action_filter ?? '') === 'LOGOUT')                         ? 'selected' : ''; ?>>LOGOUT</option>
                 <option value="CREATE_USER"                    <?php echo (($action_filter ?? '') === 'CREATE_USER')                    ? 'selected' : ''; ?>>CREATE_USER</option>
