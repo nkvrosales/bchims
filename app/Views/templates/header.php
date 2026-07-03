@@ -208,9 +208,9 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('audit'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Audit Trail') ? 'active' : ''; ?>" id="navAuditTrail" title="Audit Trail">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Audit Log') ? 'active' : ''; ?>" id="navAuditTrail" title="Audit Log">
                         <i class="bi bi-clock-history"></i>
-                        <span>Audit Trail</span>
+                        <span>Audit Log</span>
                     </a>
                 </li>
 

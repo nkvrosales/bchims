@@ -38,16 +38,16 @@
 <form method="GET" action="<?php echo base_url('departments'); ?>" id="departmentsSearchForm">
     <div class="db-search-bar">
         <div class="db-search-field db-search-field--keyword">
-            <label for="dept_search_keyword">Search Keyword</label>
             <input
                 type="text"
                 id="dept_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Enter Department Name / Code"
+                placeholder=" "
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
+            <label for="dept_search_keyword">Enter Department Name / Code</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnDeptSearch">
@@ -74,9 +74,9 @@
         <table class="table table-custom table-hover w-100" id="departmentsTable">
             <thead>
                 <tr>
-                    <th style="width: 65%">Department Name</th>
+                    <th style="width: 60%">Department Name</th>
                     <th style="width: 20%">Department Code</th>
-                    <th style="width: 15%" class="text-end">Actions</th>
+                    <th style="width: 10%" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>

@@ -216,7 +216,7 @@ class Dashboard extends BaseController
         $action_filter = $this->request->getGet('action_filter');
         $date_filter = $this->request->getGet('date_filter');
 
-        $data['title'] = 'Audit Trail';
+        $data['title'] = 'Audit Log';
         $data['search'] = $search;
         $data['action_filter'] = $action_filter;
         $data['date_filter'] = $date_filter;
@@ -254,7 +254,7 @@ class Dashboard extends BaseController
         }
 
         $action = $this->request->getPost('action');
-        $module = $this->request->getPost('module') ?? 'Audit Trail';
+        $module = $this->request->getPost('module') ?? 'Audit Logs';
         $description = $this->request->getPost('description');
 
         if (empty($action) || empty($description)) {

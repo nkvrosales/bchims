@@ -65,7 +65,7 @@ class UserModel extends Model
     /**
      * Search and retrieve user accounts with filters and limit from database.
      */
-    public function search($keyword = null, $role_filter = null, $dept_filter = null, $limit = 1000)
+    public function search($keyword = null, $role_filter = null, $dept_filter = null, $limit = 1)
     {
         $current_user_id = session()->get('user_id');
 
@@ -74,7 +74,7 @@ class UserModel extends Model
                         ->join('roles', 'roles.role_id = user.role_id', 'inner');
 
         // Hide own account and dev accounts
-        if (empty($keyword) && empty($role_filter) && empty($dept_filter)) {
+        if ($keyword === '' && $role_filter === '' && $dept_filter === '') {
             $builder->where('user.user_id !=', $current_user_id)
                     ->where('user.role_id !=', 0);
         }
@@ -93,14 +93,18 @@ class UserModel extends Model
             $builder->where('roles.role_name', $role_filter);
         }
 
-        if (!empty($dept_filter)) {
-            $builder->where('user.department_id', $dept_filter);
+        if ($dept_filter !== '') {
+            if ($dept_filter === '0') {
+                $builder->where('user.department_id', 0);
+            } else {
+                $builder->where('user.department_id', $dept_filter);
+            }
         }
 
         $builder = $builder->orderBy('user.last_name', 'ASC')
                            ->orderBy('user.first_name', 'ASC');
 
-        if ($limit !== null && empty($keyword) && empty($role_filter) && empty($dept_filter)) {
+        if ($limit !== null && $keyword === '' && $role_filter === '' && $dept_filter === '') {
             $builder = $builder->limit($limit);
         }
 

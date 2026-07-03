@@ -2,13 +2,13 @@
 <div class="page-breadcrumb">
     <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
     <span class="separator">/</span>
-    <span class="current">Audit Trail</span>
+    <span class="current">Audit Logs</span>
 </div>
 
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1">Audit Trail</h1>
+            <h1 class="page-title mb-1">Audit Logs</h1>
         </div>
     </div>
 </div>
@@ -46,21 +46,20 @@
 <form method="GET" action="<?php echo base_url('audit'); ?>" id="auditSearchForm">
     <div class="db-search-bar">
         <div class="db-search-field db-search-field--keyword">
-            <label for="audit_search_keyword">Search Keyword</label>
             <input 
                 type="text" 
                 id="audit_search_keyword" 
                 name="search" 
                 class="db-search-input" 
-                placeholder="Enter Description / User" 
+                placeholder=" " 
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
+            <label for="audit_search_keyword">Enter Description / User</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="audit_search_action">Action</label>
             <select id="audit_search_action" name="action_filter" class="db-search-select">
-                <option value="">Select Action</option>
+                <option value="">- Select Action -</option>
                 <option value="LOGIN"                          <?php echo (($action_filter ?? '') === 'LOGIN')                          ? 'selected' : ''; ?>>LOGIN</option>
                 <option value="LOGOUT"                         <?php echo (($action_filter ?? '') === 'LOGOUT')                         ? 'selected' : ''; ?>>LOGOUT</option>
                 <option value="CREATE_USER"                    <?php echo (($action_filter ?? '') === 'CREATE_USER')                    ? 'selected' : ''; ?>>CREATE_USER</option>
@@ -93,16 +92,18 @@
                 <option value="RESTORE_SUPPLY_REQUEST"         <?php echo (($action_filter ?? '') === 'RESTORE_SUPPLY_REQUEST')         ? 'selected' : ''; ?>>RESTORE_SUPPLY_REQUEST</option>
                 <option value="UPDATE_PROFILE"                 <?php echo (($action_filter ?? '') === 'UPDATE_PROFILE')                 ? 'selected' : ''; ?>>UPDATE_PROFILE</option>
             </select>
+            <label for="audit_search_action">Action</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="audit_date_filter">Date</label>
             <input 
                 type="date" 
                 id="audit_date_filter" 
                 name="date_filter" 
                 class="db-search-input" 
+                placeholder=" "
                 value="<?php echo htmlspecialchars($date_filter ?? ''); ?>"
             >
+            <label for="audit_date_filter">Date</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnAuditSearch">
@@ -140,7 +141,7 @@
                                     <?php echo date('M j, Y g:i A', strtotime($log['created_at'])); ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <?php 
                                     $badge_class = 'bg-secondary';
                                     if ($log['action'] === 'LOGIN') {
@@ -177,7 +178,7 @@
                                 </span>
                             </td>
                             <?php endif; ?>
-                            <td>
+                            <td class="text-center">
                                 <span class="text-dark" style="font-size: 0.85rem;">
                                     <?php echo htmlspecialchars($log['username']); ?>
                                 </span>

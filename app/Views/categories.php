@@ -37,16 +37,16 @@
 <form method="GET" action="<?php echo base_url('categories'); ?>" id="categoriesSearchForm">
     <div class="db-search-bar">
         <div class="db-search-field db-search-field--keyword">
-            <label for="cat_search_keyword">Search Keyword</label>
             <input
                 type="text"
                 id="cat_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Enter Category Name / Code"
+                placeholder=" "
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
+            <label for="cat_search_keyword">Enter Category Name / Code</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnCatSearch">
@@ -75,7 +75,7 @@
                 <tr>
                     <th style="width: 65%">Category Name</th>
                     <th style="width: 20%">Category Code</th>
-                    <th style="width: 15%" class="text-end">Actions</th>
+                    <th style="width: 10%" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>

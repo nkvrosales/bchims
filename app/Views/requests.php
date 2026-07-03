@@ -55,33 +55,32 @@ $requestBadgeMap = [
     <form method="GET" action="<?php echo base_url('requests'); ?>" id="requestsSearchForm">
         <div class="db-search-bar">
             <div class="db-search-field db-search-field--keyword">
-                <label for="req_search_keyword">Search Keyword</label>
                 <input
                     type="text"
                     id="req_search_keyword"
                     name="search"
                     class="db-search-input"
-                    placeholder="Enter ID / Requester / Item"
+                    placeholder=" "
                     value="<?php echo htmlspecialchars($search ?? ''); ?>"
                     autocomplete="off"
                 >
+                <label for="req_search_keyword">Enter ID / Requester / Item</label>
             </div>
             <div class="db-search-field db-search-field--dropdown">
-                <label for="req_search_status">Status Filter</label>
                 <select id="req_search_status" name="status_filter" class="db-search-select">
-                    <option value="">Select Status</option>
+                    <option value="">- Select Status -</option>
                     <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Pending</option>
                     <option value="3" <?php echo (($status_filter ?? '') === '3') ? 'selected' : ''; ?>>Served</option>
                     <option value="2" <?php echo (($status_filter ?? '') === '2') ? 'selected' : ''; ?>>Partially Served</option>
                     <option value="4" <?php echo (($status_filter ?? '') === '4') ? 'selected' : ''; ?>>Rejected</option>
                     <option value="5" <?php echo (($status_filter ?? '') === '5') ? 'selected' : ''; ?>>Cancelled</option>
                 </select>
+                <label for="req_search_status">Status</label>
             </div>
             <?php if (is_admin_role()): ?>
             <div class="db-search-field db-search-field--dropdown">
-                <label for="req_search_dept">Department Filter</label>
                 <select id="req_search_dept" name="dept_filter" class="db-search-select">
-                    <option value="">Select Department</option>
+                    <option value="">- Select Department -</option>
                     <?php if (!empty($departments)): ?>
                         <?php foreach ($departments as $d): ?>
                             <option value="<?php echo $d['id']; ?>" <?php echo (($dept_filter ?? '') === (string)$d['id']) ? 'selected' : ''; ?>>
@@ -90,6 +89,7 @@ $requestBadgeMap = [
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
+                <label for="req_search_dept">Department</label>
             </div>
             <?php endif; ?>
             <div class="db-search-actions">
@@ -121,12 +121,13 @@ $requestBadgeMap = [
                 <thead>
                     <tr>
                         <th style="width: 7%">ID</th>
-                        <th style="width: 12%">Request Date</th>
-                        <th style="width: 13%" class="col-last-updated">Last Updated</th>
-                        <th style="width: 13%">Requester</th>
-                        <th style="width: 10%">Department</th>
-                        <th style="width: 18%">Item Requested</th>
-                        <th style="width: 10%">Quantity</th>
+                        <th style="width: 11%">Request Date</th>
+                        <th style="width: 11%" class="col-last-updated">Last Updated</th>
+                        <th style="width: 11%">Requester</th>
+                        <th style="width: 9%">Department</th>
+                        <th style="width: 15%">Item Requested</th>
+                        <th style="width: 9%">Quantity</th>
+                        <th style="width: 7%">Unit</th>
                         <th style="width: 10%">Status</th>
                         <th style="width: 10%" class="text-end">Actions</th>
                     </tr>
@@ -156,25 +157,52 @@ $requestBadgeMap = [
                                 <td>
                                     <?php $servedQty = (int)($req['quantity_served'] ?? 0); ?>
                                     <div>
-                                        <?php if ($req['request_status'] === 3): ?>
+                                        <?php if ($req['request_status'] == 3): ?>
                                             <span class="text-success fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
-                                        <?php elseif ($req['request_status'] === 2): ?>
+                                        <?php elseif ($req['request_status'] == 2): ?>
                                             <span class="text-primary fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
                                         <?php else: ?>
                                             <span class="fw-bold text-dark" title="Served Quantity"><?php echo $servedQty; ?></span>
                                         <?php endif; ?>
                                         / <span class="fw-bold text-dark" title="Requested Quantity"><?php echo $req['quantity_requested']; ?></span>
-                                        <small class="text-muted">pcs</small>
                                     </div>
                                 </td>
-                                <td data-order="<?php echo ($req['request_status'] === 3 || $req['request_status'] === 4 || $req['request_status'] === 5) ? 1 : 0; ?>">
+                                <td>
+                                    <span class="text-dark"><?php echo htmlspecialchars($req['item_unit'] ?? ''); ?></span>
+                                </td>
+                                <td data-order="<?php echo ($req['request_status'] == 3 || $req['request_status'] == 4 || $req['request_status'] == 5) ? 1 : 0; ?>">
                                     <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
                                     <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
                                         <?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?>
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <?php if (1 === 1 && $req['request_status'] === 1): ?>
+                                    <?php if (session()->get('role') === 'encoder' && $req['request_status'] == 1): ?>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-unit="<?php echo htmlspecialchars($req['item_unit'] ?? ''); ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Manage Request">Manage</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
+                                                <?php if (($req['status'] ?? 1) == 1): ?>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
+                                    <?php elseif (session()->get('role') === 'encoder' && $req['request_status'] != 1): ?>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                                <?php if (($req['status'] ?? 1) == 1): ?>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
+                                    <?php elseif (is_admin_role() && $req['request_status'] == 1): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
@@ -189,7 +217,7 @@ $requestBadgeMap = [
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
-                                    <?php elseif (is_admin_role() && $req['request_status'] === 2): ?>
+                                    <?php elseif (is_admin_role() && $req['request_status'] == 2): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
@@ -203,35 +231,15 @@ $requestBadgeMap = [
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
-                                    <?php elseif ($req['request_status'] !== 1): ?>
+                                    <?php elseif (is_admin_role() && $req['request_status'] != 1): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
-                                                <?php if (is_admin_role()): ?>
                                                 <?php if (($req['status'] ?? 1) == 1): ?>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
-                                                <?php endif; ?>
-                                                <?php endif; ?>
-                                            </ul>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
-                                                Actions
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                                <?php if (session()->get('role') !== 'encoder'): ?>
-                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
-                                                <?php endif; ?>
-                                                <?php if (session()->get('role') === 'encoder'): ?>
-                                                    <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Manage Request">Manage</a></li>
-                                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
-                                                    <?php if (($req['status'] ?? 1) == 1): ?>
-                                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
-                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
@@ -246,7 +254,7 @@ $requestBadgeMap = [
 
     <?php if (is_admin_role() && !empty($requests)): ?>
         <?php foreach ($requests as $req): ?>
-            <?php if ($req['request_status'] === 1): ?>
+            <?php if ($req['request_status'] == 1 || $req['request_status'] == 2): ?>
                 <!-- Serve Modal -->
                 <div class="modal fade" id="serveModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="serveModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-md">
@@ -270,7 +278,7 @@ $requestBadgeMap = [
                                     </div>
                                     <?php endif; ?>
                                     <p class="text-muted small mb-3">
-                                        Transfer <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
+                                        Transfer <strong><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
                                         to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).
                                     </p>
                                     <div class="d-flex justify-content-center gap-3 small mb-3">
@@ -302,7 +310,9 @@ $requestBadgeMap = [
                         </div>
                     </div>
                 </div>
+            <?php endif; ?>
 
+            <?php if ($req['request_status'] == 1): ?>
                 <!-- Reject Modal -->
                 <div class="modal fade" id="rejectModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="rejectModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -349,7 +359,7 @@ $requestBadgeMap = [
                 </div>
             <?php endif; ?>
 
-            <?php if ($req['request_status'] === 1 || $req['request_status'] === 2): ?>
+            <?php if ($req['request_status'] == 1 || $req['request_status'] == 2): ?>
                 <?php
                     $remaining = $req['quantity_requested'] - $req['quantity_served'];
                     $partialMax = $remaining > 0 ? $remaining - 1 : 0;
@@ -379,9 +389,9 @@ $requestBadgeMap = [
                                     <div class="text-center mb-3">
                                         <h6 class="fw-semibold text-dark">Specify Quantity to Serve</h6>
                                         <p class="text-muted small mb-0">
-                                            Requested: <strong><?php echo $req['quantity_requested']; ?> unit(s)</strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>.<br>
+                                            Requested: <strong><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>.<br>
                                             <?php if ((int)$req['quantity_served'] > 0): ?>
-                                                Already Served: <strong><?php echo $req['quantity_served']; ?> unit(s)</strong> &mdash; Remaining: <strong><?php echo $remaining; ?> unit(s)</strong>.<br>
+                                                Already Served: <strong><?php echo $req['quantity_served']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong> &mdash; Remaining: <strong><?php echo $remaining; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong>.<br>
                                             <?php endif; ?>
                                         </p>
                                     </div>
@@ -389,7 +399,6 @@ $requestBadgeMap = [
                                         Specify quantities from each inventory batch below. The total will be served as a partial.
                                     </div>
                                     <div class="mb-3">
-                                        <!-- Column Labels for Desktop/Tablet -->
                                         <div class="row g-2 mb-2 d-none d-md-flex">
                                             <div class="col-lg-7">
                                                 <label class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
@@ -415,7 +424,7 @@ $requestBadgeMap = [
                                                         <?php else: ?>
                                                         <?php foreach ($batches as $batch): ?>
                                                         <option value="<?php echo $batch['central_supply_id']; ?>">
-                                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['item_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
+                                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['inventory_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
                                                         </option>
                                                         <?php endforeach; ?>
                                                         <?php endif; ?>
@@ -431,7 +440,7 @@ $requestBadgeMap = [
                                                     <button type="button" onclick="batchRow.add(this)" class="btn btn-add-partial-batch d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                                                         <span>ADD</span>
                                                     </button>
-                                                    <button type="button" onclick="batchRow.remove(this)" class="btn-remove-partial-batch btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0 ms-2" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px; display: none;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
+                                                    <button type="button" onclick="batchRow.remove(this)" class="btn-remove-partial-batch btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px; display: none;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
                                                         <i class="fa-regular fa-trash-can"></i> <span>Remove</span>
                                                     </button>
                                                 </div>
@@ -468,7 +477,7 @@ $requestBadgeMap = [
                 </div>
             <?php endif; ?>
 
-            <?php if ($req['request_status'] === 2): ?>
+            <?php if ($req['request_status'] == 2): ?>
                 <!-- Complete Partial Serve Modal -->
                 <div class="modal fade" id="completePartialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="completePartialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-md">
@@ -495,8 +504,8 @@ $requestBadgeMap = [
                                     <h5 class="fw-semibold text-dark mb-2">Serve Remaining Quantity</h5>
                                     <p class="text-muted small mb-3">
                                         This request has already been partially served.<br>
-                                        Requested: <strong><?php echo $req['quantity_requested']; ?></strong> unit(s), Already Served: <strong><?php echo $req['quantity_served']; ?></strong> unit(s).<br>
-                                        Remaining to serve: <strong><?php echo $remaining; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
+                                        Requested: <strong><?php echo $req['quantity_requested']; ?></strong> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?>, Already Served: <strong><?php echo $req['quantity_served']; ?></strong> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?>.<br>
+                                        Remaining to serve: <strong><?php echo $remaining; ?></strong> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
                                     </p>
                                     <p class="text-muted mb-3">
                                         Are you sure you want to complete this supply request?
@@ -563,11 +572,11 @@ $requestBadgeMap = [
                                 </div>
                                 <div class="col-6">
                                     <label class="small fw-semibold text-secondary d-block">Requested Quantity</label>
-                                    <span class="text-dark fw-bold"><?php echo $req['quantity_requested']; ?> unit(s)</span>
+                                    <span class="text-dark fw-bold"><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></span>
                                 </div>
                                 <div class="col-6">
                                     <label class="small fw-semibold text-secondary d-block">Served Quantity</label>
-                                    <span class="text-dark fw-bold"><?php echo $req['quantity_served'] ?? 0; ?> unit(s)</span>
+                                    <span class="text-dark fw-bold"><?php echo $req['quantity_served'] ?? 0; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></span>
                                 </div>
                                 <div class="col-12"><hr class="my-1"></div>
                                 <div class="col-6">
@@ -622,7 +631,7 @@ $requestBadgeMap = [
                 </div>
             </div>
 
-            <?php if (session()->get('role') === 'encoder' && $req['request_status'] === 1): ?>
+            <?php if (session()->get('role') === 'encoder' && $req['request_status'] == 1): ?>
                 <!-- Cancel Modal -->
                 <div class="modal fade" id="cancelModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="cancelModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -750,16 +759,30 @@ $requestBadgeMap = [
                         </div>
                         <?php endif; ?>
 
+                        <!-- Inline validation alert (hidden by default) -->
+                        <div id="createRequestAlert" class="alert alert-danger border-0 rounded-3 mb-4 py-3 shadow-sm" style="display: none;">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-triangle-exclamation mt-1"></i>
+                                <div>
+                                    <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
+                                    <div class="small">Item not found. Please choose from the available items in the dropdown.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Column Labels for Create Mode -->
                         <div class="row g-3 mb-2 d-none d-md-flex" id="create-modal-headers">
-                            <div class="col-lg-3">
+                            <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">Category</label>
                             </div>
                             <div class="col-lg-5">
                                 <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
                             </div>
-                            <div class="col-lg-2">
+                            <div class="col-lg-1">
                                 <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label small fw-semibold text-secondary">Unit</label>
                             </div>
                             <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">Action</label>
@@ -771,11 +794,14 @@ $requestBadgeMap = [
                             <div class="col-lg-3">
                                 <label class="form-label small fw-semibold text-secondary">Category</label>
                             </div>
-                            <div class="col-lg-7">
+                            <div class="col-lg-5">
                                 <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
                             </div>
                             <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label small fw-semibold text-secondary">Unit</label>
                             </div>
                         </div>
 
@@ -836,7 +862,7 @@ $requestBadgeMap = [
             var rowHtml = `
             <div class="request-item-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle" id="${rowId}">
                 <!-- Category select -->
-                <div class="col-lg-3 col-12">
+                <div class="col-lg-2 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
                     <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                         <option value="">All Categories</option>
@@ -862,13 +888,24 @@ $requestBadgeMap = [
                 </div>
 
                 <!-- Qty -->
-                <div class="col-lg-2 col-12">
+                <div class="col-lg-1 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
                     <input type="number" class="form-control input-custom row-quantity-input" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                 </div>
 
+                <!-- Unit combobox -->
+                <div class="col-lg-2 col-12">
+                    <label class="form-label small fw-semibold text-secondary d-md-none">Unit</label>
+                    <div class="unit-combobox position-relative">
+                        <input type="text" class="form-control input-custom row-unit-search" name="unit[]" placeholder="Select Unit" autocomplete="off" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;" readonly>
+                        <div class="unit-dropdown row-unit-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.1); margin-top:4px; max-height:180px; overflow-y:auto;">
+                            <div class="unit-dropdown-inner"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Add/Remove Actions -->
-                <div class="request-item-actions col-lg-2 col-12 d-flex gap-2 align-items-center justify-content-start">
+                <div class="request-item-actions col-lg-2 col-12 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
                     <button type="button" class="btn btn-add-row d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                         <span>ADD</span>
                     </button>
@@ -882,6 +919,7 @@ $requestBadgeMap = [
             var newRow = document.getElementById(rowId);
 
             setupRowEvents(newRow);
+            setupUnitCombobox(newRow);
             updateRowButtons();
         }
 
@@ -920,15 +958,21 @@ $requestBadgeMap = [
             });
 
             // ADD button action
-            row.querySelector('.btn-add-row').addEventListener('click', function() {
-                addNewRow();
-            });
+            var addBtn = row.querySelector('.btn-add-row');
+            if (addBtn) {
+                addBtn.addEventListener('click', function() {
+                    addNewRow();
+                });
+            }
 
             // Remove button action
-            row.querySelector('.btn-remove-row').addEventListener('click', function() {
-                row.remove();
-                updateRowButtons();
-            });
+            var removeBtn = row.querySelector('.btn-remove-row');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    row.remove();
+                    updateRowButtons();
+                });
+            }
         }
 
         function filterAndRender(row) {
@@ -952,7 +996,7 @@ $requestBadgeMap = [
             } else {
                 var html = '';
                 filtered.forEach(item => {
-                    html += `<div class="item-option" data-id="${item.id}" style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: #1f2937; transition: background 0.12s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                    html += `<div class="item-option" data-id="${item.id}" data-unit="${escapeHtml(item.unit || '')}" style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: #1f2937; transition: background 0.12s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
                         <span class="item-option-name" style="font-weight: 500;">${escapeHtml(item.name)}</span>
                     </div>`;
                 });
@@ -1000,6 +1044,69 @@ $requestBadgeMap = [
             });
         }
 
+        // ---- Unit combobox logic ----
+        function getAvailableUnits(row) {
+            var itemId = row.querySelector('.row-item-id').value;
+            if (itemId) {
+                var selectedItem = allItems.find(function(item) { return String(item.id) === String(itemId); });
+                if (selectedItem && selectedItem.unit) {
+                    return [selectedItem.unit];
+                }
+            }
+            var units = [];
+            allItems.forEach(function(item) {
+                if (item.unit && units.indexOf(item.unit) === -1) {
+                    units.push(item.unit);
+                }
+            });
+            units.sort();
+            return units;
+        }
+
+        function renderUnitDropdown(row, selectedUnit) {
+            var availableUnits = getAvailableUnits(row);
+            var inner = row.querySelector('.unit-dropdown-inner');
+            var unitInput = row.querySelector('.row-unit-search');
+            if (!inner) return;
+            var query = unitInput ? unitInput.value.toLowerCase() : '';
+            var filtered = availableUnits.filter(function(u) {
+                return !query || u.toLowerCase().indexOf(query) !== -1;
+            });
+            if (filtered.length === 0) {
+                inner.innerHTML = '<div style="padding:8px 12px; font-size:0.85rem; color:#9ca3af;">No units found</div>';
+            } else {
+                inner.innerHTML = filtered.map(function(u) {
+                    var isSel = u === selectedUnit ? 'font-weight:600;' : '';
+                    return `<div class="unit-option" data-unit="${escapeHtml(u)}" style="padding:8px 12px;border-radius:6px;cursor:pointer;font-size:0.9rem;color:#1f2937;transition:background 0.12s;${isSel}" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">${escapeHtml(u)}</div>`;
+                }).join('');
+                inner.querySelectorAll('.unit-option').forEach(function(opt) {
+                    opt.addEventListener('click', function() {
+                        var u = this.getAttribute('data-unit');
+                        unitInput.value = u;
+                        unitInput.setAttribute('data-selected-unit', u);
+                        row.querySelector('.row-unit-dropdown').style.display = 'none';
+                    });
+                });
+            }
+        }
+
+        function setupUnitCombobox(row) {
+            var unitInput = row.querySelector('.row-unit-search');
+            var unitDropdown = row.querySelector('.row-unit-dropdown');
+            if (!unitInput || !unitDropdown) return;
+
+            // Make input editable for typing to filter
+            unitInput.removeAttribute('readonly');
+            unitInput.addEventListener('focus', function() {
+                renderUnitDropdown(row, unitInput.getAttribute('data-selected-unit') || '');
+                unitDropdown.style.display = 'block';
+            });
+            unitInput.addEventListener('input', function() {
+                renderUnitDropdown(row, unitInput.getAttribute('data-selected-unit') || '');
+                unitDropdown.style.display = 'block';
+            });
+        }
+
         // Hide dropdowns when clicking outside
         document.addEventListener('click', function(e) {
             var rows = container.querySelectorAll('.request-item-row');
@@ -1009,8 +1116,17 @@ $requestBadgeMap = [
                 if (combobox && !combobox.contains(e.target)) {
                     dropdown.style.display = 'none';
                 }
+                var unitCombobox = row.querySelector('.unit-combobox');
+                var unitDropdown = row.querySelector('.row-unit-dropdown');
+                if (unitCombobox && !unitCombobox.contains(e.target)) {
+                    if (unitDropdown) unitDropdown.style.display = 'none';
+                }
             });
         });
+
+        // Setup events for initial row (already added)
+        var rows = container.querySelectorAll('.request-item-row');
+        rows.forEach(row => { setupRowEvents(row); setupUnitCombobox(row); });
 
         // Form validation on submit
         var form = document.getElementById('supplyRequestForm');
@@ -1033,7 +1149,8 @@ $requestBadgeMap = [
 
                 if (!valid) {
                     e.preventDefault();
-                    alert('Please select a valid item from the dropdown list for all rows.');
+                    var alertEl = document.getElementById('createRequestAlert');
+                    if (alertEl) alertEl.style.display = '';
                 }
             });
         }
@@ -1055,6 +1172,7 @@ $requestBadgeMap = [
                     var itemId = button.getAttribute('data-item-id');
                     var itemName = button.getAttribute('data-item-name');
                     var qty = button.getAttribute('data-qty');
+                    var unit = button.getAttribute('data-unit') || '';
                     var notes = button.getAttribute('data-notes');
 
                     modalTitle.textContent = '<?php echo session()->get('role') === 'encoder' ? 'Manage' : 'Edit'; ?> Request';
@@ -1074,6 +1192,10 @@ $requestBadgeMap = [
                     container.innerHTML = '';
                     
                     var rowId = 'row_edit_' + id;
+                    // Find existing unit for this item from allItems
+                    var editItemUnit = '';
+                    var foundItem = allItems.find(function(it) { return String(it.id) === String(itemId); });
+                    if (foundItem) editItemUnit = foundItem.unit || '';
                     var rowHtml = `
                     <div class="request-item-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle" id="${rowId}">
                         <!-- Category select -->
@@ -1086,8 +1208,8 @@ $requestBadgeMap = [
                         </div>
 
                         <!-- Item search combobox -->
-                        <div class="col-lg-7 col-12">
-                            <label class="form-label small fw-semibold text-secondary d-md-none">Item Name <span class="text-danger">*</span></label>
+                        <div class="col-lg-5 col-12">
+                            <label class="form-label small fw-semibold text-secondary d-md-none">Item <span class="text-danger">*</span></label>
                             <div class="item-combobox">
                                 <div class="position-relative">
                                     <input type="text" class="form-control input-custom row-item-search" placeholder="Select Item" autocomplete="off" value="${escapeHtml(itemName)}" style="border-radius: 8px; border-color: #cbd5e1; height: 42px; padding-right: 30px;" required>
@@ -1107,11 +1229,23 @@ $requestBadgeMap = [
                             <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
                             <input type="number" class="form-control input-custom row-quantity-input" name="quantity" min="1" value="${qty}" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                         </div>
+
+                        <!-- Unit combobox -->
+                        <div class="col-lg-2 col-12">
+                            <label class="form-label small fw-semibold text-secondary d-md-none">Unit</label>
+                            <div class="unit-combobox position-relative">
+                                <input type="text" class="form-control input-custom row-unit-search" name="unit" placeholder="Select Unit" autocomplete="off" value="${escapeHtml(unit)}" data-selected-unit="${escapeHtml(unit)}" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
+                                <div class="unit-dropdown row-unit-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.1); margin-top:4px; max-height:180px; overflow-y:auto;">
+                                    <div class="unit-dropdown-inner"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>`;
 
                     container.insertAdjacentHTML('beforeend', rowHtml);
                     var newRow = document.getElementById(rowId);
                     setupRowEvents(newRow);
+                    setupUnitCombobox(newRow);
 
                     // Pre-fill notes
                     var notesTextarea = document.getElementById('modal_notes');
@@ -1198,8 +1332,8 @@ $requestBadgeMap = [
                             addBtn.style.removeProperty('visibility');
                             addBtn.style.setProperty('display', 'inline-flex', 'important');
                         } else {
-                            addBtn.style.setProperty('visibility', 'hidden', 'important');
-                            addBtn.style.setProperty('display', 'inline-flex', 'important');
+                            addBtn.style.removeProperty('visibility');
+                            addBtn.style.setProperty('display', 'none', 'important');
                         }
                     }
 
@@ -1263,7 +1397,13 @@ $requestBadgeMap = [
 
     document.addEventListener('hidden.bs.modal', function(e) {
         var err = e.target.querySelector('.modal-body .alert.alert-danger');
-        if (err) err.remove();
+        if (err) {
+            if (err.id) {
+                err.style.display = 'none';
+            } else {
+                err.remove();
+            }
+        }
     });
     </script>
 
@@ -1359,10 +1499,10 @@ $requestBadgeMap = [
             }
 
             #createRequestModal .request-item-actions {
-                display: grid !important;
-                grid-template-columns: minmax(84px, max-content) minmax(0, 1fr);
+                display: flex !important;
+                justify-content: flex-end !important;
                 align-items: center !important;
-                column-gap: 0.75rem !important;
+                gap: 0.75rem !important;
                 width: 100%;
             }
 
@@ -1378,7 +1518,7 @@ $requestBadgeMap = [
             }
 
             #createRequestModal .btn-remove-row {
-                justify-content: flex-start !important;
+                justify-content: center !important;
                 overflow: hidden;
                 white-space: nowrap;
             }

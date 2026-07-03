@@ -90,7 +90,7 @@ class ItemModel extends Model
     /**
      * Fetch list of inventory items based on search query, department_id, role, stock status, and category.
      */
-    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null, $limit = 1000)
+    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null, $limit = 1)
     {
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
@@ -178,6 +178,7 @@ class ItemModel extends Model
                                 ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
                                 ->join('category', 'category.category_id = inventory.category_id', 'left')
                                 ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
+                                ->join('source', 'source.source_id = central_supply.source_id', 'left')
                                 ->where('department_supply.department_id', $department_id);
 
             if (empty($search)) {

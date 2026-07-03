@@ -80,7 +80,7 @@ class SupplyRequests extends BaseController
                                    ->get()->getResultArray();
             // Fetch in-stock Central Supply items for the request dropdown (one per item name)
             $items = $this->db->table('central_supply')
-                              ->select('MAX(central_supply_id) AS id, item_name AS name, MAX(item_code) AS item_code, MAX(inventory_code) AS inventory_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id')
+                              ->select('MAX(central_supply_id) AS id, item_name AS name, MAX(item_code) AS item_code, MAX(inventory_code) AS inventory_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id, MAX(unit) AS unit')
                               ->groupBy('item_name')
                               ->orderBy('item_name', 'ASC')
                               ->get()->getResultArray();
@@ -132,6 +132,7 @@ class SupplyRequests extends BaseController
 
         $itemIds = $this->request->getPost('item_id');
         $quantities = $this->request->getPost('quantity');
+        $postedUnits = $this->request->getPost('unit');
         $notes = $this->request->getPost('notes');
 
         if (!is_array($itemIds) || empty($itemIds)) {
@@ -176,7 +177,8 @@ class SupplyRequests extends BaseController
             $validItems[] = [
                 'item' => $item,
                 'quantity' => $quantity,
-                'itemId' => $itemId
+                'itemId' => $itemId,
+                'unit' => isset($postedUnits[$index]) ? trim((string)$postedUnits[$index]) : $item['unit']
             ];
         }
 
@@ -252,7 +254,7 @@ class SupplyRequests extends BaseController
                     'batch_num'            => $item['batch_num'],
                     'lot_num'              => $item['lot_num'],
                     'expiration_date'      => $item['expiration_date'],
-                    'unit'                 => $item['unit'],
+                    'unit'                 => $v['unit'] ? $v['unit'] : $item['unit'],
                     'quantity'             => 0,
                     'category_id'          => $item['category_id'],
                 ]);
@@ -316,8 +318,11 @@ class SupplyRequests extends BaseController
         $csIds = $this->request->getPost('central_supply_id') ?: [];
         $qties = $this->request->getPost('quantity') ?: [];
 
+        $modalId = 'serveModal_' . $id;
+
         if (empty($csIds) || !is_array($csIds)) {
-            session()->setFlashdata('error', 'Please select at least one inventory batch.');
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata('modal_errors', 'Please select at least one inventory batch.');
             return redirect()->to('requests');
         }
 
@@ -339,13 +344,15 @@ class SupplyRequests extends BaseController
 
             if (!$csItem) {
                 $db->transRollback();
-                session()->setFlashdata('error', "Inventory batch #{$csId} not found.");
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Inventory batch #{$csId} not found.");
                 return redirect()->to('requests');
             }
 
             if ($csItem['quantity_on_hand'] < $qty) {
                 $db->transRollback();
-                session()->setFlashdata('error', "Insufficient stock for batch '{$csItem['item_code']}'. Available: {$csItem['quantity_on_hand']}, Requested: {$qty}.");
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'.");
                 return redirect()->to('requests');
             }
 
@@ -362,7 +369,8 @@ class SupplyRequests extends BaseController
 
         if ($totalServed !== $qtyRequested) {
             $db->transRollback();
-            session()->setFlashdata('error', "Total quantity from batches ({$totalServed}) does not match requested quantity ({$qtyRequested}).");
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata('modal_errors', "Quantity does not match the requested quantity.");
             return redirect()->to('requests');
         }
 
@@ -478,8 +486,11 @@ class SupplyRequests extends BaseController
         $csIds = $this->request->getPost('central_supply_id') ?: [];
         $qties = $this->request->getPost('quantity') ?: [];
 
+        $modalId = 'partialModal_' . $id;
+
         if (empty($csIds) || !is_array($csIds)) {
-            session()->setFlashdata('error', 'Please select at least one inventory batch.');
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata('modal_errors', 'Please select at least one inventory batch.');
             return redirect()->to('requests');
         }
 
@@ -487,6 +498,21 @@ class SupplyRequests extends BaseController
         $db->transStart();
 
         $totalServed = 0;
+        foreach ($csIds as $i => $csId) {
+            $qty = isset($qties[$i]) ? (int)$qties[$i] : 0;
+            if ($qty <= 0) continue;
+            $totalServed += $qty;
+        }
+
+        if ($totalServed <= 0 || $totalServed >= $remainingQty) {
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata('modal_errors', "Quantity must be less than the remaining requested quantity ({$remainingQty}).");
+            return redirect()->to('requests');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
         $firstBatch = null;
         $servedBatchesInfo = [];
 
@@ -501,13 +527,15 @@ class SupplyRequests extends BaseController
 
             if (!$csItem) {
                 $db->transRollback();
-                session()->setFlashdata('error', "Inventory batch #{$csId} not found.");
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Inventory batch #{$csId} not found.");
                 return redirect()->to('requests');
             }
 
             if ($csItem['quantity_on_hand'] < $qty) {
                 $db->transRollback();
-                session()->setFlashdata('error', "Insufficient stock for batch '{$csItem['item_code']}'. Available: {$csItem['quantity_on_hand']}, Requested: {$qty}.");
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'.");
                 return redirect()->to('requests');
             }
 
@@ -517,15 +545,8 @@ class SupplyRequests extends BaseController
                    'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
                ]);
 
-            $totalServed += $qty;
             if (!$firstBatch) $firstBatch = $csItem;
             $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
-        }
-
-        if ($totalServed <= 0 || $totalServed >= $remainingQty) {
-            $db->transRollback();
-            session()->setFlashdata('error', "Invalid partial quantity. Total must be between 1 and " . ($remainingQty - 1) . ".");
-            return redirect()->to('requests');
         }
 
         // Get requester's department from joined request data
@@ -734,8 +755,11 @@ class SupplyRequests extends BaseController
         $csIds = $this->request->getPost('central_supply_id') ?: [];
         $qties = $this->request->getPost('quantity') ?: [];
 
+        $modalId = 'completePartialModal_' . $id;
+
         if (empty($csIds) || !is_array($csIds)) {
-            session()->setFlashdata('error', 'Please select at least one inventory batch.');
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata('modal_errors', 'Please select at least one inventory batch.');
             return redirect()->to('requests');
         }
 
@@ -756,13 +780,15 @@ class SupplyRequests extends BaseController
 
             if (!$csItem) {
                 $db->transRollback();
-                session()->setFlashdata('error', "Inventory batch #{$csId} not found.");
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Inventory batch #{$csId} not found.");
                 return redirect()->to('requests');
             }
 
             if ($csItem['quantity_on_hand'] < $qty) {
                 $db->transRollback();
-                session()->setFlashdata('error', "Insufficient stock for batch '{$csItem['item_code']}'. Available: {$csItem['quantity_on_hand']}, Requested: {$qty}.");
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'.");
                 return redirect()->to('requests');
             }
 
@@ -779,7 +805,8 @@ class SupplyRequests extends BaseController
 
         if ($totalServed !== $remainingQty) {
             $db->transRollback();
-            session()->setFlashdata('error', "Total quantity from batches ({$totalServed}) does not match remaining quantity ({$remainingQty}).");
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata('modal_errors', "Quantity does not match the requested quantity.");
             return redirect()->to('requests');
         }
 

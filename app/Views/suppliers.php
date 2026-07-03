@@ -37,25 +37,25 @@
 <form method="GET" action="<?php echo base_url('suppliers'); ?>" id="suppliersSearchForm">
     <div class="db-search-bar">
         <div class="db-search-field db-search-field--keyword">
-            <label for="sup_search_keyword">Search Keyword</label>
             <input
                 type="text"
                 id="sup_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Enter Supplier Name / Type"
+                placeholder=" "
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
+            <label for="sup_search_keyword">Enter Supplier Name / Type</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="sup_search_type">Type Filter</label>
             <select id="sup_search_type" name="type_filter" class="db-search-select">
-                <option value="">Select Type</option>
+                <option value="">- Select Type -</option>
                 <option value="Supplier" <?php echo (($type_filter ?? '') === 'Supplier') ? 'selected' : ''; ?>>Supplier</option>
                 <option value="Donation" <?php echo (($type_filter ?? '') === 'Donation') ? 'selected' : ''; ?>>Donation</option>
                 <option value="Others"   <?php echo (($type_filter ?? '') === 'Others')   ? 'selected' : ''; ?>>Others</option>
             </select>
+            <label for="sup_search_type">Type</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnSupSearch">
@@ -82,8 +82,8 @@
                 <tr>
                     <th>Supplier Name</th>
                     <th>Type</th>
-                    <th class="text-center" style="width: 100px;">Status</th>
-                    <th class="text-end">Actions</th>
+                    <th style="width: 10%">Status</th>
+                    <th style="width: 10%" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,9 +94,9 @@
                             <td><?php echo htmlspecialchars($source['source_type']); ?></td>
                             <td class="text-center">
                                 <?php if (($source['status'] ?? 1) == 1): ?>
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge badge-action rounded-pill bg-success-subtle text-dark border border-success-subtle text-uppercase">Active</span>
                                 <?php else: ?>
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge badge-action rounded-pill bg-secondary-subtle text-dark border border-secondary-subtle text-uppercase">Inactive</span>
                                 <?php endif; ?>
                             </td>
                             <td class="text-end">

@@ -84,56 +84,35 @@
                 <table class="table table-custom table-hover w-100">
                     <thead>
                         <tr>
-                            <th style="width: 25%">Item Code</th>
-                            <th style="width: 30%">Item Name</th>
-                            <th style="width: 20%">Expiration Date</th>
-                            <th style="width: 15%">Qty On Hand</th>
-                            <th style="width: 10%">Days Left</th>
+                            <th style="width: 25%;">Item Code</th>
+                            <th style="width: 35%;">Item Name</th>
+                            <th style="width: 25%;">Expiration Date</th>
+                            <th style="width: 15%;">Qty On Hand</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($near_expiry_items)): ?>
                             <?php foreach ($near_expiry_items as $item): ?>
                                 <tr>
-                                    <td class="text-dark" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    <td class="text-center">
                                         <?php echo htmlspecialchars($item['item_code']); ?>
                                     </td>
-                                    <td>
-                                        <span class="text-dark" style="font-size: 0.88rem; font-weight: 600;">
-                                            <?php echo htmlspecialchars($item['item_name']); ?>
-                                        </span>
+                                    <td class="text-center">
+                                        <?php echo htmlspecialchars($item['item_name']); ?>
                                     </td>
-                                    <td>
-                                        <span class="text-dark" style="font-size: 0.88rem;">
-                                            <?php echo date('M d, Y', strtotime($item['expiration_date'])); ?>
-                                        </span>
+                                    <td class="text-center">
+                                        <?php echo date('M d, Y', strtotime($item['expiration_date'])); ?>
                                     </td>
-                                    <td>
-                                        <span class="text-dark" style="font-size: 0.88rem;">
-                                            <?php echo (int)$item['quantity_on_hand']; ?>
-                                        </span>
+                                    <td class="text-center">
+                                        <?php echo (int)$item['quantity_on_hand']; ?>
                                     </td>
-                                    <td>
-                                        <?php 
-                                            $daysLeft = floor((strtotime($item['expiration_date']) - time()) / 86400);
-                                            if ($daysLeft <= 7) {
-                                                $badge = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                            } elseif ($daysLeft <= 14) {
-                                                $badge = 'bg-warning-subtle text-dark border border-warning-subtle';
-                                            } else {
-                                                $badge = 'bg-info-subtle text-dark border border-info-subtle';
-                                            }
-                                        ?>
-                                        <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
-                                            <?php echo $daysLeft; ?> days
-                                        </span>
-                                    </td>
+                                </tr>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="fa-regular fa-calendar-check d-block fs-3 mb-2 text-secondary"></i>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class=" d-block fs-3 mb-2 text-secondary"></i>
                                     <span class="fw-medium">No items near expiry.</span>
                                 </td>
                             </tr>
@@ -160,27 +139,20 @@
                 <table class="table table-custom table-hover w-100">
                     <thead>
                         <tr>
-                            <th style="width: 18%">Date/Time</th>
-                            <th style="width: 12%">User</th>
-                            <th style="width: 12%">Action</th>
+                            <th style="width: 18%;">Date/Time</th>
+                            <th style="width: 12%;">Action</th>
                             <th>Description</th>
+                            <th style="width: 12%;">User</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($recent_logs)): ?>
                             <?php foreach ($recent_logs as $log): ?>
                                 <tr>
-                                    <td>
-                                        <span class="text-dark" style="font-size: 0.9rem;">
-                                            <?php echo date('M j, Y g:i A', strtotime($log['created_at'])); ?>
-                                        </span>
+                                    <td class="text-center">
+                                        <?php echo date('M j, Y g:i A', strtotime($log['created_at'])); ?>
                                     </td>
-                                    <td>
-                                        <span class="text-dark" style="font-size: 0.85rem;">
-                                            <?php echo htmlspecialchars($log['username']); ?>
-                                        </span>
-                                    </td>
-                                    <td>
+                                    <td class="text-center">
                                         <?php 
                                             $badge_class = 'bg-secondary';
                                             if (in_array($log['action'], array('LOGIN', 'CREATE_DEPT', 'CREATE_USER', 'ADD_ITEM', 'COMPLETE_PARTIAL_SUPPLY_REQUEST', 'SERVE_SUPPLY_REQUEST', 'PARTIAL_SUPPLY_REQUEST'))) {
@@ -198,9 +170,12 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="text-dark" style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
+                                        <span style="word-break: break-word; white-space: normal;" title="<?php echo htmlspecialchars($log['description']); ?>">
                                             <?php echo htmlspecialchars($log['description']); ?>
                                         </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php echo htmlspecialchars($log['username']); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

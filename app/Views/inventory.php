@@ -41,21 +41,20 @@
 <form method="GET" action="<?php echo base_url('inventory'); ?>" id="inventorySearchForm">
     <div class="db-search-bar">
         <div class="db-search-field db-search-field--keyword">
-            <label for="inv_search_keyword">Search Keyword</label>
             <input
                 type="text"
                 id="inv_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Enter Name / Item code"
+                placeholder=" "
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
+            <label for="inv_search_keyword">Enter Name / Item Code</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="inv_search_category">Category</label>
             <select id="inv_search_category" name="category_id" class="db-search-select">
-                <option value="">All Categories</option>
+                <option value="">- Select Category -</option>
                 <?php foreach ($categories as $cat): ?>
                     <option value="<?php echo $cat['category_id']; ?>"
                         <?php echo (isset($category_id) && (string)$category_id === (string)$cat['category_id']) ? 'selected' : ''; ?>>
@@ -63,17 +62,18 @@
                     </option>
                 <?php endforeach; ?>
             </select>
+            <label for="inv_search_category">Category</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="inv_search_status">Stock Status</label>
             <select id="inv_search_status" name="stock_status" class="db-search-select">
-                <option value="">All Statuses</option>
+                <option value="">- Select Status -</option>
                 <option value="in_stock"   <?php echo (($stock_status ?? '') === 'in_stock')   ? 'selected' : ''; ?>>In Stock</option>
                 <option value="low_stock"  <?php echo (($stock_status ?? '') === 'low_stock')  ? 'selected' : ''; ?>>Low Stock</option>
                 <option value="out_of_stock" <?php echo (($stock_status ?? '') === 'out_of_stock') ? 'selected' : ''; ?>>Out of Stock</option>
                 <option value="expired"    <?php echo (($stock_status ?? '') === 'expired')    ? 'selected' : ''; ?>>Expired</option>
                 <option value="near_expiry" <?php echo (($stock_status ?? '') === 'near_expiry') ? 'selected' : ''; ?>>Near Expiry</option>
             </select>
+            <label for="inv_search_status">Stock Status</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnInvSearch">
@@ -105,7 +105,7 @@
                     <th style="width: 20%">Name</th>
                     <th style="width: 14%" class="text-center">Item Code</th>
                     <th style="width: 12%">Category</th>
-                    <th style="width: 8%" class="text-end">On Hand</th>
+                    <th style="width: 8%" class="text-center">On Hand</th>
                     <th style="width: 8%" class="text-center">Unit</th>
                     <th style="width: 12%" class="text-center">Stock Status</th>
                     <th style="width: 8%" class="text-center">Actions</th>
@@ -124,7 +124,7 @@
                             <td>
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_description'] ?? 'N/A'); ?></span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-center">
                                 <span class="fs-6 text-dark">
                                     <?php echo (int)$item['quantity_on_hand']; ?>
                                 </span>
@@ -580,7 +580,11 @@ function openItemModal(mode, data) {
         document.getElementById('batchManageTitle').textContent = data.name || 'Item Batches';
         var wrapper = document.getElementById('batchManageTableWrapper');
         var batches = itemBatches[data.item_code] || [];
-        var html = '<table class="table table-sm table-hover mb-0" style="font-size:0.85rem;"><thead><tr class="text-muted"><th>Inventory Code</th><th>On Hand</th><th>Unit</th><th>Expiry</th><th>Stock Status</th><th class="text-end">Actions</th></tr></thead><tbody>';
+        batches.sort(function (a, b) {
+            return (a.inventory_code || '').localeCompare(b.inventory_code || '');
+        });
+        var html = '<div class="mb-3"><input type="text" class="form-control form-control-sm" id="batchSearchInput" placeholder="Type to search..." style="border-radius: 8px; font-size: 0.85rem;"></div>';
+        html += '<div class="table-responsive-custom"><table class="table table-custom table-hover mb-0" id="batchManageTable"><thead><tr><th class="text-center">Inventory Code</th><th class="text-center">On Hand</th><th class="text-center">Unit</th><th class="text-center">Expiry</th><th class="text-center">Stock Status</th><th class="text-center">Actions</th></tr></thead><tbody>';
         for (var i = 0; i < batches.length; i++) {
             var b = batches[i];
             var bqty = parseInt(b.quantity_on_hand) || 0;
@@ -597,12 +601,12 @@ function openItemModal(mode, data) {
             else { bbadge = 'bg-success-subtle text-dark border border-success-subtle'; bstatus = 'In Stock'; }
             var expDisplay = bexp ? new Date(bexp).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
             html += '<tr>';
-            html += '<td class="small text-muted">' + (b.inventory_code || 'N/A') + '</td>';
-            html += '<td>' + bqty + '</td>';
-            html += '<td class="small text-muted">' + (b.unit || 'N/A') + '</td>';
-            html += '<td class="small">' + expDisplay + '</td>';
-            html += '<td><span class="badge badge-action rounded-pill ' + bbadge + '">' + bstatus + '</span></td>';
-            html += '<td class="text-end"><div class="dropdown d-inline-block">';
+            html += '<td class="text-center small text-muted">' + (b.inventory_code || 'N/A') + '</td>';
+            html += '<td class="text-center">' + bqty + '</td>';
+            html += '<td class="text-center small text-muted">' + (b.unit || 'N/A') + '</td>';
+            html += '<td class="text-center small">' + expDisplay + '</td>';
+            html += '<td class="text-center"><span class="badge badge-action rounded-pill ' + bbadge + '">' + bstatus + '</span></td>';
+            html += '<td class="text-center"><div class="dropdown d-inline-block">';
             html += '<button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding:2px 8px;font-size:0.7rem;font-weight:600;">Actions</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end" style="font-size:0.75rem;">';
             <?php if ($isAdmin): ?>
@@ -617,11 +621,23 @@ function openItemModal(mode, data) {
             html += '</ul></div></td>';
             html += '</tr>';
         }
-        html += '</tbody></table>';
+        html += '</tbody></table></div></div>';
         if (batches.length === 0) {
             html = '<div class="text-muted text-center py-3">No batches found for this item.</div>';
         }
         wrapper.innerHTML = html;
+
+        var searchInput = document.getElementById('batchSearchInput');
+        if (searchInput && batches.length > 0) {
+            searchInput.addEventListener('input', function () {
+                var filter = this.value.toLowerCase();
+                var rows = wrapper.querySelectorAll('#batchManageTable tbody tr');
+                rows.forEach(function (row) {
+                    var text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+        }
     } else {
         document.getElementById('itemFormFields').style.display = '';
         document.getElementById('itemViewContainer').style.display = 'none';

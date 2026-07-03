@@ -222,7 +222,7 @@ $(document).ready(function() {
                 search: "Search: ",
                 searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ logs",
-                info: 'Showing _START_ to _END_ of _TOTAL_ operations logs',
+                info: 'Showing _START_ to _END_ of _TOTAL_ logs',
                 infoFiltered: '(filtered from _MAX_ total entries)',
                 zeroRecords: 'No matching log records found'
             },
@@ -344,9 +344,9 @@ $(document).ready(function() {
                 search: "Search: ",
                 searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ requests",
-                info: 'Showing _START_ to _END_ of _TOTAL_ supply requests',
-                infoEmpty: 'Showing 0 to 0 of 0 supply requests',
-                zeroRecords: 'No supply requests found'
+                info: 'Showing _START_ to _END_ of _TOTAL_ requests',
+                infoEmpty: 'Showing 0 to 0 of 0 requests',
+                zeroRecords: 'No requests found'
             },
             columnDefs: [
                 { orderable: false, targets: 8 },
@@ -384,9 +384,9 @@ $(document).ready(function() {
                 search: "Search: ",
                 searchPlaceholder: "Type to search...",
                 lengthMenu: "Show _MENU_ items",
-                info: 'Showing _START_ to _END_ of _TOTAL_ inventory items',
-                infoEmpty: 'Showing 0 to 0 of 0 inventory items',
-                zeroRecords: 'No inventory items found'
+                info: 'Showing _START_ to _END_ of _TOTAL_ items',
+                infoEmpty: 'Showing 0 to 0 of 0 items',
+                zeroRecords: 'No items found'
             },
             columnDefs: [
                 { orderable: false, targets: 6 }
@@ -414,7 +414,7 @@ $(document).ready(function() {
             ordering: true,
             searching: true,
             retrieve: true,
-            order: [[1, 'asc']],
+            order: [[0, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -493,7 +493,7 @@ $(document).ready(function() {
             ordering: true,
             searching: true,
             retrieve: true,
-            order: [[1, 'asc']],
+            order: [[0, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',

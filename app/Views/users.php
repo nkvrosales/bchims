@@ -38,30 +38,29 @@
 <form method="GET" action="<?php echo base_url('users'); ?>" id="usersSearchForm">
     <div class="db-search-bar">
         <div class="db-search-field db-search-field--keyword">
-            <label for="users_search_keyword">Search Keyword</label>
             <input
                 type="text"
                 id="users_search_keyword"
                 name="search"
                 class="db-search-input"
-                placeholder="Enter Full Name / Username / Department"
+                placeholder=" "
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
+            <label for="users_search_keyword">Enter Full Name / Username / Department</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="users_search_role">Account Level Filter</label>
             <select id="users_search_role" name="role_filter" class="db-search-select">
-                <option value="">Select Account Level</option>
+                <option value="">- Select Account Level -</option>
                 <option value="admin"   <?php echo (($role_filter ?? '') === 'admin')   ? 'selected' : ''; ?>>Admin</option>
                 <option value="encoder" <?php echo (($role_filter ?? '') === 'encoder') ? 'selected' : ''; ?>>Encoder</option>
                 <option value="viewer"  <?php echo (($role_filter ?? '') === 'viewer')  ? 'selected' : ''; ?>>Viewer</option>
             </select>
+            <label for="users_search_role">Account Level</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
-            <label for="users_search_dept">Department Filter</label>
             <select id="users_search_dept" name="dept_filter" class="db-search-select">
-                <option value="">Select Department</option>
+                <option value="">- Select Department -</option>
                 <option value="0" <?php echo (($dept_filter ?? '') === '0') ? 'selected' : ''; ?>>Administrator</option>
                 <?php if (!empty($departments)): ?>
                     <?php foreach ($departments as $d): ?>
@@ -71,6 +70,7 @@
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>
+            <label for="users_search_dept">Department</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnUsersSearch">
@@ -100,12 +100,12 @@
             <thead>
                 <tr>
                     <th style="display:none;">ID</th>
-                    <th style="width: 25%">Full Name</th>
-                    <th style="width: 10%" class="text-center">Username</th>
-                    <th style="width: 10%" class="text-center">Account Level</th>
-                    <th style="width: 10%" class="text-center">Department</th>
-                    <th style="width: 10%" class="text-center">Status</th>
-                    <th style="width: 8%" class="text-center">Actions</th>
+                    <th style="width: 40%">Full Name</th>
+                    <th style="width: 20%">Username</th>
+                    <th style="width: 20%">Account Level</th>
+                    <th style="width: 20%">Department</th>
+                    <th style="width: 10%">Status</th>
+                    <th style="width: 10%">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -146,27 +146,9 @@
                             elseif ($r === 'encoder') echo 2;
                             else echo 3;
                         ?>">
-                            <?php if ($r === 'dev'): ?>
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
-                                      style="background:#f3e8ff; color:#7c3aed; border:1px solid #d8b4fe;">
-                                    DEV
-                                </span>
-                            <?php elseif ($r === 'admin' || $r === 'administrator'): ?>
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
-                                      style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">
-                                    ADMIN
-                                </span>
-                            <?php elseif ($r === 'encoder'): ?>
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
-                                      style="background:#ccfbf1; color:#0f766e; border:1px solid #99f6e4;">
-                                    ENCODER
-                                </span>
-                            <?php else: ?>
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold"
-                                      style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">
-                                    VIEWER
-                                </span>
-                            <?php endif; ?>
+                            <span class="text-dark" style="font-size: 0.9rem;">
+                                <?php echo htmlspecialchars(ucfirst($r)); ?>
+                            </span>
                         </td>
 
                         <!-- Department -->
@@ -182,18 +164,12 @@
                             </span>
                         </td>
 
-                        <!-- Status with dot indicator -->
+                        <!-- Status -->
                         <td class="text-center">
                             <?php if ($u['is_active']): ?>
-                                <div class="d-flex align-items-center justify-content-center gap-2">
-                                    <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0;box-shadow:0 0 0 2px rgba(34,197,94,0.2);"></span>
-                                    <span class="small fw-semibold" style="color:#16a34a;">ACTIVE</span>
-                                </div>
+                                <span class="badge badge-action rounded-pill bg-success-subtle text-dark border border-success-subtle text-uppercase">Active</span>
                             <?php else: ?>
-                                <div class="d-flex align-items-center justify-content-center gap-2">
-                                    <span style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0;"></span>
-                                    <span class="small fw-semibold text-secondary">INACTIVE</span>
-                                </div>
+                                <span class="badge badge-action rounded-pill bg-secondary-subtle text-dark border border-secondary-subtle text-uppercase">Inactive</span>
                             <?php endif; ?>
                         </td>
 

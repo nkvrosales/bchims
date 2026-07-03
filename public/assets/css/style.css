@@ -777,21 +777,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .table-custom th {
-    background-color: #f8fafc;
-    color: var(--text-secondary);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
+    background-color: #ffffff;
+    color: #000000;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-align: center;
+    vertical-align: middle;
+    text-transform: none;
     padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .table-custom td {
     padding: 1rem;
     vertical-align: middle;
     color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .table-custom tr:last-child td {
@@ -799,7 +800,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .table-custom tr:hover td {
+    background-color: #f0f4f8;
+}
+
+.table-custom tr:nth-child(odd) td {
     background-color: #f8fafc;
+}
+
+.table-custom tr:nth-child(even) td {
+    background-color: #ffffff;
 }
 
 /* Badge designs */
@@ -1484,57 +1493,82 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   DB Search Bar Component
+   DB Search Bar Component  (floating-label design)
    ============================================================ */
 .db-search-bar {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     margin-bottom: 1.25rem;
     box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 0.75rem;
     flex-wrap: wrap;
-    /* Prevent horizontal overflow on any viewport */
     overflow: hidden;
 }
 
+/* Each field is a relative container for the floating label */
 .db-search-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+    position: relative;
     min-width: 0;
 }
 
-.db-search-field label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #64748b;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    margin-bottom: 0;
-    white-space: nowrap;
-}
-
-/* Keyword field grows to fill remaining space, min 160px */
+/* Keyword field grows to fill remaining space */
 .db-search-field--keyword {
-    flex: 1 1 160px;
-    min-width: 160px;
+    flex: 1 1 200px;
+    min-width: 180px;
 }
 
-/* Dropdown filter fields shrink more gracefully */
+/* Dropdown filter fields — wider so text doesn't get clipped */
 .db-search-field--dropdown {
-    flex: 0 1 160px;
-    min-width: 130px;
+    flex: 0 1 210px;
+    min-width: 190px;
 }
 
+/* ---- Floating label ---- */
+.db-search-field label {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: #94a3b8;
+    pointer-events: none;
+    transition: top 0.2s ease, transform 0.2s ease, font-size 0.2s ease,
+                color 0.2s ease, font-weight 0.2s ease;
+    white-space: nowrap;
+    z-index: 1;
+    background: transparent;
+    line-height: 1;
+    margin: 0;
+}
+
+/* Floated state — moves to top-inside of the box, stays gray (no color change) */
+.db-search-field label.floated,
+.db-search-input:focus + label,
+.db-search-input:not(:placeholder-shown) + label,
+.db-search-select:focus + label,
+.db-search-select.has-value + label {
+    top: 8px;
+    transform: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: transparent;
+    padding: 0;
+    left: 0.5rem;
+}
+
+/* ---- Text / date input ---- */
 .db-search-input {
-    height: 38px;
+    height: 56px;
     border: 1.5px solid #e2e8f0;
     border-radius: 8px;
-    padding: 0 0.85rem;
+    /* top padding reserves space for the floated label; bottom padding pushes text down */
+    padding: 22px 0.85rem 6px;
     font-size: 0.875rem;
     font-family: var(--font-body);
     color: #0f172a;
@@ -1542,12 +1576,13 @@ h1, h2, h3, h4, h5, h6 {
     transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     width: 100%;
     outline: none;
-    /* Prevent the input from blowing out its container */
     min-width: 0;
+    display: block;
 }
 
+/* Hide the native placeholder — the label acts as one */
 .db-search-input::placeholder {
-    color: #94a3b8;
+    color: transparent;
 }
 
 .db-search-input:focus {
@@ -1556,11 +1591,12 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
 }
 
+/* ---- Select / dropdown ---- */
 .db-search-select {
-    height: 38px;
+    height: 56px;
     border: 1.5px solid #e2e8f0;
     border-radius: 8px;
-    padding: 0 2rem 0 0.75rem;
+    padding: 22px 2rem 6px 0.85rem;
     font-size: 0.875rem;
     font-family: var(--font-body);
     color: #0f172a;
@@ -1577,6 +1613,19 @@ h1, h2, h3, h4, h5, h6 {
     -webkit-appearance: none;
     -moz-appearance: none;
     min-width: 0;
+    display: block;
+}
+
+/* Label always at top-inside for selects (a value is always displayed) */
+.db-search-field:has(.db-search-select) label {
+    top: 8px;
+    transform: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: transparent;
+    padding: 0;
+    left: 0.5rem;
 }
 
 .db-search-select:focus {
@@ -1585,12 +1634,32 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
 }
 
+.db-search-select:focus + label,
+.db-search-field:has(.db-search-select:focus) label {
+    color: #94a3b8;
+}
+
+/* Date inputs always show a value, so always keep the label at the top-inside */
+.db-search-field:has(input[type="date"]) label {
+    top: 8px;
+    transform: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: transparent;
+    padding: 0;
+    left: 0.5rem;
+}
+
+.db-search-field:has(input[type="date"]:focus) label {
+    color: #94a3b8;
+}
+
 .db-search-actions {
     display: flex;
-    flex-wrap: wrap;          /* allow buttons to wrap on tight screens */
+    flex-wrap: wrap;
     gap: 0.5rem;
-    align-items: flex-end;
-    /* Remove flex-shrink:0 so actions can shrink/wrap rather than clip */
+    align-items: center;
     flex-shrink: 1;
     min-width: 0;
     padding-bottom: 0;
@@ -1656,13 +1725,13 @@ h1, h2, h3, h4, h5, h6 {
     transform: none;
 }
 
-#btnAddNewItem, #btnAddNewCategory, #btnAddNewDept, #btnAddNewUser, #btnAddNewSupplier {
+#btnAddNewItem, #btnAddNewCategory, #btnAddNewDept, #btnAddNewUser, #btnAddNewSupplier, #btnNewSupplyRequest {
     background: #10b981;
 }
-#btnAddNewItem:hover, #btnAddNewCategory:hover, #btnAddNewDept:hover, #btnAddNewUser:hover, #btnAddNewSupplier:hover,
-#btnAddNewItem:focus, #btnAddNewCategory:focus, #btnAddNewDept:focus, #btnAddNewUser:focus, #btnAddNewSupplier:focus,
-#btnAddNewItem:active, #btnAddNewCategory:active, #btnAddNewDept:active, #btnAddNewUser:active, #btnAddNewSupplier:active,
-#btnAddNewItem:focus-visible, #btnAddNewCategory:focus-visible, #btnAddNewDept:focus-visible, #btnAddNewUser:focus-visible, #btnAddNewSupplier:focus-visible {
+#btnAddNewItem:hover, #btnAddNewCategory:hover, #btnAddNewDept:hover, #btnAddNewUser:hover, #btnAddNewSupplier:hover, #btnNewSupplyRequest:hover,
+#btnAddNewItem:focus, #btnAddNewCategory:focus, #btnAddNewDept:focus, #btnAddNewUser:focus, #btnAddNewSupplier:focus, #btnNewSupplyRequest:focus,
+#btnAddNewItem:active, #btnAddNewCategory:active, #btnAddNewDept:active, #btnAddNewUser:active, #btnAddNewSupplier:active, #btnNewSupplyRequest:active,
+#btnAddNewItem:focus-visible, #btnAddNewCategory:focus-visible, #btnAddNewDept:focus-visible, #btnAddNewUser:focus-visible, #btnAddNewSupplier:focus-visible, #btnNewSupplyRequest:focus-visible {
     background: #059669 !important;
     color: #fff !important;
 }
