@@ -349,9 +349,9 @@ $(document).ready(function() {
                 zeroRecords: 'No requests found'
             },
             columnDefs: [
-                { orderable: false, targets: 8 },
+                { orderable: false, targets: 9 },
                 { type: 'num', targets: 0 },
-                { className: 'text-center', targets: [4, 5, 6, 7, 8] }
+                { className: 'text-center', targets: [3, 4, 5, 6, 7, 8] }
             ],
             initComplete: function () {
                 var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');
@@ -389,7 +389,8 @@ $(document).ready(function() {
                 zeroRecords: 'No items found'
             },
             columnDefs: [
-                { orderable: false, targets: 6 }
+                { orderable: false, targets: 6 },
+                { className: 'text-center', targets: [2] }
             ],
             initComplete: function () {
                 var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');

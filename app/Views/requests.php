@@ -170,7 +170,7 @@ $requestBadgeMap = [
                                 <td>
                                     <span class="text-dark"><?php echo htmlspecialchars($req['item_unit'] ?? ''); ?></span>
                                 </td>
-                                <td data-order="<?php echo ($req['request_status'] == 3 || $req['request_status'] == 4 || $req['request_status'] == 5) ? 1 : 0; ?>">
+                                <td data-order="<?php echo $req['request_status']; ?>">
                                     <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
                                     <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
                                         <?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?>

@@ -2,13 +2,13 @@
 <div class="page-breadcrumb">
     <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
     <span class="separator">/</span>
-    <span class="current">Audit Logs</span>
+    <span class="current">Audit Log</span>
 </div>
 
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1">Audit Logs</h1>
+            <h1 class="page-title mb-1">Audit Log</h1>
         </div>
     </div>
 </div>
@@ -164,7 +164,7 @@
                                 </span>
                             </td>
                             <?php if (is_admin_role()): ?>
-                            <td>
+                            <td class="text-center">
                                 <span class="text-dark small font-monospace">
                                     <?php echo htmlspecialchars($log['ip_address'] ?? '-'); ?>
                                 </span>

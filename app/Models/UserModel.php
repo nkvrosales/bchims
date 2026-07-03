@@ -65,7 +65,7 @@ class UserModel extends Model
     /**
      * Search and retrieve user accounts with filters and limit from database.
      */
-    public function search($keyword = null, $role_filter = null, $dept_filter = null, $limit = 1)
+    public function search($keyword = null, $role_filter = null, $dept_filter = null, $limit = 1000)
     {
         $current_user_id = session()->get('user_id');
 

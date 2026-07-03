@@ -90,7 +90,7 @@ class ItemModel extends Model
     /**
      * Fetch list of inventory items based on search query, department_id, role, stock status, and category.
      */
-    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null, $limit = 1)
+    public function get_items($search = '', $role = 'admin', $department_id = null, $stock_status = '', $category_id = null, $limit = 1000)
     {
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
 
