@@ -57,6 +57,14 @@
             </select>
             <label for="sup_search_type">Type</label>
         </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <select id="sup_search_status" name="status_filter" class="db-search-select">
+                <option value="">- Select Status -</option>
+                <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Active</option>
+                <option value="0" <?php echo (($status_filter ?? '') === '0') ? 'selected' : ''; ?>>Inactive</option>
+            </select>
+            <label for="sup_search_status">Status</label>
+        </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnSupSearch">
                  Search
@@ -69,7 +77,6 @@
                     class="btn btn-db-search d-inline-flex align-items-center gap-2"
                     id="btnAddNewSupplier"
                     onclick="openSupplierModal('create')">
-                <i class="fa-solid fa-plus"></i>
                 <span>Add Supplier</span>
             </button>
         </div>
@@ -105,9 +112,11 @@
                                         Actions
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openSupplierModal('edit', <?php echo $source['source_id']; ?>, '<?php echo htmlspecialchars($source['source_type'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['supplier_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_person'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_number'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['address'] ?? '', ENT_QUOTES); ?>')" title="Manage Supplier">Manage</a></li>
                                         <?php if (($source['status'] ?? 1) == 1): ?>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSupplierModal-<?php echo $source['source_id']; ?>" title="Archive Supplier">Archive</a></li>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openSupplierModal('edit', <?php echo $source['source_id']; ?>, '<?php echo htmlspecialchars($source['source_type'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['supplier_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_person'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_number'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['address'] ?? '', ENT_QUOTES); ?>')" title="Manage Supplier">Manage</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateSupplierModal-<?php echo $source['source_id']; ?>" title="Deactivate Supplier">Deactivate</a></li>
+                                        <?php else: ?>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreSupplierModal-<?php echo $source['source_id']; ?>" title="Reactivate Supplier">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -287,17 +296,17 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
 
 <?php if (!empty($sources)): ?>
     <?php foreach ($sources as $source): ?>
-    <!-- ===================== ARCHIVE SUPPLIER MODAL ===================== -->
-    <div class="modal fade" id="archiveSupplierModal-<?php echo $source['source_id']; ?>" tabindex="-1"
-         aria-labelledby="archiveSupplierModalLabel-<?php echo $source['source_id']; ?>" aria-hidden="true">
+    <!-- ===================== DEACTIVATE SUPPLIER MODAL ===================== -->
+    <div class="modal fade" id="deactivateSupplierModal-<?php echo $source['source_id']; ?>" tabindex="-1"
+         aria-labelledby="deactivateSupplierModalLabel-<?php echo $source['source_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="archiveSupplierModalLabel-<?php echo $source['source_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="deactivateSupplierModalLabel-<?php echo $source['source_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                            Archive Supplier
+                            Deactivate Supplier
                         </h5>
                     </div>
                     <button type="button"
@@ -320,7 +329,7 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                     </div>
 
                     <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                        Are you sure you want to archive this supplier?
+                        Are you sure you want to deactivate this supplier?
                     </p>
                 </div>
 
@@ -349,7 +358,77 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                             "
                             onmouseover="this.style.background='#dc2626'"
                             onmouseout="this.style.background='#ef4444'">
-                         Archive Supplier
+                         Deactivate Supplier
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== RESTORE SUPPLIER MODAL ===================== -->
+    <div class="modal fade" id="restoreSupplierModal-<?php echo $source['source_id']; ?>" tabindex="-1"
+         aria-labelledby="restoreSupplierModalLabel-<?php echo $source['source_id']; ?>" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+
+                <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <h5 class="modal-title fw-bold mb-0" id="restoreSupplierModalLabel-<?php echo $source['source_id']; ?>"
+                            style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                            Reactivate Supplier
+                        </h5>
+                    </div>
+                    <button type="button"
+                            class="btn-close btn-close-dark"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                            style="opacity: 0.6;"></button>
+                </div>
+
+                <div class="modal-body px-4 py-4">
+                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                    <?php echo htmlspecialchars($source['supplier_name']); ?>
+                                </div>
+                                <div class="text-muted small"><?php echo htmlspecialchars($source['source_type']); ?></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                        Are you sure you want to reactivate this supplier?
+                    </p>
+                </div>
+
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                    <button type="button"
+                            data-bs-dismiss="modal"
+                            style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                            onmouseover="this.style.background='#f9fafb'"
+                            onmouseout="this.style.background='#fff'">
+                        Close
+                    </button>
+                    <a href="<?php echo base_url('suppliers/restore/' . $source['source_id']); ?>"
+                       style="
+                               background: #10b981;
+                               color: #fff;
+                               border: 1px solid transparent;
+                               border-radius: 8px;
+                               padding: 0.5rem 1.5rem;
+                               font-size: 0.9rem;
+                               font-weight: 600;
+                               text-decoration: none;
+                                cursor: pointer;
+                                display: inline-flex;
+                                align-items: center;
+                                height: 38px;
+                            "
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
+                         Reactivate Supplier
                     </a>
                 </div>
 

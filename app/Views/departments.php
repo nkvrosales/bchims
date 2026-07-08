@@ -49,6 +49,14 @@
             >
             <label for="dept_search_keyword">Enter Department Name / Code</label>
         </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <select id="dept_search_status" name="status_filter" class="db-search-select">
+                <option value="">- Select Status -</option>
+                <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Active</option>
+                <option value="0" <?php echo (($status_filter ?? '') === '0') ? 'selected' : ''; ?>>Inactive</option>
+            </select>
+            <label for="dept_search_status">Status</label>
+        </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnDeptSearch">
                  Search
@@ -61,7 +69,6 @@
                     class="btn btn-db-search d-inline-flex align-items-center gap-2"
                     id="btnAddNewDept"
                     onclick="openDeptModal('create')">
-                <i class="fa-solid fa-plus"></i>
                 <span>Add Department</span>
             </button>
         </div>
@@ -74,8 +81,9 @@
         <table class="table table-custom table-hover w-100" id="departmentsTable">
             <thead>
                 <tr>
-                    <th style="width: 60%">Department Name</th>
+                    <th style="width: 50%">Department Name</th>
                     <th style="width: 20%">Department Code</th>
+                    <th style="width: 10%">Status</th>
                     <th style="width: 10%" class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -86,14 +94,20 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="fw text-dark"><?php echo htmlspecialchars($dept['name']); ?></span>
-                                    <?php if (isset($dept['status']) && $dept['status'] == 0): ?>
-                                        <span class="badge" style="font-size:0.68rem;font-weight:600;background:rgba(239,68,68,0.1);color:#ef4444;border-radius:6px;padding:2px 8px;letter-spacing:0.02em;">Archived</span>
-                                    <?php endif; ?>
+
                                 </div>
                             </td>
 
                             <td>
                                 <span class="fw text-dark" style="font-size: 0.9rem;"><?php echo htmlspecialchars($dept['code'] ?? '—'); ?></span>
+                            </td>
+
+                            <td class="text-center">
+                                <?php if (!isset($dept['status']) || $dept['status'] == 1): ?>
+                                    <span class="badge badge-action rounded-pill bg-success-subtle text-dark border border-success-subtle text-uppercase">Active</span>
+                                <?php else: ?>
+                                    <span class="badge badge-action rounded-pill bg-secondary-subtle text-dark border border-secondary-subtle text-uppercase">Inactive</span>
+                                <?php endif; ?>
                             </td>
 
                             <td class="text-end">
@@ -102,9 +116,9 @@
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                         <?php if (!isset($dept['status']) || $dept['status'] == 1): ?>
                                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="openDeptModal('edit', <?php echo $dept['id']; ?>, '<?php echo htmlspecialchars($dept['code'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($dept['name'], ENT_QUOTES); ?>')" title="Manage Department">Manage</a></li>
-                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveDeptModal-<?php echo $dept['id']; ?>" title="Archive Department">Archive</a></li>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveDeptModal-<?php echo $dept['id']; ?>" title="Deactivate Department">Deactivate</a></li>
                                         <?php else: ?>
-                                            <li><a class="dropdown-item" href="<?php echo base_url('departments/restore/' . $dept['id']); ?>" title="Restore Department">Restore</a></li>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreDeptModal-<?php echo $dept['id']; ?>" title="Reactivate Department">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -257,7 +271,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                     <div class="d-flex align-items-center gap-3">
                         <h5 class="modal-title fw-bold mb-0" id="archiveDeptModalLabel-<?php echo $dept['id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                            Archive Department
+                            Deactivate Department
                         </h5>
                     </div>
                     <button type="button"
@@ -281,7 +295,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                     </div>
 
                     <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                        Are you sure you want to archive this department?
+                        Are you sure you want to deactivate this department?
                     </p>
                 </div>
 
@@ -311,7 +325,77 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                             "
                             onmouseover="this.style.background='#dc2626'"
                             onmouseout="this.style.background='#ef4444'">
-                         Archive Department
+                         Deactivate Department
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <?php else: ?>
+    <!-- ===================== RESTORE DEPARTMENT MODAL ===================== -->
+    <div class="modal fade" id="restoreDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
+         aria-labelledby="restoreDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+
+                <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <h5 class="modal-title fw-bold mb-0" id="restoreDeptModalLabel-<?php echo $dept['id']; ?>"
+                            style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                            Reactivate Department
+                        </h5>
+                    </div>
+                    <button type="button"
+                            class="btn-close btn-close-dark"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                            style="opacity: 0.6;"></button>
+                </div>
+
+                <div class="modal-body px-4 py-4">
+                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                    <?php echo htmlspecialchars($dept['name']); ?>
+                                </div>
+                                <div class="text-muted small">Hospital Department</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                        Are you sure you want to reactivate this department?
+                    </p>
+                </div>
+
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                    <button type="button"
+                            data-bs-dismiss="modal"
+                            style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                            onmouseover="this.style.background='#f9fafb'"
+                            onmouseout="this.style.background='#fff'">
+                        Close
+                    </button>
+                    <a href="<?php echo base_url('departments/restore/' . $dept['id']); ?>"
+                       style="
+                               background: #10b981;
+                               color: #fff;
+                               border: 1px solid transparent;
+                               border-radius: 8px;
+                               padding: 0.5rem 1.5rem;
+                               font-size: 0.9rem;
+                               font-weight: 600;
+                               text-decoration: none;
+                                cursor: pointer;
+                                display: inline-flex;
+                                align-items: center;
+                                height: 38px;
+                            "
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
+                         Reactivate Department
                     </a>
                 </div>
 

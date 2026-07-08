@@ -43,13 +43,15 @@ class Departments extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $search = trim((string) $this->request->getGet('search'));
+        $search        = trim((string) $this->request->getGet('search'));
+        $status_filter = trim((string) $this->request->getGet('status_filter'));
 
-        $departments = $this->departmentModel->search_departments($search);
+        $departments = $this->departmentModel->search_departments($search, $status_filter);
 
-        $data['title']       = 'Departments';
-        $data['departments'] = $departments;
-        $data['search']      = $search;
+        $data['title']        = 'Departments';
+        $data['departments']  = $departments;
+        $data['search']       = $search;
+        $data['status_filter'] = $status_filter;
 
         return view('templates/header', $data)
              . view('departments', $data)
@@ -182,13 +184,13 @@ class Departments extends BaseController
 
         if ($this->departmentModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
-                'ARCHIVE_DEPT',
+                'DEACTIVATE_DEPT',
                 'Departments',
-                "Archived hospital department: {$dept['name']}."
+                "Deactivated department: {$dept['name']}."
             );
-            session()->setFlashdata('success', 'Department successfully archived.');
+            session()->setFlashdata('success', 'Department successfully deactivated.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while archiving the department.');
+            session()->setFlashdata('error', 'An error occurred while deactivating the department.');
         }
 
         return redirect()->to('departments');
@@ -210,13 +212,13 @@ class Departments extends BaseController
 
         if ($this->departmentModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
-                'RESTORE_DEPT',
+                'REACTIVATE_DEPT',
                 'Departments',
-                "Restored hospital department: {$dept['name']}."
+                "Reactivated department: {$dept['name']}."
             );
-            session()->setFlashdata('success', 'Department successfully restored.');
+            session()->setFlashdata('success', 'Department successfully reactivated.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while restoring the department.');
+            session()->setFlashdata('error', 'An error occurred while reactivating the department.');
         }
 
         return redirect()->to('departments');

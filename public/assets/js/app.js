@@ -293,7 +293,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[1, 'asc']],
+            order: [[5, 'asc'], [1, 'asc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -429,7 +429,7 @@ $(document).ready(function() {
                 zeroRecords: 'No categories found'
             },
             columnDefs: [
-                { orderable: false, targets: 2 },
+                { orderable: false, targets: 3 },
                 { className: 'text-center', targets: [1, 2] }
             ],
             initComplete: function () {
@@ -469,7 +469,7 @@ $(document).ready(function() {
                 zeroRecords: 'No departments found'
             },
             columnDefs: [
-                { orderable: false, targets: 2 },
+                { orderable: false, targets: 3 },
                 { className: 'text-center', targets: [1, 2] }
             ],
             initComplete: function () {
@@ -517,6 +517,79 @@ $(document).ready(function() {
                 $searchInput.css({ 'min-width': '0', 'width': '100%' });
                 $('#suppliersTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
                 $('#suppliersTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
+        });
+    }
+
+    const $unitsTable = $('#unitsTable');
+    if ($unitsTable.length) {
+        $unitsTable.DataTable({
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            retrieve: true,
+            order: [[0, 'asc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
+                lengthMenu: "Show _MENU_ units",
+                info: 'Showing _START_ to _END_ of _TOTAL_ units',
+                infoEmpty: 'Showing 0 to 0 of 0 units',
+                zeroRecords: 'No units found'
+            },
+            columnDefs: [
+                { orderable: false, targets: 3 },
+                { className: 'text-center', targets: [1, 2] }
+            ],
+            initComplete: function () {
+                var $searchInput = $('#unitsTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Type to search...');
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
+                $('#unitsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#unitsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
+            }
+        });
+    }
+
+    const $reportsTopItemsTable = $('#reportsTopItemsTable');
+    if ($reportsTopItemsTable.length) {
+        $reportsTopItemsTable.DataTable({
+            dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row mt-3'<'col-sm-12 col-md-5 d-flex align-items-center'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            retrieve: true,
+            order: [[3, 'desc']],
+            language: {
+                paginate: {
+                    previous: '<i class="fa-solid fa-angle-left"></i>',
+                    next: '<i class="fa-solid fa-angle-right"></i>'
+                },
+                search: "Search: ",
+                searchPlaceholder: "Type to search...",
+                lengthMenu: "Show _MENU_ items",
+                info: 'Showing _START_ to _END_ of _TOTAL_ items',
+                infoEmpty: 'Showing 0 to 0 of 0 items',
+                zeroRecords: 'No report items found'
+            },
+            columnDefs: [
+                { className: 'text-center', targets: [0, 2, 3] }
+            ],
+            initComplete: function () {
+                var $searchInput = $('#reportsTopItemsTable_wrapper .dataTables_filter input');
+                $searchInput.attr('placeholder', 'Type to search...');
+                $searchInput.css({ 'min-width': '0', 'width': '100%' });
+                $('#reportsTopItemsTable_wrapper .dataTables_filter').css({ 'margin': '0', 'padding': '0' });
+                $('#reportsTopItemsTable_wrapper .dataTables_length').css({ 'margin': '0', 'padding': '0' });
             }
         });
     }

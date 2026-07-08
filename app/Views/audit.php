@@ -73,37 +73,29 @@
                 <option value="CONSUME_ITEM"                   <?php echo (($action_filter ?? '') === 'CONSUME_ITEM')                   ? 'selected' : ''; ?>>CONSUME_ITEM</option>
                 <option value="CREATE_CATEGORY"                <?php echo (($action_filter ?? '') === 'CREATE_CATEGORY')                ? 'selected' : ''; ?>>CREATE_CATEGORY</option>
                 <option value="UPDATE_CATEGORY"                <?php echo (($action_filter ?? '') === 'UPDATE_CATEGORY')                ? 'selected' : ''; ?>>UPDATE_CATEGORY</option>
-                <option value="ARCHIVE_CATEGORY"               <?php echo (($action_filter ?? '') === 'ARCHIVE_CATEGORY')               ? 'selected' : ''; ?>>ARCHIVE_CATEGORY</option>
-                <option value="RESTORE_CATEGORY"               <?php echo (($action_filter ?? '') === 'RESTORE_CATEGORY')               ? 'selected' : ''; ?>>RESTORE_CATEGORY</option>
+                <option value="DEACTIVATE_CATEGORY"             <?php echo (($action_filter ?? '') === 'DEACTIVATE_CATEGORY')             ? 'selected' : ''; ?>>DEACTIVATE_CATEGORY</option>
+                <option value="REACTIVATE_CATEGORY"             <?php echo (($action_filter ?? '') === 'REACTIVATE_CATEGORY')             ? 'selected' : ''; ?>>REACTIVATE_CATEGORY</option>
                 <option value="CREATE_DEPT"                    <?php echo (($action_filter ?? '') === 'CREATE_DEPT')                    ? 'selected' : ''; ?>>CREATE_DEPT</option>
                 <option value="UPDATE_DEPT"                    <?php echo (($action_filter ?? '') === 'UPDATE_DEPT')                    ? 'selected' : ''; ?>>UPDATE_DEPT</option>
-                <option value="ARCHIVE_DEPT"                   <?php echo (($action_filter ?? '') === 'ARCHIVE_DEPT')                   ? 'selected' : ''; ?>>ARCHIVE_DEPT</option>
-                <option value="RESTORE_DEPT"                   <?php echo (($action_filter ?? '') === 'RESTORE_DEPT')                   ? 'selected' : ''; ?>>RESTORE_DEPT</option>
+                <option value="DEACTIVATE_DEPT"                 <?php echo (($action_filter ?? '') === 'DEACTIVATE_DEPT')                 ? 'selected' : ''; ?>>DEACTIVATE_DEPT</option>
+                <option value="REACTIVATE_DEPT"                 <?php echo (($action_filter ?? '') === 'REACTIVATE_DEPT')                 ? 'selected' : ''; ?>>REACTIVATE_DEPT</option>
+                <option value="DEACTIVATE_UNIT"                 <?php echo (($action_filter ?? '') === 'DEACTIVATE_UNIT')                 ? 'selected' : ''; ?>>DEACTIVATE_UNIT</option>
+                <option value="REACTIVATE_UNIT"                 <?php echo (($action_filter ?? '') === 'REACTIVATE_UNIT')                 ? 'selected' : ''; ?>>REACTIVATE_UNIT</option>
                 <option value="CREATE_SOURCE"                  <?php echo (($action_filter ?? '') === 'CREATE_SOURCE')                  ? 'selected' : ''; ?>>CREATE_SOURCE</option>
                 <option value="UPDATE_SOURCE"                  <?php echo (($action_filter ?? '') === 'UPDATE_SOURCE')                  ? 'selected' : ''; ?>>UPDATE_SOURCE</option>
-                <option value="ARCHIVE_SOURCE"                 <?php echo (($action_filter ?? '') === 'ARCHIVE_SOURCE')                 ? 'selected' : ''; ?>>ARCHIVE_SOURCE</option>
-                <option value="RESTORE_SOURCE"                 <?php echo (($action_filter ?? '') === 'RESTORE_SOURCE')                 ? 'selected' : ''; ?>>RESTORE_SOURCE</option>
+                <option value="DEACTIVATE_SUPPLIER"               <?php echo (($action_filter ?? '') === 'DEACTIVATE_SUPPLIER')               ? 'selected' : ''; ?>>DEACTIVATE_SUPPLIER</option>
+                <option value="REACTIVATE_SUPPLIER"               <?php echo (($action_filter ?? '') === 'REACTIVATE_SUPPLIER')               ? 'selected' : ''; ?>>REACTIVATE_SUPPLIER</option>
                 <option value="CREATE_SUPPLY_REQUEST"          <?php echo (($action_filter ?? '') === 'CREATE_SUPPLY_REQUEST')          ? 'selected' : ''; ?>>CREATE_SUPPLY_REQUEST</option>
                 <option value="SERVE_SUPPLY_REQUEST"           <?php echo (($action_filter ?? '') === 'SERVE_SUPPLY_REQUEST')           ? 'selected' : ''; ?>>SERVE_SUPPLY_REQUEST</option>
                 <option value="PARTIAL_SERVE_SUPPLY_REQUEST"   <?php echo (($action_filter ?? '') === 'PARTIAL_SERVE_SUPPLY_REQUEST')   ? 'selected' : ''; ?>>PARTIAL_SERVE_SUPPLY_REQUEST</option>
                 <option value="COMPLETE_PARTIAL_SUPPLY_REQUEST" <?php echo (($action_filter ?? '') === 'COMPLETE_PARTIAL_SUPPLY_REQUEST') ? 'selected' : ''; ?>>COMPLETE_PARTIAL_SUPPLY_REQUEST</option>
                 <option value="REJECT_SUPPLY_REQUEST"          <?php echo (($action_filter ?? '') === 'REJECT_SUPPLY_REQUEST')          ? 'selected' : ''; ?>>REJECT_SUPPLY_REQUEST</option>
+                <option value="CANCEL_SUPPLY_REQUEST"          <?php echo (($action_filter ?? '') === 'CANCEL_SUPPLY_REQUEST')          ? 'selected' : ''; ?>>CANCEL_SUPPLY_REQUEST</option>
                 <option value="ARCHIVE_SUPPLY_REQUEST"         <?php echo (($action_filter ?? '') === 'ARCHIVE_SUPPLY_REQUEST')         ? 'selected' : ''; ?>>ARCHIVE_SUPPLY_REQUEST</option>
                 <option value="RESTORE_SUPPLY_REQUEST"         <?php echo (($action_filter ?? '') === 'RESTORE_SUPPLY_REQUEST')         ? 'selected' : ''; ?>>RESTORE_SUPPLY_REQUEST</option>
                 <option value="UPDATE_PROFILE"                 <?php echo (($action_filter ?? '') === 'UPDATE_PROFILE')                 ? 'selected' : ''; ?>>UPDATE_PROFILE</option>
             </select>
             <label for="audit_search_action">Action</label>
-        </div>
-        <div class="db-search-field db-search-field--dropdown">
-            <input 
-                type="date" 
-                id="audit_date_filter" 
-                name="date_filter" 
-                class="db-search-input" 
-                placeholder=" "
-                value="<?php echo htmlspecialchars($date_filter ?? ''); ?>"
-            >
-            <label for="audit_date_filter">Date</label>
         </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnAuditSearch">

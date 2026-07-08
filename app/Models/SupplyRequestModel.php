@@ -33,7 +33,7 @@ class SupplyRequestModel extends Model
             central_supply.item_code AS item_code,
             central_supply.inventory_code AS inventory_code,
             central_supply.quantity_on_hand AS item_current_stock,
-            central_supply.unit AS item_unit,
+            supply.unit AS item_unit,
             user.username AS requester_username,
             CONCAT(user.first_name, ' ', user.last_name) AS requester_full_name,
             departments.department_name AS department_name,
@@ -46,7 +46,9 @@ class SupplyRequestModel extends Model
         ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id', 'left')
         ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left');
 
-        $builder = $builder->where('request.status >', 0);
+        if (empty($search) && empty($status_filter) && empty($dept_filter)) {
+            $builder = $builder->where('request.status >', 0);
+        }
 
         if ($department_id !== null) {
             $builder = $builder->where('department_supply.department_id', $department_id);

@@ -4,24 +4,21 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class CategoryModel extends Model
+class UnitModel extends Model
 {
-    protected $table      = 'category';
-    protected $primaryKey = 'category_id';
+    protected $table      = 'unit';
+    protected $primaryKey = 'unit_id';
 
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
 
-    protected $allowedFields = ['category_code', 'category_description', 'status'];
+    protected $allowedFields = ['unit_name', 'unit_code', 'status'];
     protected $useTimestamps = false;
 
-    /**
-     * Get categories with search and optional limit (limit skipped when searching).
-     */
-    public function search_categories($search = '', $status_filter = '', $limit = 1000)
+    public function search_units($search = '', $status_filter = '', $limit = 1000)
     {
-        $builder = $this->orderBy('category_code', 'ASC');
+        $builder = $this->orderBy('unit_name', 'ASC');
 
         if (empty($search) && $status_filter === '') {
             $builder = $builder->where('status', 1);
@@ -29,8 +26,8 @@ class CategoryModel extends Model
 
         if (!empty($search)) {
             $builder = $builder->groupStart()
-                               ->like('category_description', $search)
-                               ->orLike('category_code', $search)
+                               ->like('unit_name', $search)
+                               ->orLike('unit_code', $search)
                                ->groupEnd();
         }
 
@@ -43,5 +40,12 @@ class CategoryModel extends Model
         }
 
         return $builder->findAll();
+    }
+
+    public function get_units()
+    {
+        return $this->where('status', 1)
+                    ->orderBy('unit_name', 'ASC')
+                    ->findAll();
     }
 }

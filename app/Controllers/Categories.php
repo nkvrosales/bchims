@@ -44,13 +44,15 @@ class Categories extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $search = trim((string) $this->request->getGet('search'));
+        $search        = trim((string) $this->request->getGet('search'));
+        $status_filter = trim((string) $this->request->getGet('status_filter'));
 
-        $categories = $this->categoryModel->search_categories($search);
+        $categories = $this->categoryModel->search_categories($search, $status_filter);
 
-        $data['title']      = 'Categories';
-        $data['categories'] = $categories;
-        $data['search']     = $search;
+        $data['title']        = 'Categories';
+        $data['categories']   = $categories;
+        $data['search']       = $search;
+        $data['status_filter'] = $status_filter;
 
         return view('templates/header', $data)
              . view('categories', $data)
@@ -181,14 +183,14 @@ class Categories extends BaseController
 
         if ($this->categoryModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
-                'ARCHIVE_CATEGORY',
+                'DEACTIVATE_CATEGORY',
                 'Categories',
-                "Archived category: {$category['category_code']}.",
+                "Deactivated category: {$category['category_code']}.",
                 $id
             );
-            session()->setFlashdata('success', 'Category successfully archived.');
+            session()->setFlashdata('success', 'Category successfully deactivated.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while archiving the category.');
+            session()->setFlashdata('error', 'An error occurred while deactivating the category.');
         }
 
         return redirect()->to('categories');
@@ -210,14 +212,14 @@ class Categories extends BaseController
 
         if ($this->categoryModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
-                'RESTORE_CATEGORY',
+                'REACTIVATE_CATEGORY',
                 'Categories',
-                "Restored category: {$category['category_code']}.",
+                "Reactivated category: {$category['category_code']}.",
                 $id
             );
-            session()->setFlashdata('success', 'Category successfully restored.');
+            session()->setFlashdata('success', 'Category successfully reactivated.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while restoring the category.');
+            session()->setFlashdata('error', 'An error occurred while reactivating the category.');
         }
 
         return redirect()->to('categories');

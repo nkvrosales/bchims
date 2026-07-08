@@ -85,7 +85,7 @@
             <div class="dropdown">
                 <button class="navbar-user-profile-btn d-flex align-items-center gap-2 bg-transparent border-0 p-0 shadow-none" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; outline: none;">
                     <div style="border-left: 1px solid #cbd5e1; height: 32px; margin-right: 0.5rem; margin-left: 0.25rem;"></div>
-                    <i class="bi bi-person-circle" style="font-size: 2.3rem; color: #cbd5e1; line-height: 1;"></i>
+                    <i class="fa-solid fa-circle-user" style="font-size: 2.3rem; color: #cbd5e1; line-height: 1;"></i>
                     <div class="navbar-user-info text-start d-none d-sm-block" style="font-size: 0.95rem; color: #64748b; font-weight: 500; font-family: var(--font-body);">
                         <?php 
                             $roleLower = strtolower((string)session()->get('role'));
@@ -153,7 +153,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('inventory'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Central Inventory', 'My Inventory'])) ? 'active' : ''; ?>" id="navInventory" title="Inventory">
+                       class="sidebar-link <?php echo (isset($title) && (strpos($title, 'Inventory') !== false)) ? 'active' : ''; ?>" id="navInventory" title="Inventory">
                         <i class="bi bi-box-seam"></i>
                         <span>Inventory</span>
                     </a>
@@ -162,12 +162,20 @@
                 <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('requests'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Central Requests', 'My Requests'])) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
+                       class="sidebar-link <?php echo (isset($title) && (strpos($title, 'Requests') !== false)) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
                         <i class="bi bi-file-earmark-text"></i>
                         <span>Requests</span>
                     </a>
                 </li>
                 <?php endif; ?>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('reports'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Reports') ? 'active' : ''; ?>" id="navReports" title="Reports">
+                        <i class="bi bi-bar-chart"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
 
                 <!-- SYSTEM Section -->
                 <li class="sidebar-section-label">SYSTEM</li>
@@ -194,6 +202,14 @@
                        class="sidebar-link <?php echo (isset($title) && $title === 'Departments') ? 'active' : ''; ?>" id="navDepartments" title="Departments">
                         <i class="bi bi-building"></i>
                         <span>Departments</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="<?php echo base_url('unit'); ?>"
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Unit') ? 'active' : ''; ?>" id="navUnit" title="Unit">
+                        <i class="fa-solid fa-box"></i>
+                        <span>Unit</span>
                     </a>
                 </li>
 

@@ -49,12 +49,13 @@ class Users extends BaseController
     {
         if ($res = $this->checkAdmin()) return $res;
 
-        $search      = trim((string) $this->request->getGet('search'));
-        $role_filter = trim((string) $this->request->getGet('role_filter'));
-        $dept_filter = trim((string) $this->request->getGet('dept_filter'));
+        $search        = trim((string) $this->request->getGet('search'));
+        $role_filter   = trim((string) $this->request->getGet('role_filter'));
+        $dept_filter   = trim((string) $this->request->getGet('dept_filter'));
+        $status_filter = trim((string) $this->request->getGet('status_filter'));
 
         // Query database directly with filters (uses default limit in the Model)
-        $users = $this->userModel->search($search, $role_filter, $dept_filter);
+        $users = $this->userModel->search($search, $role_filter, $dept_filter, $status_filter);
 
         $data['title']             = 'User Management';
         $data['users']             = $users;
@@ -63,6 +64,7 @@ class Users extends BaseController
         $data['search']            = $search;
         $data['role_filter']       = $role_filter;
         $data['dept_filter']       = $dept_filter;
+        $data['status_filter']     = $status_filter;
 
         return view('templates/header', $data)
              . view('users', $data)
@@ -300,10 +302,10 @@ class Users extends BaseController
             $this->auditModel->log_activity(
                 'DEACTIVATE_USER',
                 'Users',
-                "Deactivated user account (made inactive instead of deleted): {$user['username']} ({$user['last_name']}, {$user['first_name']}) with role {$user['role']}."
+                "Deactivated user account: {$user['username']} ({$user['last_name']}, {$user['first_name']}) "
             );
 
-            session()->setFlashdata('success', 'User account successfully deactivated (marked as Inactive)!');
+            session()->setFlashdata('success', 'User account successfully deactivated.');
         } else {
             session()->setFlashdata('error', 'An error occurred while deactivating the account.');
         }
@@ -335,10 +337,10 @@ class Users extends BaseController
             $this->auditModel->log_activity(
                 'ACTIVATE_USER',
                 'Users',
-                "Activated user account: {$user['username']} ({$user['last_name']}, {$user['first_name']}) with role {$user['role']}."
+                "Activated user account: {$user['username']} ({$user['last_name']}, {$user['first_name']}) "
             );
 
-            session()->setFlashdata('success', 'User account successfully activated!');
+            session()->setFlashdata('success', 'User account successfully activated.');
         } else {
             session()->setFlashdata('error', 'An error occurred while activating the account.');
         }

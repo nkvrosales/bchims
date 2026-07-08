@@ -61,17 +61,6 @@ class AuditModel extends Model
             $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
         }
 
-        if (!empty($filters['start_date'])) {
-            $builder = $builder->where('DATE(action_date) >=', $filters['start_date']);
-        }
-        if (!empty($filters['end_date'])) {
-            $builder = $builder->where('DATE(action_date) <=', $filters['end_date']);
-        }
-
-        if (!empty($filters['username'])) {
-            $builder = $builder->like('user.username', $filters['username']);
-        }
-
         if (!empty($filters['search'])) {
             $builder = $builder->groupStart()
                                ->like('audit_log.action_description', $filters['search'])
@@ -87,7 +76,7 @@ class AuditModel extends Model
             $builder = $builder->like('action_description', '[' . ucfirst($filters['module']) . ']');
         }
 
-        $hasFilter = !empty($filters['start_date']) || !empty($filters['end_date']) || !empty($filters['search']) || !empty($filters['username']) || !empty($filters['action']) || !empty($filters['module']);
+        $hasFilter = !empty($filters['search']) || !empty($filters['username']) || !empty($filters['action']) || !empty($filters['module']);
 
         if ($limit !== null && !$hasFilter) {
             return $builder->orderBy('action_date', 'DESC')->findAll($limit);

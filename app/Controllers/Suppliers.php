@@ -46,13 +46,15 @@ class Suppliers extends BaseController
 
         $search      = trim((string) $this->request->getGet('search'));
         $type_filter = trim((string) $this->request->getGet('type_filter'));
+        $status_filter = trim((string) $this->request->getGet('status_filter'));
 
-        $sources = $this->supplierModel->search_suppliers($search, $type_filter);
+        $sources = $this->supplierModel->search_suppliers($search, $type_filter, $status_filter);
 
         $data['title']       = 'Suppliers';
         $data['sources']     = $sources;
         $data['search']      = $search;
         $data['type_filter'] = $type_filter;
+        $data['status_filter'] = $status_filter;
 
         return view('templates/header', $data)
              . view('suppliers', $data)
@@ -95,12 +97,12 @@ class Suppliers extends BaseController
                     "Created source: {$insertData['supplier_name']} ({$insertData['source_type']})."
                 );
 
-                session()->setFlashdata('success', 'Source successfully created!');
+                session()->setFlashdata('success', 'Supplier successfully created.');
                 return redirect()->to('suppliers');
             }
 
             session()->setFlashdata('modal_mode', 'create');
-            session()->setFlashdata('modal_errors', '<li>An error occurred while creating the source.</li>');
+            session()->setFlashdata('modal_errors', '<li>An error occurred while creating the supplier.</li>');
             return redirect()->to('suppliers')->withInput();
         }
 
@@ -119,7 +121,7 @@ class Suppliers extends BaseController
 
         $source = $this->supplierModel->find($id);
         if (empty($source)) {
-            session()->setFlashdata('error', 'Source not found.');
+            session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
 
@@ -173,7 +175,7 @@ class Suppliers extends BaseController
                     $id
                 );
 
-                session()->setFlashdata('success', 'Source successfully updated!');
+                session()->setFlashdata('success', 'Supplier successfully updated.');
                 return redirect()->to('suppliers');
             }
 
@@ -199,20 +201,20 @@ class Suppliers extends BaseController
 
         $source = $this->supplierModel->find($id);
         if (empty($source)) {
-            session()->setFlashdata('error', 'Source not found.');
+            session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
 
         if ($this->supplierModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
-                'ARCHIVE_SOURCE',
+                'DEACTIVATE_SUPPLIER',
                 'Sources',
-                "Archived source: {$source['supplier_name']}.",
+                "Deactivated supplier: {$source['supplier_name']}.",
                 $id
             );
-            session()->setFlashdata('success', 'Source successfully archived.');
+            session()->setFlashdata('success', 'Supplier successfully deactivated.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while archiving the source.');
+            session()->setFlashdata('error', 'An error occurred while deactivating the supplier.');
         }
 
         return redirect()->to('suppliers');
@@ -228,20 +230,20 @@ class Suppliers extends BaseController
 
         $source = $this->supplierModel->find($id);
         if (empty($source)) {
-            session()->setFlashdata('error', 'Source not found.');
+            session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
 
         if ($this->supplierModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
-                'RESTORE_SOURCE',
+                'REACTIVATE_SUPPLIER',
                 'Sources',
-                "Restored source: {$source['supplier_name']}.",
+                "Reactivated supplier: {$source['supplier_name']}.",
                 $id
             );
-            session()->setFlashdata('success', 'Source successfully restored.');
+            session()->setFlashdata('success', 'Supplier successfully reactivated.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while restoring the source.');
+            session()->setFlashdata('error', 'An error occurred while reactivating the supplier.');
         }
 
         return redirect()->to('suppliers');
@@ -257,7 +259,7 @@ class Suppliers extends BaseController
 
         $source = $this->supplierModel->find($id);
         if (empty($source)) {
-            session()->setFlashdata('error', 'Source not found.');
+            session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
 
@@ -265,7 +267,7 @@ class Suppliers extends BaseController
         $inUse = $db->table('central_supply')->where('source_id', $id)->countAllResults();
 
         if ($inUse > 0) {
-            session()->setFlashdata('error', 'Cannot delete a source that is currently used by inventory stock.');
+            session()->setFlashdata('error', 'Cannot delete a supplier that is currently used by inventory stock.');
             return redirect()->to('suppliers');
         }
 
@@ -273,12 +275,12 @@ class Suppliers extends BaseController
             $this->auditModel->log_activity(
                 'DELETE_SOURCE',
                 'Sources',
-                "Deleted source: {$source['supplier_name']}.",
+                "Deleted supplier: {$source['supplier_name']}.",
                 $id
             );
-            session()->setFlashdata('success', 'Source successfully deleted!');
+            session()->setFlashdata('success', 'Supplier successfully deleted.');
         } else {
-            session()->setFlashdata('error', 'An error occurred while deleting the source.');
+            session()->setFlashdata('error', 'An error occurred while deleting the supplier.');
         }
 
         return redirect()->to('suppliers');

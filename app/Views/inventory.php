@@ -88,7 +88,6 @@
                         class="btn btn-db-search d-inline-flex align-items-center gap-2"
                         id="btnAddNewItem"
                         onclick="openItemModal('create')">
-                    <i class="fa-solid fa-plus"></i>
                     <span>Add Item</span>
                 </button>
             <?php endif; ?>
@@ -105,7 +104,7 @@
                     <th style="width: 20%">Name</th>
                     <th style="width: 14%" class="text-center">Item Code</th>
                     <th style="width: 12%">Category</th>
-                    <th style="width: 8%" class="text-center">On Hand</th>
+                    <th style="width: 8%" class="text-center">Stock</th>
                     <th style="width: 8%" class="text-center">Unit</th>
                     <th style="width: 12%" class="text-center">Stock Status</th>
                     <th style="width: 8%" class="text-center">Actions</th>
@@ -140,7 +139,39 @@
                                     $isExpired = !empty($expDate) && $expDate < date('Y-m-d') && $stockQty > 0;
                                     $isNearExpiry = !empty($expDate) && $expDate >= date('Y-m-d') && $expDate <= date('Y-m-d', strtotime('+30 days')) && $stockQty > 0 && !$isExpired;
                                     $lowStockThreshold = $totalQty > 0 ? max(1, (int)ceil($totalQty * 0.15)) : 0;
-                                    if ($isExpired) {
+
+                                    // Check batch-level statuses for this item
+                                    $hasIssue = false;
+                                    $allExpired = true;
+                                    $allOutOfStock = true;
+                                    $allNearExpiry = true;
+                                    $itemBatches = $batches_by_code[$item['item_code']] ?? [];
+                                    foreach ($itemBatches as $batch) {
+                                        $bQty = (int)$batch['quantity_on_hand'];
+                                        $bExp = $batch['expiration_date'] ?? '';
+                                        $bExpired = !empty($bExp) && $bExp < date('Y-m-d') && $bQty > 0;
+                                        $bNear = !empty($bExp) && $bExp >= date('Y-m-d') && $bExp <= date('Y-m-d', strtotime('+30 days')) && $bQty > 0 && !$bExpired;
+                                        if ($bQty > 0 && !$bExpired) $allExpired = false;
+                                        if ($bQty > 0) $allOutOfStock = false;
+                                        if ($bQty > 0 && !$bNear) $allNearExpiry = false;
+                                        if ($bExpired || $bNear || $bQty === 0) {
+                                            $hasIssue = true;
+                                        }
+                                    }
+
+                                    if ($allExpired && !empty($itemBatches)) {
+                                        $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
+                                        $status = 'Expired';
+                                    } elseif ($allOutOfStock && !empty($itemBatches)) {
+                                        $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                        $status = 'Out of Stock';
+                                    } elseif ($allNearExpiry && !empty($itemBatches)) {
+                                        $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
+                                        $status = 'Near Expiry';
+                                    } elseif ($hasIssue) {
+                                        $badge  = 'bg-info-subtle text-dark border border-info-subtle';
+                                        $status = 'View Details';
+                                    } elseif ($isExpired) {
                                         $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
                                         $status = 'Expired';
                                     } elseif ($isNearExpiry) {
@@ -180,21 +211,10 @@
                                         ]); ?>)' title="Manage Item">Manage</a></li>
                                         <?php endif; ?>
                                         <?php if (strtolower((string) session()->get('role')) === 'viewer'): ?>
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openItemModal("view", <?php echo json_encode([
-                                            "inventory_code" => $item["inventory_code"] ?? "",
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openItemModal("manage-batches", <?php echo json_encode([
                                             "item_code" => $item["item_code"],
                                             "name" => $item["item_name"],
-                                            "category" => $item["category_description"] ?? "",
-                                            "quantity" => $item["quantity"],
-                                            "unit" => $item["unit"] ?? "",
-                                            "source_type" => str_replace(" ", "_", strtolower($item["source_type"] ?? "supplier")),
-                                            "source_name" => $item["supplier_name"] ?? "",
-                                            "expiration_date" => $item["expiration_date"] ?? "",
-                                            "manufacturing_date" => $item["manufacturing_date"] ?? "",
-                                            "batch_num" => $item["batch_num"] ?? "",
-                                            "lot_num" => $item["lot_num"] ?? "",
-                                            "remarks" => $item["remarks"] ?? "",
-                                        ]); ?>)' title="View Item">View</a></li>
+                                        ]); ?>)' title="View Item Batches">Manage</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -326,7 +346,6 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="w-50"></div>
                         <div class="col-lg-4 col-12">
                             <label for="item_inventory_code" class="form-label small fw-semibold text-secondary">Inventory Code</label>
                             <input type="text"
@@ -351,7 +370,7 @@
                                    required>
                         </div>
 
-                        <div class="col-lg-4 col-12">
+                        <div class="col-lg-12 col-12">
                             <label for="item_name" class="form-label small fw-semibold text-secondary">
                                 Item Name <span class="text-danger">*</span>
                             </label>
@@ -410,7 +429,8 @@
                                    value="<?php echo old('quantity', ''); ?>"
                                    required>
                         </div>
-
+                         
+                        <div class="w-55"></div>
                         <div class="col-lg-4 col-12">
                             <label for="item_batch_num" class="form-label small fw-semibold text-secondary">Batch No.</label>
                             <input type="text"
@@ -429,6 +449,7 @@
                                    value="<?php echo old('lot_num'); ?>">
                         </div>
 
+                        <div class="w-55"></div>
                         <div class="col-lg-4 col-12">
                             <label for="item_source_type" class="form-label small fw-semibold text-secondary">
                                 Source Type <span class="text-danger">*</span>
@@ -445,7 +466,7 @@
                             </select>
                         </div>
 
-                        <div class="col-lg-4 col-12" id="sourceNameCol">
+                        <div class="col-lg-8 col-12" id="sourceNameCol">
                             <label for="item_source_name_select" class="form-label small fw-semibold text-secondary">
                                 Source <span class="text-danger">*</span>
                             </label>
@@ -463,7 +484,7 @@
                                    style="display:none;">
                         </div>
 
-                        <div class="col-lg-6 col-12">
+                        <div class="col-lg-4 col-12">
                             <label for="item_expiration_date" class="form-label small fw-semibold text-secondary">
                                 Expiration Date <span class="text-danger">*</span>
                             </label>
@@ -475,7 +496,7 @@
                                    required>
                         </div>
 
-                        <div class="col-lg-6 col-12">
+                        <div class="col-lg-4 col-12">
                             <label for="item_manufacturing_date" class="form-label small fw-semibold text-secondary">Manufacturing Date</label>
                             <input type="date"
                                    class="form-control input-custom"
@@ -503,7 +524,7 @@
                             style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s;"
                             onmouseover="this.style.background='#f9fafb'"
                             onmouseout="this.style.background='#fff'">
-                        Cancel
+                        Close
                     </button>
                     <button type="submit" id="itemFormSubmitBtn"
                             style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
@@ -584,7 +605,11 @@ function openItemModal(mode, data) {
             return (a.inventory_code || '').localeCompare(b.inventory_code || '');
         });
         var html = '<div class="mb-3"><input type="text" class="form-control form-control-sm" id="batchSearchInput" placeholder="Type to search..." style="border-radius: 8px; font-size: 0.85rem;"></div>';
-        html += '<div class="table-responsive-custom"><table class="table table-custom table-hover mb-0" id="batchManageTable"><thead><tr><th class="text-center">Inventory Code</th><th class="text-center">On Hand</th><th class="text-center">Unit</th><th class="text-center">Expiry</th><th class="text-center">Stock Status</th><th class="text-center">Actions</th></tr></thead><tbody>';
+        html += '<div class="table-responsive-custom"><table class="table table-custom table-hover mb-0" id="batchManageTable"><thead><tr><th class="text-center">Inventory Code</th><th class="text-center">Stock</th>';
+        <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
+        html += '<th class="text-center">Consumed</th>';
+        <?php endif; ?>
+        html += '<th class="text-center">Unit</th><th class="text-center">Expiry</th><th class="text-center">Stock Status</th><th class="text-center">Actions</th></tr></thead><tbody>';
         for (var i = 0; i < batches.length; i++) {
             var b = batches[i];
             var bqty = parseInt(b.quantity_on_hand) || 0;
@@ -603,6 +628,9 @@ function openItemModal(mode, data) {
             html += '<tr>';
             html += '<td class="text-center small text-muted">' + (b.inventory_code || 'N/A') + '</td>';
             html += '<td class="text-center">' + bqty + '</td>';
+            <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
+            html += '<td class="text-center small">' + (b.quantity_used || 0) + '</td>';
+            <?php endif; ?>
             html += '<td class="text-center small text-muted">' + (b.unit || 'N/A') + '</td>';
             html += '<td class="text-center small">' + expDisplay + '</td>';
             html += '<td class="text-center"><span class="badge badge-action rounded-pill ' + bbadge + '">' + bstatus + '</span></td>';
@@ -610,14 +638,18 @@ function openItemModal(mode, data) {
             html += '<button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding:2px 8px;font-size:0.7rem;font-weight:600;">Actions</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end" style="font-size:0.75rem;">';
             <?php if ($isAdmin): ?>
-            html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, source_type: "supplier", source_name: "", expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
+            html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, source_type: (b.source_type ? b.source_type.toLowerCase().replace(" ", "_") : "supplier"), source_name: (b.supplier_name || ""), expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
             <?php endif; ?>
             <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
             if (bqty > 0) {
             html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'openConsumeModal(' + JSON.stringify({id: b.id, item_code: b.item_code, item_name: b.item_name}) + ')\'>Consume</a></li>';
             }
             <?php endif; ?>
+            <?php if (strtolower((string) session()->get('role')) === 'viewer'): ?>
+            html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); showViewBatchModal(' + JSON.stringify(b) + ')\'>View</a></li>';
+            <?php else: ?>
             html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="event.stopPropagation(); new bootstrap.Modal(document.getElementById(\'archiveItemModal' + b.id + '\')).show();">Archive</a></li>';
+            <?php endif; ?>
             html += '</ul></div></td>';
             html += '</tr>';
         }
@@ -724,6 +756,8 @@ function toggleSourceName() {
         txt.style.display = 'none';
         sel.required = true;
         txt.required = false;
+        sel.disabled = false;
+        txt.disabled = true;
         var filterType = typeSelect.value === 'supplier' ? 'Supplier' : 'Donation';
         for (var i = 0; i < allSources.length; i++) {
             if (allSources[i].source_type === filterType) {
@@ -738,6 +772,11 @@ function toggleSourceName() {
         txt.style.display = '';
         sel.required = false;
         txt.required = true;
+        sel.disabled = true;
+        txt.disabled = false;
+    } else {
+        sel.disabled = true;
+        txt.disabled = true;
     }
 }
 
@@ -794,6 +833,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('item_inventory_code').value = '<?php echo addslashes(old('inventory_code', '')); ?>';
     document.getElementById('item_code').value = '<?php echo addslashes(old('item_code', '')); ?>';
     document.getElementById('item_category_id').value = '<?php echo addslashes(old('category_id', '')); ?>';
+    document.getElementById('item_name').value = '<?php echo addslashes(old('name', '')); ?>';
     generateInventoryCode();
     document.getElementById('item_quantity').value = '<?php echo addslashes(old('quantity', '')); ?>';
     document.getElementById('item_unit').value = '<?php echo addslashes(old('unit', '')); ?>';
@@ -810,7 +850,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('item_manufacturing_date').value = '<?php echo addslashes(old('manufacturing_date', '')); ?>';
     document.getElementById('item_batch_num').value = '<?php echo addslashes(old('batch_num', '')); ?>';
     document.getElementById('item_lot_num').value = '<?php echo addslashes(old('lot_num', '')); ?>';
-    toggleSourceName();
     (bootstrap.Modal.getInstance(document.getElementById('itemModal')) || new bootstrap.Modal(document.getElementById('itemModal'))).show();
 });
 <?php endif; ?>
@@ -822,6 +861,19 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
     document.body.style.removeProperty('padding-right');
     var form = document.getElementById('itemForm');
     form.reset();
+    var fieldsToClear = [
+        'item_inventory_code', 'item_code', 'item_name', 'item_category_id', 
+        'item_quantity', 'item_unit', 'item_source_type', 'item_source_name_select', 
+        'item_source_name_text', 'item_expiration_date', 'item_manufacturing_date', 
+        'item_batch_num', 'item_lot_num', 'item_remarks'
+    ];
+    fieldsToClear.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.value = '';
+        }
+    });
+    toggleSourceName();
     form.querySelectorAll('[disabled]').forEach(function(el) { el.disabled = false; });
     document.getElementById('itemFormSubmitBtn').style.display = '';
     document.getElementById('batchManageContainer').style.display = 'none';
@@ -836,13 +888,13 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
 <!-- ===================== ARCHIVE ITEM MODALS ===================== -->
 <?php if (!empty($items)): ?>
     <?php foreach ($items as $item): ?>
-        <div class="modal fade" id="archiveItemModal<?php echo $item['id']; ?>" tabindex="-1" aria-labelledby="archiveItemModalLabel<?php echo $item['id']; ?>" aria-hidden="true">
+        <div class="modal fade" id="archiveItemMainModal<?php echo $item['id']; ?>" tabindex="-1" aria-labelledby="archiveItemMainModalLabel<?php echo $item['id']; ?>" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
                     <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                         <div class="d-flex align-items-center">
                             <div>
-                                <h5 class="modal-title fw-bold mb-0" id="archiveItemModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.25rem; letter-spacing: 0;">
+                                <h5 class="modal-title fw-bold mb-0" id="archiveItemMainModalLabel<?php echo $item['id']; ?>" style="color: #0f172a; font-size: 1.25rem; letter-spacing: 0;">
                                     Archive Item
                                 </h5>
                             </div>
@@ -856,7 +908,7 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
                                     <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                         <?php echo htmlspecialchars($item['item_name']); ?>
                                     </div>
-                                    <div class="text-muted small">Code: <?php echo htmlspecialchars($item['item_code']); ?></div>
+                                    <div class="text-muted small">Code: <?php echo htmlspecialchars($item['inventory_code'] ?? $item['item_code']); ?></div>
                                 </div>
                             </div>
                         </div>
@@ -888,19 +940,30 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
         <?php foreach ($batches as $batch): ?>
             <?php if (!empty($batch['id'])): ?>
             <div class="modal fade" id="archiveItemModal<?= $batch['id'] ?>" tabindex="-1" aria-labelledby="archiveItemModalLabel<?= $batch['id'] ?>" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-                        <div class="modal-header border-bottom-0 px-4 pb-0 pt-4">
-                            <h5 class="modal-title fw-bold mb-0" style="color: #0f172a; font-size: 1.25rem;">Archive Item</h5>
+                        <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                            <div class="d-flex align-items-center">
+                                <div>
+                                    <h5 class="modal-title fw-bold mb-0" id="archiveItemModalLabel<?= $batch['id'] ?>" style="color: #0f172a; font-size: 1.25rem; letter-spacing: 0;">
+                                        Archive Item
+                                    </h5>
+                                </div>
+                            </div>
                             <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                         </div>
-                        <div class="modal-body px-4 pt-3 pb-4">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div style="width: 44px; height: 44px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <div class="modal-body px-4 py-4">
+                            <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                            <?= htmlspecialchars($batch['item_name'] ?? '') ?>
+                                        </div>
+                                        <div class="text-muted small">Code: <?= htmlspecialchars($batch['inventory_code'] ?? $batch['item_code'] ?? $code) ?></div>
+                                    </div>
                                 </div>
-                                <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to archive this inventory item?</p>
                             </div>
+                            <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to archive this inventory item?</p>
                         </div>
                         <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                             <button type="button"
@@ -977,6 +1040,66 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
     </div>
 </div>
 
+<!-- Batch View Modal -->
+<div class="modal fade" id="batchViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                <h5 class="modal-title fw-bold mb-0" style="color: #0f172a; font-size: 1.25rem;">Batch Details</h5>
+                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Inventory Code</label>
+                        <span class="text-dark" id="bv_inventory_code"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Item Code</label>
+                        <span class="text-dark" id="bv_item_code"></span>
+                    </div>
+                    <div class="col-12">
+                        <label class="small fw-semibold text-secondary d-block">Item Name</label>
+                        <span class="text-dark fw-medium" id="bv_item_name"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Stock</label>
+                        <span class="text-dark fw-bold" id="bv_stock"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Unit</label>
+                        <span class="text-dark" id="bv_unit"></span>
+                    </div>
+                    <div class="col-12"><hr class="my-1"></div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Batch No.</label>
+                        <span class="text-dark" id="bv_batch"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Lot No.</label>
+                        <span class="text-dark" id="bv_lot"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Expiration Date</label>
+                        <span class="text-dark" id="bv_expiry"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-semibold text-secondary d-block">Manufacturing Date</label>
+                        <span class="text-dark" id="bv_mfg"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-3">
+                <button type="button"
+                        data-bs-dismiss="modal"
+                        style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                        onmouseover="this.style.background='#f9fafb'"
+                        onmouseout="this.style.background='#fff'">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 var departmentBatches = <?php echo json_encode($department_batches ?? []); ?>;
 
@@ -989,6 +1112,19 @@ function openConsumeModal(data) {
     document.getElementById('consumeReason').value = '';
 
     new bootstrap.Modal(document.getElementById('consumeModal')).show();
+}
+
+function showViewBatchModal(b) {
+    document.getElementById('bv_inventory_code').textContent = b.inventory_code || 'N/A';
+    document.getElementById('bv_item_code').textContent = b.item_code || 'N/A';
+    document.getElementById('bv_item_name').textContent = b.item_name || 'N/A';
+    document.getElementById('bv_stock').textContent = b.quantity_on_hand || 0;
+    document.getElementById('bv_unit').textContent = b.unit || 'N/A';
+    document.getElementById('bv_batch').textContent = b.batch_num || 'N/A';
+    document.getElementById('bv_lot').textContent = b.lot_num || 'N/A';
+    document.getElementById('bv_expiry').textContent = b.expiration_date || 'N/A';
+    document.getElementById('bv_mfg').textContent = b.manufacturing_date || 'N/A';
+    new bootstrap.Modal(document.getElementById('batchViewModal')).show();
 }
 </script>
 

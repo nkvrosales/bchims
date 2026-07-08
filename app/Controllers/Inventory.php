@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\ItemModel;
 use App\Models\AuditModel;
 use App\Models\UserModel;
+use App\Models\UnitModel;
 
 class Inventory extends BaseController
 {
@@ -102,7 +103,7 @@ class Inventory extends BaseController
         $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
         $deptId = $user['department_id'] ?? 3; // default fallback to Central Supplies
 
-        $data['title'] = $isAdmin ? 'Central Inventory' : ($user['department_name'] ?? 'My') . ' Inventory';
+        $data['title'] = $isAdmin ? 'Central Supply Inventory' : ($user['department_name'] ?? 'My') . ' Inventory';
 
         $search = $this->request->getGet('search');
         $stock_status = $this->request->getGet('stock_status');
@@ -138,6 +139,8 @@ class Inventory extends BaseController
             ->orderBy('supplier_name', 'ASC')
             ->get()
             ->getResultArray();
+
+        $data['units'] = (new UnitModel())->get_units();
 
         if (!$isAdmin) {
             $data['department_batches'] = [];

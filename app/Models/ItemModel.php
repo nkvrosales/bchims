@@ -99,7 +99,7 @@ class ItemModel extends Model
                                 ->select('MAX(central_supply.central_supply_id) AS id')
                                 ->select('MAX(central_supply.central_supply_id) AS central_supply_id')
                                 ->select('central_supply.item_code')
-                                ->select('central_supply.inventory_code')
+                                ->select('(SELECT cs2.inventory_code FROM central_supply cs2 WHERE cs2.item_code = central_supply.item_code ORDER BY cs2.central_supply_id DESC LIMIT 1) AS inventory_code')
                                 ->select('central_supply.item_name')
                                 ->select('MAX(central_supply.unit) AS unit')
                                 ->select('SUM(central_supply.quantity) AS quantity')
@@ -160,7 +160,7 @@ class ItemModel extends Model
                                 ->select('MAX(inventory.inventory_id) AS id')
                                 ->select('MAX(inventory.inventory_id) AS inventory_id')
                                 ->select('inventory.item_code')
-                                ->select('inventory.inventory_code')
+                                ->select('(SELECT inv2.inventory_code FROM inventory inv2 WHERE inv2.item_code = inventory.item_code ORDER BY inv2.inventory_id DESC LIMIT 1) AS inventory_code')
                                 ->select('inventory.item_name')
                                 ->select('MAX(inventory.unit) AS unit')
                                 ->select('SUM(department_supply.quantity_received) AS total_quantity')
@@ -179,7 +179,8 @@ class ItemModel extends Model
                                 ->join('category', 'category.category_id = inventory.category_id', 'left')
                                 ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
                                 ->join('source', 'source.source_id = central_supply.source_id', 'left')
-                                ->where('department_supply.department_id', $department_id);
+                                ->where('department_supply.department_id', $department_id)
+                                ->where('department_supply.quantity_received >', 0);
 
             if (empty($search)) {
                 $builder = $builder->where('inventory.status', 1);
@@ -233,21 +234,23 @@ class ItemModel extends Model
 
         if ($isAdmin) {
             return $this->db->table('central_supply')
-                            ->select('central_supply_id AS id, item_code, inventory_code, item_name, batch_num, lot_num, expiration_date, manufacturing_date, unit, quantity, quantity_on_hand, remarks, category_id')
-                            ->whereIn('item_code', $itemCodes)
-                            ->where('status', 1)
-                            ->orderBy('item_code', 'ASC')
-                            ->orderBy('expiration_date', 'ASC')
+                            ->select('central_supply_id AS id, central_supply.item_code, central_supply.inventory_code, central_supply.item_name, central_supply.batch_num, central_supply.lot_num, central_supply.expiration_date, central_supply.manufacturing_date, central_supply.unit, central_supply.quantity, central_supply.quantity_on_hand, central_supply.remarks, central_supply.category_id, source.source_type, source.supplier_name')
+                            ->join('source', 'source.source_id = central_supply.source_id', 'left')
+                            ->whereIn('central_supply.item_code', $itemCodes)
+                            ->where('central_supply.status', 1)
+                            ->orderBy('central_supply.item_code', 'ASC')
+                            ->orderBy('central_supply.expiration_date', 'ASC')
                             ->get()
                             ->getResultArray();
         } else {
             return $this->db->table('inventory')
-                            ->select('inventory.inventory_id AS id, inventory.item_code, inventory.inventory_code, inventory.item_name, inventory.batch_num, inventory.lot_num, inventory.expiration_date, inventory.manufacturing_date, inventory.unit, department_supply.quantity_received AS quantity, department_supply.quantity_on_hand, inventory.remarks, inventory.category_id')
+                            ->select('inventory.inventory_id AS id, inventory.item_code, inventory.inventory_code, inventory.item_name, inventory.batch_num, inventory.lot_num, inventory.expiration_date, inventory.manufacturing_date, inventory.unit, SUM(department_supply.quantity_received) AS quantity, SUM(department_supply.quantity_on_hand) AS quantity_on_hand, SUM(department_supply.quantity_used) AS quantity_used, inventory.remarks, inventory.category_id')
                             ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
                             ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
                             ->whereIn('inventory.item_code', $itemCodes)
                             ->where('inventory.status', 1)
                             ->where('department_supply.department_id', $department_id)
+                            ->groupBy('inventory.inventory_id')
                             ->orderBy('inventory.item_code', 'ASC')
                             ->orderBy('inventory.expiration_date', 'ASC')
                             ->get()

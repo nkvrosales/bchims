@@ -47,7 +47,7 @@
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
-            <label for="users_search_keyword">Enter Full Name / Username / Department</label>
+            <label for="users_search_keyword">Enter Full Name / Username</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
             <select id="users_search_role" name="role_filter" class="db-search-select">
@@ -72,6 +72,14 @@
             </select>
             <label for="users_search_dept">Department</label>
         </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <select id="users_search_status" name="status_filter" class="db-search-select">
+                <option value="">- Select Status -</option>
+                <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Active</option>
+                <option value="0" <?php echo (($status_filter ?? '') === '0') ? 'selected' : ''; ?>>Inactive</option>
+            </select>
+            <label for="users_search_status">Status</label>
+        </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnUsersSearch">
                  Search
@@ -86,7 +94,6 @@
                     data-bs-toggle="modal"
                     data-bs-target="#userModal"
                     onclick="setupUserModal('add')">
-                <i class="fa-solid fa-plus"></i>
                 <span>Add User</span>
             </button>
         </div>
@@ -333,6 +340,7 @@
                         </div>
 
                         <!-- Account Level -->
+                        <div class="w-50"></div>
                         <div class="col-lg-6 col-12">
                             <label for="modal_role" class="form-label small fw-semibold text-secondary">
                                 Account Level <span class="text-danger">*</span>

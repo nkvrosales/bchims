@@ -16,6 +16,7 @@ $routes->group('auth', function($routes) {
 
 $routes->get('dashboard', 'Dashboard::index');
 $routes->get('audit', 'Dashboard::audit_trail');
+$routes->get('reports', 'Reports::index');
 $routes->post('dashboard/log_action', 'Dashboard::log_action');
 $routes->post('dashboard/archive_logs', 'Dashboard::archive_logs');
 $routes->get('dashboard/download_archive/(:any)', 'Dashboard::download_archive/$1');
@@ -44,6 +45,16 @@ $routes->group('departments', function($routes) {
     $routes->get('archive/(:num)', 'Departments::archive/$1');
     $routes->get('restore/(:num)', 'Departments::restore/$1');
     $routes->get('delete/(:num)', 'Departments::delete/$1');
+});
+
+$routes->group('unit', function($routes) {
+    $routes->get('/', 'Units::index');
+    $routes->get('create', 'Units::create');
+    $routes->post('create', 'Units::create');
+    $routes->get('edit/(:num)', 'Units::edit/$1');
+    $routes->post('edit/(:num)', 'Units::edit/$1');
+    $routes->get('archive/(:num)', 'Units::archive/$1');
+    $routes->get('restore/(:num)', 'Units::restore/$1');
 });
 
 $routes->group('users', function($routes) {

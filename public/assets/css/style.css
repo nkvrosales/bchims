@@ -1725,13 +1725,13 @@ h1, h2, h3, h4, h5, h6 {
     transform: none;
 }
 
-#btnAddNewItem, #btnAddNewCategory, #btnAddNewDept, #btnAddNewUser, #btnAddNewSupplier, #btnNewSupplyRequest {
+#btnAddNewItem, #btnAddNewCategory, #btnAddNewDept, #btnAddNewUser, #btnAddNewSupplier, #btnNewSupplyRequest, #btnAddNewUnit {
     background: #10b981;
 }
-#btnAddNewItem:hover, #btnAddNewCategory:hover, #btnAddNewDept:hover, #btnAddNewUser:hover, #btnAddNewSupplier:hover, #btnNewSupplyRequest:hover,
-#btnAddNewItem:focus, #btnAddNewCategory:focus, #btnAddNewDept:focus, #btnAddNewUser:focus, #btnAddNewSupplier:focus, #btnNewSupplyRequest:focus,
-#btnAddNewItem:active, #btnAddNewCategory:active, #btnAddNewDept:active, #btnAddNewUser:active, #btnAddNewSupplier:active, #btnNewSupplyRequest:active,
-#btnAddNewItem:focus-visible, #btnAddNewCategory:focus-visible, #btnAddNewDept:focus-visible, #btnAddNewUser:focus-visible, #btnAddNewSupplier:focus-visible, #btnNewSupplyRequest:focus-visible {
+#btnAddNewItem:hover, #btnAddNewCategory:hover, #btnAddNewDept:hover, #btnAddNewUser:hover, #btnAddNewSupplier:hover, #btnNewSupplyRequest:hover, #btnAddNewUnit:hover,
+#btnAddNewItem:focus, #btnAddNewCategory:focus, #btnAddNewDept:focus, #btnAddNewUser:focus, #btnAddNewSupplier:focus, #btnNewSupplyRequest:focus, #btnAddNewUnit:focus,
+#btnAddNewItem:active, #btnAddNewCategory:active, #btnAddNewDept:active, #btnAddNewUser:active, #btnAddNewSupplier:active, #btnNewSupplyRequest:active, #btnAddNewUnit:active,
+#btnAddNewItem:focus-visible, #btnAddNewCategory:focus-visible, #btnAddNewDept:focus-visible, #btnAddNewUser:focus-visible, #btnAddNewSupplier:focus-visible, #btnNewSupplyRequest:focus-visible, #btnAddNewUnit:focus-visible {
     background: #059669 !important;
     color: #fff !important;
 }

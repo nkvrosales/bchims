@@ -48,6 +48,14 @@
             >
             <label for="cat_search_keyword">Enter Category Name / Code</label>
         </div>
+        <div class="db-search-field db-search-field--dropdown">
+            <select id="cat_search_status" name="status_filter" class="db-search-select">
+                <option value="">- Select Status -</option>
+                <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Active</option>
+                <option value="0" <?php echo (($status_filter ?? '') === '0') ? 'selected' : ''; ?>>Inactive</option>
+            </select>
+            <label for="cat_search_status">Status</label>
+        </div>
         <div class="db-search-actions">
             <button type="submit" class="btn-db-search" id="btnCatSearch">
                  Search
@@ -60,7 +68,6 @@
                     class="btn btn-db-search d-inline-flex align-items-center gap-2"
                     id="btnAddNewCategory"
                     onclick="openCategoryModal('create')">
-                <i class="fa-solid fa-plus"></i>
                 <span>Add Category</span>
             </button>
         </div>
@@ -73,8 +80,9 @@
         <table class="table table-custom table-hover w-100" id="categoriesTable">
             <thead>
                 <tr>
-                    <th style="width: 65%">Category Name</th>
+                    <th style="width: 50%">Category Name</th>
                     <th style="width: 20%">Category Code</th>
+                    <th style="width: 10%">Status</th>
                     <th style="width: 10%" class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -88,15 +96,24 @@
                             <td class="fw text-dark" style="font-size: 0.875rem;">
                                 <?php echo htmlspecialchars($category['category_code']); ?>
                             </td>
+                            <td class="text-center">
+                                <?php if (($category['status'] ?? 1) == 1): ?>
+                                    <span class="badge badge-action rounded-pill bg-success-subtle text-dark border border-success-subtle text-uppercase">Active</span>
+                                <?php else: ?>
+                                    <span class="badge badge-action rounded-pill bg-secondary-subtle text-dark border border-secondary-subtle text-uppercase">Inactive</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-end">
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                         Actions
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openCategoryModal('edit', <?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['category_description'] ?? '', ENT_QUOTES); ?>')" title="Manage Category">Manage</a></li>
                                         <?php if (($category['status'] ?? 1) == 1): ?>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveCategoryModal-<?php echo $category['category_id']; ?>" title="Archive Category">Archive</a></li>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openCategoryModal('edit', <?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['category_description'] ?? '', ENT_QUOTES); ?>')" title="Manage Category">Manage</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveCategoryModal-<?php echo $category['category_id']; ?>" title="Deactivate Category">Deactivate</a></li>
+                                        <?php else: ?>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreCategoryModal-<?php echo $category['category_id']; ?>" title="Reactivate Category">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -246,7 +263,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                     <div class="d-flex align-items-center gap-3">
                         <h5 class="modal-title fw-bold mb-0" id="archiveCategoryModalLabel-<?php echo $category['category_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                            Archive Category
+                            Deactivate Category
                         </h5>
                     </div>
                     <button type="button"
@@ -272,7 +289,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                     </div>
 
                     <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                        Are you sure you want to archive this category?
+                        Are you sure you want to deactivate this category?
                     </p>
                 </div>
 
@@ -299,7 +316,79 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                             "
                             onmouseover="this.style.background='#dc2626'"
                             onmouseout="this.style.background='#ef4444'">
-                         Archive Category
+                         Deactivate Category
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== RESTORE CATEGORY MODAL ===================== -->
+    <div class="modal fade" id="restoreCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
+         aria-labelledby="restoreCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+
+                <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <h5 class="modal-title fw-bold mb-0" id="restoreCategoryModalLabel-<?php echo $category['category_id']; ?>"
+                            style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                            Reactivate Category
+                        </h5>
+                    </div>
+                    <button type="button"
+                            class="btn-close btn-close-dark"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                            style="opacity: 0.6;"></button>
+                </div>
+
+                <div class="modal-body px-4 py-4">
+                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                    <?php echo htmlspecialchars($category['category_code']); ?>
+                                </div>
+                                <div class="text-muted small">
+                                    <?php echo !empty($category['category_description']) ? htmlspecialchars($category['category_description']) : 'No description'; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                        Are you sure you want to reactivate this category?
+                    </p>
+                </div>
+
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                    <button type="button"
+                            data-bs-dismiss="modal"
+                            style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                            onmouseover="this.style.background='#f9fafb'"
+                            onmouseout="this.style.background='#fff'">
+                        Close
+                    </button>
+                    <a href="<?php echo base_url('categories/restore/' . $category['category_id']); ?>"
+                       style="
+                               background: #10b981;
+                               color: #fff;
+                               border: 1px solid transparent;
+                               border-radius: 8px;
+                               padding: 0.5rem 1.5rem;
+                               font-size: 0.9rem;
+                               font-weight: 600;
+                               text-decoration: none;
+                                cursor: pointer;
+                                display: inline-flex;
+                                align-items: center;
+                                height: 38px;
+                            "
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10b981'">
+                         Reactivate Category
                     </a>
                 </div>
 

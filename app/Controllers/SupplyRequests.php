@@ -102,7 +102,21 @@ class SupplyRequests extends BaseController
             $batchesByCode[$name][] = $b;
         }
 
-        $data['title']         = is_admin_role() ? 'Central Requests' : ($user['department_name'] ?? 'My') . ' Requests';
+        // Build distinct units per item name (all status=1 batches, regardless of stock level)
+        $unitRows = $this->db->table('central_supply')
+                             ->select('item_name, unit')
+                             ->distinct()
+                             ->where('status', 1)
+                             ->where('unit IS NOT NULL')
+                             ->where("unit != ''")
+                             ->orderBy('item_name, unit', 'ASC')
+                             ->get()->getResultArray();
+        $unitsByName = [];
+        foreach ($unitRows as $ur) {
+            $unitsByName[$ur['item_name']][] = $ur['unit'];
+        }
+
+        $data['title']         = is_admin_role() ? 'Central Supply Requests' : ($user['department_name'] ?? 'My') . ' Requests';
         $data['requests']      = $requests;
         $data['user']          = $user;
         $data['items']         = $items;
@@ -112,6 +126,7 @@ class SupplyRequests extends BaseController
         $data['dept_filter']   = $dept_filter;
         $data['departments']   = $departments;
         $data['batches_by_code'] = $batchesByCode;
+        $data['units_by_name']   = $unitsByName;
 
         return view('templates/header', $data)
              . view('requests', $data)
@@ -203,10 +218,19 @@ class SupplyRequests extends BaseController
             $quantity = $v['quantity'];
             $centralSupplyId = $v['itemId'];
 
-            // 1. Get or create inventory item for the department
+            // 1. Create a new department_supply row for this request
+            $db->table('department_supply')->insert([
+                'department_id'     => $deptId,
+                'quantity_received' => 0,
+                'quantity_used'     => 0,
+                'quantity_on_hand'  => 0,
+            ]);
+            $deptSupplyId = $db->insertID();
+
+            // 2. Create or get inventory item for the department (FK for supply record)
             $invItem = $db->table('inventory')
-                                ->where('inventory_code', $item['inventory_code'])
-                                ->get()->getRowArray();
+                          ->where('inventory_code', $item['inventory_code'])
+                          ->get()->getRowArray();
             if (!$invItem) {
                 $db->table('inventory')->insert([
                     'item_code'        => $item['item_code'],
@@ -215,6 +239,7 @@ class SupplyRequests extends BaseController
                     'batch_num'       => $item['batch_num'],
                     'lot_num'         => $item['lot_num'],
                     'expiration_date' => $item['expiration_date'],
+                    'unit'            => $item['unit'] ?? null,
                     'quantity'        => 0,
                     'category_id'     => $item['category_id'],
                 ]);
@@ -222,15 +247,6 @@ class SupplyRequests extends BaseController
             } else {
                 $invId = $invItem['inventory_id'];
             }
-
-            // 2. Create a new department_supply row for this request
-            $db->table('department_supply')->insert([
-                'department_id'     => $deptId,
-                'quantity_received' => 0,
-                'quantity_used'     => 0,
-                'quantity_on_hand'  => 0,
-            ]);
-            $deptSupplyId = $db->insertID();
 
             // 3. Create the request
             $insertData = [
@@ -267,7 +283,8 @@ class SupplyRequests extends BaseController
         $db->transComplete();
 
         if ($db->transStatus() === false || $successCount === 0) {
-            session()->setFlashdata('error', 'An error occurred while submitting your requests.');
+            session()->setFlashdata('create_request_modal_open', true);
+            session()->setFlashdata('create_request_validation_errors', 'An error occurred while submitting your requests. Please try again or check your input.');
         } else {
             $logMsg = "{$user['full_name']} submitted a supply request batch for: " . implode(', ', $auditLogs) . " from Central Supply.";
             if ($notes) {
@@ -280,6 +297,72 @@ class SupplyRequests extends BaseController
             );
 
             session()->setFlashdata('success', 'Supply request(s) submitted successfully!');
+        }
+
+        return redirect()->to('requests');
+    }
+
+    /**
+     * Edit/update a pending supply request.
+     */
+    public function edit($id = null)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('requests');
+        }
+
+        if (!in_array(strtolower((string) session()->get('role')), ['admin', 'encoder'], true)) {
+            session()->setFlashdata('error', 'You do not have permission to edit requests.');
+            return redirect()->to('requests');
+        }
+
+        $request = $this->_getRequest($id);
+        if (!$request) {
+            session()->setFlashdata('error', 'Supply request not found.');
+            return redirect()->to('requests');
+        }
+
+        if ((int)$request['request_status'] !== 1) {
+            session()->setFlashdata('error', 'Only pending requests can be edited.');
+            return redirect()->to('requests');
+        }
+
+        $itemId   = (int)$this->request->getPost('item_id');
+        $quantity = (int)$this->request->getPost('quantity');
+        $unit     = trim((string)$this->request->getPost('unit'));
+        $notes    = trim((string)$this->request->getPost('notes'));
+
+        if ($quantity <= 0) {
+            session()->setFlashdata('error', 'Quantity must be greater than 0.');
+            return redirect()->to('requests');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $this->requestModel->update($id, [
+            'quantity_requested' => $quantity,
+            'notes'              => $notes ?: null,
+        ]);
+
+        // Update unit in supply record
+        $db->table('supply')
+           ->where('request_id', $id)
+           ->update(['unit' => $unit]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            session()->setFlashdata('error', 'An error occurred while updating the request.');
+        } else {
+            $this->auditModel->log_activity(
+                'UPDATE_SUPPLY_REQUEST',
+                'Supply Requests',
+                "Updated supply request #{$id}: quantity changed to {$quantity}."
+            );
+            session()->setFlashdata('success', 'Supply request updated successfully!');
         }
 
         return redirect()->to('requests');
@@ -325,6 +408,7 @@ class SupplyRequests extends BaseController
             $db = \Config\Database::connect();
             $batches = $db->table('central_supply')
                           ->where('item_name', $request['item_name'])
+                          ->where('unit', $request['item_unit'])
                           ->where('quantity_on_hand >', 0)
                           ->orderBy('expiration_date', 'ASC')
                           ->get()->getResultArray();
@@ -374,6 +458,13 @@ class SupplyRequests extends BaseController
                 $db->transRollback();
                 session()->setFlashdata('open_modal', $modalId);
                 session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'.");
+                return redirect()->to('requests');
+            }
+
+            if ($csItem['unit'] !== $request['item_unit']) {
+                $db->transRollback();
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Batch '{$csItem['inventory_code']}' unit ({$csItem['unit']}) does not match requested unit ({$request['item_unit']}).");
                 return redirect()->to('requests');
             }
 
@@ -465,7 +556,7 @@ class SupplyRequests extends BaseController
                 'Supply Requests',
                 "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$totalServed} unit(s) of '{$firstBatch['item_name']}' to department '{$deptName}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
             );
-            session()->setFlashdata('success', "Request served! {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
+            session()->setFlashdata('success', "Request served! {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('requests');
@@ -557,6 +648,13 @@ class SupplyRequests extends BaseController
                 return redirect()->to('requests');
             }
 
+            if ($csItem['unit'] !== $request['item_unit']) {
+                $db->transRollback();
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Batch '{$csItem['inventory_code']}' unit ({$csItem['unit']}) does not match requested unit ({$request['item_unit']}).");
+                return redirect()->to('requests');
+            }
+
             $db->table('central_supply')
                ->where('central_supply_id', $csId)
                ->update([
@@ -584,6 +682,7 @@ class SupplyRequests extends BaseController
                 'batch_num'       => $firstBatch['batch_num'],
                 'lot_num'         => $firstBatch['lot_num'],
                 'expiration_date' => $firstBatch['expiration_date'],
+                'unit'            => $firstBatch['unit'] ?? null,
                 'quantity'        => $totalServed,
                 'category_id'     => $firstBatch['category_id'],
             ]);
@@ -674,7 +773,7 @@ class SupplyRequests extends BaseController
                 'Supply Requests',
                 $auditDesc
             );
-            session()->setFlashdata('success', "Partially served! {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
+            session()->setFlashdata('success', "Partially served! {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('requests');
@@ -734,6 +833,67 @@ class SupplyRequests extends BaseController
     }
 
     /**
+     * Cancel a pending or partially served request (encoder or admin).
+     */
+    public function cancel($id = null)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        if (empty($id)) {
+            return redirect()->to('requests');
+        }
+
+        $request = $this->_getRequest($id);
+
+        if (!$request) {
+            session()->setFlashdata('error', 'Supply request not found.');
+            return redirect()->to('requests');
+        }
+
+        $role = strtolower((string) session()->get('role'));
+
+        // Encoders can cancel their own pending or partially served requests; admins can cancel pending or partially served
+        if ($role === 'encoder') {
+            if (!in_array((int)$request['request_status'], [1, 2], true)) {
+                session()->setFlashdata('error', 'Only pending or partially served requests can be cancelled.');
+                return redirect()->to('requests');
+            }
+        } elseif (is_admin_role()) {
+            if (!in_array((int)$request['request_status'], [1, 2], true)) {
+                session()->setFlashdata('error', 'Only pending or partially served requests can be cancelled.');
+                return redirect()->to('requests');
+            }
+        } else {
+            session()->setFlashdata('error', 'You do not have permission to cancel requests.');
+            return redirect()->to('requests');
+        }
+
+        $notes = trim((string) $this->request->getPost('cancel_notes'));
+
+        $updateData = ['request_status' => 5, 'cancelled_date' => date('Y-m-d H:i:s')];
+        if ($notes !== '') {
+            $updateData['notes'] = $notes;
+        }
+
+        if ($this->requestModel->update($id, $updateData)) {
+            $auditDesc = "Cancelled supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'.";
+            if ($notes) {
+                $auditDesc .= " Reason: {$notes}";
+            }
+            $this->auditModel->log_activity(
+                'CANCEL_SUPPLY_REQUEST',
+                'Supply Requests',
+                $auditDesc
+            );
+            session()->setFlashdata('success', 'Supply request cancelled successfully.');
+        } else {
+            session()->setFlashdata('error', 'An error occurred while cancelling the request.');
+        }
+
+        return redirect()->to('requests');
+    }
+
+    /**
      * Complete a partially served supply request by serving the remaining quantity.
      */
     public function complete_partial($id = null)
@@ -780,6 +940,7 @@ class SupplyRequests extends BaseController
             $db = \Config\Database::connect();
             $batches = $db->table('central_supply')
                           ->where('item_name', $request['item_name'])
+                          ->where('unit', $request['item_unit'])
                           ->where('quantity_on_hand >', 0)
                           ->orderBy('expiration_date', 'ASC')
                           ->get()->getResultArray();
@@ -831,6 +992,13 @@ class SupplyRequests extends BaseController
                 return redirect()->to('requests');
             }
 
+            if ($csItem['unit'] !== $request['item_unit']) {
+                $db->transRollback();
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Batch '{$csItem['inventory_code']}' unit ({$csItem['unit']}) does not match requested unit ({$request['item_unit']}).");
+                return redirect()->to('requests');
+            }
+
             $db->table('central_supply')
                ->where('central_supply_id', $csId)
                ->update([
@@ -866,6 +1034,7 @@ class SupplyRequests extends BaseController
                 'batch_num'       => $firstBatch['batch_num'],
                 'lot_num'         => $firstBatch['lot_num'],
                 'expiration_date' => $firstBatch['expiration_date'],
+                'unit'            => $firstBatch['unit'] ?? null,
                 'quantity'        => $totalServed,
                 'category_id'     => $firstBatch['category_id'],
             ]);
@@ -947,7 +1116,7 @@ class SupplyRequests extends BaseController
                 'Supply Requests',
                 "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$totalServed} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
             );
-            session()->setFlashdata('success', "Request completed! Remaining {$totalServed} unit(s) of '{$firstBatch['item_name']}' transferred to {$deptName}.");
+            session()->setFlashdata('success', "Request completed! Remaining {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
 
         return redirect()->to('requests');
@@ -998,7 +1167,7 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        $request = $this->_getRequest($id);
+        $request = $this->requestModel->find($id);
 
         if (!$request) {
             session()->setFlashdata('error', 'Supply request not found.');
@@ -1010,7 +1179,7 @@ class SupplyRequests extends BaseController
         $this->auditModel->log_activity(
             'RESTORE_SUPPLY_REQUEST',
             'Supply Requests',
-            "Restored supply request #{$id} from {$request['requester_full_name']}."
+            "Restored supply request #{$id}."
         );
         session()->setFlashdata('success', 'Supply request restored successfully.');
 

@@ -106,7 +106,6 @@ $requestBadgeMap = [
                             id="btnNewSupplyRequest"
                             data-bs-toggle="modal"
                             data-bs-target="#createRequestModal">
-                        <i class="fa-solid fa-plus"></i>
                         <span>Request</span>
                     </button>
                 <?php endif; ?>
@@ -177,7 +176,18 @@ $requestBadgeMap = [
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <?php if (session()->get('role') === 'encoder' && $req['request_status'] == 1): ?>
+                                    <?php if (($req['status'] ?? 1) == 0): ?>
+                                        <?php if (is_admin_role()): ?>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerRestore_<?php echo $req['request_id']; ?>" title="Restore Request">Restore</a></li>
+                                            </ul>
+                                        </div>
+                                        <?php endif; ?>
+                                    <?php elseif (session()->get('role') === 'encoder' && $req['request_status'] == 1): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
                                                 Actions
@@ -185,9 +195,6 @@ $requestBadgeMap = [
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                                 <li><a class="dropdown-item btn-edit-request-trigger" href="#" data-bs-toggle="modal" data-bs-target="#createRequestModal" data-mode="edit" data-id="<?php echo $req['request_id']; ?>" data-category="<?php echo $req['category_id'] ?? ''; ?>" data-item-id="<?php echo $req['central_supply_id']; ?>" data-item-name="<?php echo htmlspecialchars($req['item_name']); ?>" data-qty="<?php echo $req['quantity_requested']; ?>" data-unit="<?php echo htmlspecialchars($req['item_unit'] ?? ''); ?>" data-notes="<?php echo htmlspecialchars($req['notes'] ?? ''); ?>" title="Manage Request">Manage</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
-                                                <?php if (($req['status'] ?? 1) == 1): ?>
-                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
-                                                <?php endif; ?>
                                             </ul>
                                         </div>
                                     <?php elseif (session()->get('role') === 'encoder' && $req['request_status'] != 1): ?>
@@ -197,8 +204,8 @@ $requestBadgeMap = [
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
-                                                <?php if (($req['status'] ?? 1) == 1): ?>
-                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
+                                                <?php if ((int)$req['request_status'] === 2): ?>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
@@ -212,9 +219,6 @@ $requestBadgeMap = [
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#serveModal_<?php echo $req['request_id']; ?>" id="btnTriggerServe_<?php echo $req['request_id']; ?>" title="Serve Request">Serve</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#partialModal_<?php echo $req['request_id']; ?>" id="btnTriggerPartial_<?php echo $req['request_id']; ?>" title="Serve Partially">Partial</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#rejectModal_<?php echo $req['request_id']; ?>" id="btnTriggerReject_<?php echo $req['request_id']; ?>" title="Reject Request">Reject</a></li>
-                                                <?php if (($req['status'] ?? 1) == 1): ?>
-                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
-                                                <?php endif; ?>
                                             </ul>
                                         </div>
                                     <?php elseif (is_admin_role() && $req['request_status'] == 2): ?>
@@ -226,9 +230,7 @@ $requestBadgeMap = [
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#completePartialModal_<?php echo $req['request_id']; ?>" id="btnTriggerCompletePartial_<?php echo $req['request_id']; ?>" title="Complete Partially Served Request">Complete</a></li>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#partialModal_<?php echo $req['request_id']; ?>" id="btnTriggerPartial_<?php echo $req['request_id']; ?>" title="Serve Partially">Partial</a></li>
-                                                <?php if (($req['status'] ?? 1) == 1): ?>
-                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
-                                                <?php endif; ?>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal_<?php echo $req['request_id']; ?>" title="Cancel Request">Cancel</a></li>
                                             </ul>
                                         </div>
                                     <?php elseif (is_admin_role() && $req['request_status'] != 1): ?>
@@ -238,9 +240,7 @@ $requestBadgeMap = [
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" id="btnTriggerView_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
-                                                <?php if (($req['status'] ?? 1) == 1): ?>
                                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveSingleModal_<?php echo $req['request_id']; ?>" id="btnTriggerArchive_<?php echo $req['request_id']; ?>" title="Archive Request">Archive</a></li>
-                                                <?php endif; ?>
                                             </ul>
                                         </div>
                                     <?php endif; ?>
@@ -327,7 +327,7 @@ $requestBadgeMap = [
                                     <p class="text-muted small mb-0">
                                         This will mark request <strong>#<?php echo $req['request_id']; ?></strong> from
                                         <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong>
-                                        as <strong class="text-danger">Rejected</strong>.
+                                        as <strong>Rejected</strong>.
                                     </p>
                                     <div class="mb-3 text-start">
                                         <label for="reject_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Remarks</label>
@@ -419,10 +419,11 @@ $requestBadgeMap = [
                                                     <select class="form-select input-custom partial-batch-select" name="central_supply_id[]" required style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                                                         <option value="" disabled selected hidden>Select Inventory</option>
                                                         <?php $batches = $batches_by_code[$req['item_name']] ?? []; ?>
-                                                        <?php if (empty($batches)): ?>
+                                                        <?php $unitBatches = array_filter($batches, function($b) use ($req) { return $b['unit'] === ($req['item_unit'] ?? ''); }); ?>
+                                                        <?php if (empty($unitBatches)): ?>
                                                         <option value="" disabled>No available stock</option>
                                                         <?php else: ?>
-                                                        <?php foreach ($batches as $batch): ?>
+                                                        <?php foreach ($unitBatches as $batch): ?>
                                                         <option value="<?php echo $batch['central_supply_id']; ?>">
                                                             <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['inventory_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
                                                         </option>
@@ -631,7 +632,7 @@ $requestBadgeMap = [
                 </div>
             </div>
 
-            <?php if (session()->get('role') === 'encoder' && $req['request_status'] == 1): ?>
+            <?php if ((session()->get('role') === 'encoder' && in_array((int)$req['request_status'], [1, 2], true)) || (is_admin_role() && $req['request_status'] == 2)): ?>
                 <!-- Cancel Modal -->
                 <div class="modal fade" id="cancelModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="cancelModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -675,9 +676,10 @@ $requestBadgeMap = [
         <?php endforeach; ?>
     <?php endif; ?>
 
-            <!-- Archive Confirmation Modals (Admin only) -->
+            <!-- Archive Confirmation Modals (Admin only) — exclude pending & partially served -->
             <?php if (is_admin_role() && !empty($requests)): ?>
                 <?php foreach ($requests as $req): ?>
+                    <?php if (!in_array((int)$req['request_status'], [1, 2], true)): ?>
                     <div class="modal fade" id="archiveSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="archiveSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
@@ -722,6 +724,59 @@ $requestBadgeMap = [
                             </div>
                         </div>
                     </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            <!-- Restore Confirmation Modals (Admin only) -->
+            <?php if (is_admin_role() && !empty($requests)): ?>
+                <?php foreach ($requests as $req): ?>
+                    <?php if (($req['status'] ?? 1) == 0): ?>
+                    <div class="modal fade" id="restoreSingleModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="restoreSingleModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                                <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <h5 class="modal-title fw-bold mb-0" id="restoreSingleModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                                            Restore Request
+                                        </h5>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
+                                </div>
+                                <form method="POST" action="<?php echo base_url('requests/restore/' . $req['request_id']); ?>">
+                                    <div class="modal-body px-4 py-4">
+                                        <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div>
+                                                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                        #<?php echo $req['request_id']; ?> - <?php echo htmlspecialchars($req['item_name']); ?>
+                                                    </div>
+                                                    <div class="text-muted small">Code: <?php echo htmlspecialchars($req['item_code']); ?> &middot; Requested by: <?php echo htmlspecialchars($req['requester_full_name']); ?> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to restore this supply request?</p>
+                                    </div>
+                                    <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                                        <button type="button"
+                                                data-bs-dismiss="modal"
+                                                style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; height: 38px;"
+                                                onmouseover="this.style.background='#f9fafb'"
+                                                onmouseout="this.style.background='#fff'">
+                                            Close
+                                        </button>
+                                        <button type="submit"
+                                                style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                                onmouseover="this.style.background='#059669'"
+                                                onmouseout="this.style.background='#10b981'">
+                                            Restore Request
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             <?php endif; ?>
 
@@ -772,17 +827,17 @@ $requestBadgeMap = [
 
                         <!-- Column Labels for Create Mode -->
                         <div class="row g-3 mb-2 d-none d-md-flex" id="create-modal-headers">
-                            <div class="col-lg-2">
+                            <div class="col-lg-3">
                                 <label class="form-label small fw-semibold text-secondary">Category</label>
                             </div>
-                            <div class="col-lg-5">
-                                <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
-                            </div>
-                            <div class="col-lg-1">
-                                <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
+                            <div class="col-lg-4">
+                                <label class="form-label small fw-semibold text-secondary">Item </span></label>
                             </div>
                             <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">Unit</label>
+                            </div>
+                            <div class="col-lg-1">
+                                <label class="form-label small fw-semibold text-secondary">QTY </span></label>
                             </div>
                             <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">Action</label>
@@ -794,14 +849,14 @@ $requestBadgeMap = [
                             <div class="col-lg-3">
                                 <label class="form-label small fw-semibold text-secondary">Category</label>
                             </div>
-                            <div class="col-lg-5">
-                                <label class="form-label small fw-semibold text-secondary">Item Name <span class="text-danger">*</span></label>
-                            </div>
-                            <div class="col-lg-2">
-                                <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
+                            <div class="col-lg-4">
+                                <label class="form-label small fw-semibold text-secondary">Item </span></label>
                             </div>
                             <div class="col-lg-2">
                                 <label class="form-label small fw-semibold text-secondary">Unit</label>
+                            </div>
+                            <div class="col-lg-1">
+                                <label class="form-label small fw-semibold text-secondary">QTY </span></label>
                             </div>
                         </div>
 
@@ -848,6 +903,7 @@ $requestBadgeMap = [
     <script>
     var allItems = <?php echo $items_json; ?>;
     var categories = <?php echo $categories_json; ?>;
+    var unitsByItemName = <?php echo json_encode($units_by_name ?? []); ?>;
 
     document.addEventListener('DOMContentLoaded', function () {
         var container = document.getElementById('request-items-container');
@@ -862,7 +918,7 @@ $requestBadgeMap = [
             var rowHtml = `
             <div class="request-item-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle" id="${rowId}">
                 <!-- Category select -->
-                <div class="col-lg-2 col-12">
+                <div class="col-lg-3 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
                     <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                         <option value="">All Categories</option>
@@ -871,7 +927,7 @@ $requestBadgeMap = [
                 </div>
 
                 <!-- Item search combobox -->
-                <div class="col-lg-5 col-12">
+                <div class="col-lg-4 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">Item Name <span class="text-danger">*</span></label>
                     <div class="item-combobox">
                         <div class="position-relative">
@@ -887,21 +943,22 @@ $requestBadgeMap = [
                     </div>
                 </div>
 
-                <!-- Qty -->
-                <div class="col-lg-1 col-12">
-                    <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control input-custom row-quantity-input" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                </div>
-
                 <!-- Unit combobox -->
                 <div class="col-lg-2 col-12">
                     <label class="form-label small fw-semibold text-secondary d-md-none">Unit</label>
                     <div class="unit-combobox position-relative">
-                        <input type="text" class="form-control input-custom row-unit-search" name="unit[]" placeholder="Select Unit" autocomplete="off" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;" readonly>
+                        <input type="text" class="form-control input-custom row-unit-search" name="unit[]" placeholder="Select Unit" autocomplete="off" style="border-radius: 8px; border-color: #cbd5e1; height: 42px; padding-right: 30px;">
+                        <i class="fa-solid fa-xmark position-absolute top-50 end-0 translate-middle-y me-3 row-unit-clear" style="color: #9ca3af; font-size: 0.9rem; cursor: pointer; display: none;"></i>
                         <div class="unit-dropdown row-unit-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.1); margin-top:4px; max-height:180px; overflow-y:auto;">
                             <div class="unit-dropdown-inner"></div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Qty -->
+                <div class="col-lg-1 col-12">
+                    <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control input-custom row-quantity-input" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                 </div>
 
                 <!-- Add/Remove Actions -->
@@ -1049,8 +1106,8 @@ $requestBadgeMap = [
             var itemId = row.querySelector('.row-item-id').value;
             if (itemId) {
                 var selectedItem = allItems.find(function(item) { return String(item.id) === String(itemId); });
-                if (selectedItem && selectedItem.unit) {
-                    return [selectedItem.unit];
+                if (selectedItem && selectedItem.name && unitsByItemName[selectedItem.name]) {
+                    return unitsByItemName[selectedItem.name].slice();
                 }
             }
             var units = [];
@@ -1085,6 +1142,8 @@ $requestBadgeMap = [
                         unitInput.value = u;
                         unitInput.setAttribute('data-selected-unit', u);
                         row.querySelector('.row-unit-dropdown').style.display = 'none';
+                        var clearBtn = row.querySelector('.row-unit-clear');
+                        if (clearBtn) clearBtn.style.display = 'block';
                     });
                 });
             }
@@ -1093,6 +1152,7 @@ $requestBadgeMap = [
         function setupUnitCombobox(row) {
             var unitInput = row.querySelector('.row-unit-search');
             var unitDropdown = row.querySelector('.row-unit-dropdown');
+            var clearBtn = row.querySelector('.row-unit-clear');
             if (!unitInput || !unitDropdown) return;
 
             // Make input editable for typing to filter
@@ -1105,6 +1165,15 @@ $requestBadgeMap = [
                 renderUnitDropdown(row, unitInput.getAttribute('data-selected-unit') || '');
                 unitDropdown.style.display = 'block';
             });
+
+            // Clear button action
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    unitInput.value = '';
+                    unitInput.setAttribute('data-selected-unit', '');
+                    clearBtn.style.display = 'none';
+                });
+            }
         }
 
         // Hide dropdowns when clicking outside
@@ -1177,7 +1246,7 @@ $requestBadgeMap = [
 
                     modalTitle.textContent = '<?php echo session()->get('role') === 'encoder' ? 'Manage' : 'Edit'; ?> Request';
                     modalForm.action = '<?php echo base_url('requests/edit'); ?>/' + id;
-                    submitBtn.textContent = 'Save Changes';
+                    submitBtn.textContent = 'Update Request';
 
                     if (createHeaders) {
                         createHeaders.classList.add('d-none');
@@ -1208,7 +1277,7 @@ $requestBadgeMap = [
                         </div>
 
                         <!-- Item search combobox -->
-                        <div class="col-lg-5 col-12">
+                        <div class="col-lg-4 col-12">
                             <label class="form-label small fw-semibold text-secondary d-md-none">Item <span class="text-danger">*</span></label>
                             <div class="item-combobox">
                                 <div class="position-relative">
@@ -1224,21 +1293,22 @@ $requestBadgeMap = [
                             </div>
                         </div>
 
-                        <!-- Qty -->
-                        <div class="col-lg-2 col-12">
-                            <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control input-custom row-quantity-input" name="quantity" min="1" value="${qty}" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                        </div>
-
                         <!-- Unit combobox -->
                         <div class="col-lg-2 col-12">
                             <label class="form-label small fw-semibold text-secondary d-md-none">Unit</label>
                             <div class="unit-combobox position-relative">
-                                <input type="text" class="form-control input-custom row-unit-search" name="unit" placeholder="Select Unit" autocomplete="off" value="${escapeHtml(unit)}" data-selected-unit="${escapeHtml(unit)}" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
+                                <input type="text" class="form-control input-custom row-unit-search" name="unit" placeholder="Select Unit" autocomplete="off" value="${escapeHtml(unit)}" data-selected-unit="${escapeHtml(unit)}" style="border-radius: 8px; border-color: #cbd5e1; height: 42px; padding-right: 30px;">
+                                <i class="fa-solid fa-xmark position-absolute top-50 end-0 translate-middle-y me-3 row-unit-clear" style="color: #9ca3af; font-size: 0.9rem; cursor: pointer; display: ${unit ? 'block' : 'none'};"></i>
                                 <div class="unit-dropdown row-unit-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.1); margin-top:4px; max-height:180px; overflow-y:auto;">
                                     <div class="unit-dropdown-inner"></div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Qty -->
+                        <div class="col-lg-1 col-12">
+                            <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control input-custom row-quantity-input" name="quantity" min="1" value="${qty}" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                         </div>
                     </div>`;
 

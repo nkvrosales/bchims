@@ -61,17 +61,11 @@ class Dashboard extends BaseController
         $deptId = $currentUser['department_id'] ?? null;
 
         if (is_admin_role()) {
-            // Count distinct items (grouped by item_code+item_name) with status=1,
-            // matching the inventory page's get_items() grouping logic.
-            $invCountRow = $db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT item_code, item_name
-                    FROM central_supply
-                    WHERE status = 1
-                    GROUP BY item_code, item_name
-                ) AS grouped"
+            // Count pending (1) and partially served (2) requests
+            $reqCountRow = $db->query(
+                "SELECT COUNT(*) AS cnt FROM request WHERE request_status IN (1, 2) AND status > 0"
             )->getRowArray();
-            $data['total_inventory'] = (int)($invCountRow['cnt'] ?? 0);
+            $data['total_inventory'] = (int)($reqCountRow['cnt'] ?? 0);
 
             $data['total_low_stock'] = (int)$db->query(
                 "SELECT COUNT(*) AS cnt FROM (
@@ -123,17 +117,11 @@ class Dashboard extends BaseController
                 LIMIT 5"
             )->getResultArray();
         } else {
-            // Staff: count distinct items (grouped by item_code+item_name) for this department,
-            // matching the inventory page's get_items() grouping logic.
+            // Staff: count pending (1) and partially served (2) requests for this department
             $data['total_inventory'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT i.item_code, i.item_name
-                    FROM inventory i
-                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                    WHERE ds.department_id = ? AND i.status = 1
-                    GROUP BY i.item_code, i.item_name
-                ) AS grouped",
+                "SELECT COUNT(*) AS cnt FROM request r
+                 INNER JOIN department_supply ds ON ds.department_supply_id = r.department_supply_id
+                 WHERE ds.department_id = ? AND r.request_status IN (1, 2) AND r.status > 0",
                 [$deptId]
             )->getRowArray()['cnt'];
 
@@ -214,12 +202,10 @@ class Dashboard extends BaseController
 
         $search = $this->request->getGet('search');
         $action_filter = $this->request->getGet('action_filter');
-        $date_filter = $this->request->getGet('date_filter');
 
         $data['title'] = 'Audit Log';
         $data['search'] = $search;
         $data['action_filter'] = $action_filter;
-        $data['date_filter'] = $date_filter;
 
         $auditModel = new \App\Models\AuditModel();
         $filters = [];
@@ -228,10 +214,6 @@ class Dashboard extends BaseController
         }
         if (!empty($action_filter)) {
             $filters['action'] = $action_filter;
-        }
-        if (!empty($date_filter)) {
-            $filters['start_date'] = $date_filter;
-            $filters['end_date'] = $date_filter;
         }
         $data['logs'] = $auditModel->get_audit_logs($filters);
 
@@ -289,7 +271,7 @@ class Dashboard extends BaseController
         $data['departments'] = $departmentModel->get_departments();
 
         $rules = [
-            'username'   => 'required|alpha_numeric_punct|min_length[4]|max_length[30]',
+            'username'   => 'required|alpha_numeric_punct|max_length[30]',
             'last_name'  => 'required|max_length[50]',
             'first_name' => 'required|max_length[50]',
             'email'      => 'permit_empty|valid_email|max_length[100]',

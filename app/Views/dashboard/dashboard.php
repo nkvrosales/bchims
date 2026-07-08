@@ -24,11 +24,11 @@
 <!-- KPI Stats Section -->
 <div class="row g-4 mb-4 fade-in-up" style="animation-delay: 0.05s;">
 
-    <!-- Inventory Count -->
+    <!-- Pending & Partially Served Requests -->
     <div class="col-lg-6 col-xl-3 col-12">
-        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('inventory'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" onclick="window.location='<?php echo base_url('requests'); ?>'" style="cursor:pointer; transition: all 0.2s ease; border-radius: 8px; border-left: 6px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
             <div>
-                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Inventory Count</div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Requests</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_inventory; ?></h3>
                 <div class="mt-2" style="font-size: 0.75rem; color: #10b981; font-weight: 500;">
                 </div>

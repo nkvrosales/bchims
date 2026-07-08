@@ -42,12 +42,12 @@ class DepartmentModel extends Model
     /**
      * Get departments with search, filter, and optional limit (limit skipped when searching/filtering).
      */
-    public function search_departments($search = '', $limit = 1000)
+    public function search_departments($search = '', $status_filter = '', $limit = 1000)
     {
         $builder = $this->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
                         ->orderBy('department_name', 'ASC');
 
-        if (empty($search)) {
+        if (empty($search) && $status_filter === '') {
             $builder = $builder->where('status', 1);
         }
 
@@ -58,7 +58,11 @@ class DepartmentModel extends Model
                                ->groupEnd();
         }
 
-        if ($limit !== null && empty($search)) {
+        if ($status_filter !== '') {
+            $builder = $builder->where('status', (int)$status_filter);
+        }
+
+        if ($limit !== null && empty($search) && $status_filter === '') {
             $builder = $builder->limit($limit);
         }
 

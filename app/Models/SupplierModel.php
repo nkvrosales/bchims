@@ -19,11 +19,11 @@ class SupplierModel extends Model
     /**
      * Get suppliers with search, filter, and optional limit (limit skipped when filtering).
      */
-    public function search_suppliers($search = '', $type_filter = '', $limit = 1000)
+    public function search_suppliers($search = '', $type_filter = '', $status_filter = '', $limit = 1000)
     {
         $builder = $this->orderBy('supplier_name', 'ASC');
 
-        if (empty($search) && empty($type_filter)) {
+        if (empty($search) && empty($type_filter) && $status_filter === '') {
             $builder = $builder->where('status', 1);
         }
 
@@ -38,7 +38,11 @@ class SupplierModel extends Model
             $builder = $builder->where('source_type', $type_filter);
         }
 
-        if ($limit !== null && empty($search) && empty($type_filter)) {
+        if ($status_filter !== '') {
+            $builder = $builder->where('status', (int)$status_filter);
+        }
+
+        if ($limit !== null && empty($search) && empty($type_filter) && $status_filter === '') {
             $builder = $builder->limit($limit);
         }
 
