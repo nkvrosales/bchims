@@ -83,9 +83,11 @@ $requestBadgeMap = [
                     <option value="">- Select Department -</option>
                     <?php if (!empty($departments)): ?>
                         <?php foreach ($departments as $d): ?>
+                            <?php if (strtolower($d['name']) !== 'central supply'): ?>
                             <option value="<?php echo $d['id']; ?>" <?php echo (($dept_filter ?? '') === (string)$d['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($d['name']); ?>
                             </option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -135,7 +137,7 @@ $requestBadgeMap = [
                     <?php if (!empty($requests)): ?>
                         <?php foreach ($requests as $req): ?>
                             <tr>
-                                <td class="font-monospace fw-bold" style="font-size: 0.85rem; color: var(--text-secondary);" data-order="<?php echo $req['request_id']; ?>">
+                                <td class="font-monospace" style="font-size: 0.85rem; color: var(--text-secondary);" data-order="<?php echo $req['request_id']; ?>">
                                     #<?php echo $req['request_id']; ?>
                                 </td>
                                 <td data-order="<?php echo htmlspecialchars($req['created_at'] ?? ''); ?>">
@@ -156,14 +158,7 @@ $requestBadgeMap = [
                                 <td>
                                     <?php $servedQty = (int)($req['quantity_served'] ?? 0); ?>
                                     <div>
-                                        <?php if ($req['request_status'] == 3): ?>
-                                            <span class="text-success fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
-                                        <?php elseif ($req['request_status'] == 2): ?>
-                                            <span class="text-primary fw-bold" title="Served Quantity"><?php echo $servedQty; ?></span>
-                                        <?php else: ?>
-                                            <span class="fw-bold text-dark" title="Served Quantity"><?php echo $servedQty; ?></span>
-                                        <?php endif; ?>
-                                        / <span class="fw-bold text-dark" title="Requested Quantity"><?php echo $req['quantity_requested']; ?></span>
+                                        <span class="text-dark" title="Served Quantity"><?php echo $servedQty; ?></span> / <span class="text-dark" title="Requested Quantity"><?php echo $req['quantity_requested']; ?></span>
                                     </div>
                                 </td>
                                 <td>

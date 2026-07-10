@@ -189,7 +189,7 @@
                             Department Code <span class="text-danger">*</span>
                         </label>
                         <input type="text"
-                               class="form-control input-custom"
+                               class="form-control input-custom text-uppercase"
                                id="dept_code"
                                name="code"
                                value="<?php echo old('code'); ?>"

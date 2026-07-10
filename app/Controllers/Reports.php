@@ -33,109 +33,125 @@ class Reports extends BaseController
         $isAdmin = is_admin_role();
         $deptId = $user['department_id'] ?? null;
 
-        $from = trim((string) $this->request->getGet('from'));
-        $to = trim((string) $this->request->getGet('to'));
-        $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) ? $from : date('Y-m-01');
-        $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) ? $to : date('Y-m-d');
-
-        if ($from > $to) {
-            [$from, $to] = [$to, $from];
-        }
+        $monthStart = date('Y-m-01');
+        $monthEnd   = date('Y-m-t');
 
         if ($isAdmin) {
-            $inventorySql = "
-                SELECT
-                    COUNT(*) AS batch_count,
-                    COUNT(DISTINCT item_code) AS item_count,
-                    COALESCE(SUM(quantity), 0) AS total_quantity,
-                    COALESCE(SUM(quantity_on_hand), 0) AS quantity_on_hand,
-                    SUM(CASE WHEN quantity_on_hand = 0 THEN 1 ELSE 0 END) AS out_of_stock,
-                    SUM(CASE WHEN expiration_date < CURDATE() AND quantity_on_hand > 0 THEN 1 ELSE 0 END) AS expired,
-                    SUM(CASE WHEN expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND quantity_on_hand > 0 THEN 1 ELSE 0 END) AS near_expiry
+            $nearExpirySql = "
+                SELECT item_code, item_name, expiration_date, quantity_on_hand
                 FROM central_supply
                 WHERE status = 1
+                  AND quantity_on_hand > 0
+                  AND expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                ORDER BY expiration_date ASC
             ";
-            $topItemsSql = "
-                SELECT item_code, item_name, unit, SUM(quantity_on_hand) AS quantity_on_hand
+            $pendingRequestsSql = "
+                SELECT DISTINCT r.request_id, r.request_date, r.quantity_requested, r.quantity_served,
+                       r.request_status, r.notes,
+                       CONCAT(u.first_name, ' ', u.last_name) AS requester_full_name,
+                       d.department_name,
+                       cs.item_name, s.unit AS item_unit
+                FROM request r
+                INNER JOIN user u ON u.user_id = r.user_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = r.department_supply_id
+                INNER JOIN departments d ON d.department_id = ds.department_id
+                INNER JOIN supply s ON s.request_id = r.request_id
+                INNER JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
+                WHERE r.status > 0 AND r.request_status = 1
+                ORDER BY r.request_date DESC
+            ";
+            $partialRequestsSql = "
+                SELECT DISTINCT r.request_id, r.request_date, r.quantity_requested, r.quantity_served,
+                       r.request_status, r.notes,
+                       CONCAT(u.first_name, ' ', u.last_name) AS requester_full_name,
+                       d.department_name,
+                       cs.item_name, s.unit AS item_unit
+                FROM request r
+                INNER JOIN user u ON u.user_id = r.user_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = r.department_supply_id
+                INNER JOIN departments d ON d.department_id = ds.department_id
+                INNER JOIN supply s ON s.request_id = r.request_id
+                INNER JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
+                WHERE r.status > 0 AND r.request_status = 2
+                ORDER BY r.request_date DESC
+            ";
+            $arrivedSql = "
+                SELECT item_code, item_name, unit, quantity_on_hand, created_at
                 FROM central_supply
-                WHERE status = 1
-                GROUP BY item_code, item_name, unit
-                ORDER BY quantity_on_hand DESC, item_name ASC
-                LIMIT 10
+                WHERE status = 1 AND created_at >= ? AND created_at <= ?
+                ORDER BY created_at DESC
             ";
-            $requestsSql = "
-                SELECT request.request_status, COUNT(*) AS total
-                FROM request
-                WHERE request.status > 0 AND DATE(request.request_date) BETWEEN ? AND ?
-                GROUP BY request.request_status
-            ";
-            $requestParams = [$from, $to];
+            $arrivedParams = [$monthStart, $monthEnd];
         } else {
-            $inventorySql = "
-                SELECT
-                    COUNT(*) AS batch_count,
-                    COUNT(DISTINCT inventory.item_code) AS item_count,
-                    COALESCE(SUM(department_supply.quantity_received), 0) AS total_quantity,
-                    COALESCE(SUM(department_supply.quantity_on_hand), 0) AS quantity_on_hand,
-                    SUM(CASE WHEN department_supply.quantity_on_hand = 0 THEN 1 ELSE 0 END) AS out_of_stock,
-                    SUM(CASE WHEN inventory.expiration_date < CURDATE() AND department_supply.quantity_on_hand > 0 THEN 1 ELSE 0 END) AS expired,
-                    SUM(CASE WHEN inventory.expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND department_supply.quantity_on_hand > 0 THEN 1 ELSE 0 END) AS near_expiry
-                FROM inventory
-                INNER JOIN supply ON supply.inventory_id = inventory.inventory_id
-                INNER JOIN department_supply ON department_supply.department_supply_id = supply.department_supply_id
-                WHERE inventory.status = 1 AND department_supply.department_id = ?
+            $nearExpirySql = "
+                SELECT i.item_code, i.item_name, i.expiration_date, ds.quantity_on_hand
+                FROM inventory i
+                INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                WHERE i.status = 1
+                  AND ds.department_id = ?
+                  AND ds.quantity_on_hand > 0
+                  AND i.expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                ORDER BY i.expiration_date ASC
             ";
-            $topItemsSql = "
-                SELECT inventory.item_code, inventory.item_name, inventory.unit, SUM(department_supply.quantity_on_hand) AS quantity_on_hand
-                FROM inventory
-                INNER JOIN supply ON supply.inventory_id = inventory.inventory_id
-                INNER JOIN department_supply ON department_supply.department_supply_id = supply.department_supply_id
-                WHERE inventory.status = 1 AND department_supply.department_id = ?
-                GROUP BY inventory.item_code, inventory.item_name, inventory.unit
-                ORDER BY quantity_on_hand DESC, inventory.item_name ASC
-                LIMIT 10
+            $pendingRequestsSql = "
+                SELECT DISTINCT r.request_id, r.request_date, r.quantity_requested, r.quantity_served,
+                       r.request_status, r.notes,
+                       CONCAT(u.first_name, ' ', u.last_name) AS requester_full_name,
+                       d.department_name,
+                       cs.item_name, s.unit AS item_unit
+                FROM request r
+                INNER JOIN user u ON u.user_id = r.user_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = r.department_supply_id
+                INNER JOIN departments d ON d.department_id = ds.department_id
+                INNER JOIN supply s ON s.request_id = r.request_id
+                INNER JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
+                WHERE r.status > 0 AND r.request_status = 1 AND ds.department_id = ?
+                ORDER BY r.request_date DESC
             ";
-            $requestsSql = "
-                SELECT request.request_status, COUNT(*) AS total
-                FROM request
-                INNER JOIN department_supply ON department_supply.department_supply_id = request.department_supply_id
-                WHERE request.status > 0 AND department_supply.department_id = ? AND DATE(request.request_date) BETWEEN ? AND ?
-                GROUP BY request.request_status
+            $partialRequestsSql = "
+                SELECT DISTINCT r.request_id, r.request_date, r.quantity_requested, r.quantity_served,
+                       r.request_status, r.notes,
+                       CONCAT(u.first_name, ' ', u.last_name) AS requester_full_name,
+                       d.department_name,
+                       cs.item_name, s.unit AS item_unit
+                FROM request r
+                INNER JOIN user u ON u.user_id = r.user_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = r.department_supply_id
+                INNER JOIN departments d ON d.department_id = ds.department_id
+                INNER JOIN supply s ON s.request_id = r.request_id
+                INNER JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
+                WHERE r.status > 0 AND r.request_status = 2 AND ds.department_id = ?
+                ORDER BY r.request_date DESC
             ";
-            $requestParams = [$deptId, $from, $to];
+            $arrivedSql = "
+                SELECT i.item_code, i.item_name, i.unit, ds.quantity_on_hand, i.created_at
+                FROM inventory i
+                INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                WHERE i.status = 1 AND ds.department_id = ? AND i.created_at >= ? AND i.created_at <= ?
+                ORDER BY i.created_at DESC
+            ";
+            $arrivedParams = [$deptId, $monthStart, $monthEnd];
         }
 
-        $inventoryParams = $isAdmin ? [] : [$deptId];
-        $summary = $db->query($inventorySql, $inventoryParams)->getRowArray() ?: [];
-        $topItems = $db->query($topItemsSql, $inventoryParams)->getResultArray();
-        $requestRows = $db->query($requestsSql, $requestParams)->getResultArray();
+        $nearExpiryParams = $isAdmin ? [] : [$deptId];
+        $nearExpiryItems = $db->query($nearExpirySql, $nearExpiryParams)->getResultArray();
 
-        $requestSummary = [
-            'pending' => 0,
-            'served' => 0,
-            'partial' => 0,
-            'rejected' => 0,
-            'cancelled' => 0,
-        ];
+        $pendingParams = $isAdmin ? [] : [$deptId];
+        $pendingRequests = $db->query($pendingRequestsSql, $pendingParams)->getResultArray();
 
-        foreach ($requestRows as $row) {
-            $status = (int) ($row['request_status'] ?? 0);
-            $total = (int) ($row['total'] ?? 0);
-            if ($status === 1) $requestSummary['pending'] += $total;
-            if ($status === 2) $requestSummary['partial'] += $total;
-            if ($status === 3) $requestSummary['served'] += $total;
-            if ($status === 4) $requestSummary['rejected'] += $total;
-            if ($status === 5) $requestSummary['cancelled'] += $total;
-        }
+        $partialParams = $isAdmin ? [] : [$deptId];
+        $partialRequests = $db->query($partialRequestsSql, $partialParams)->getResultArray();
+
+        $arrivedItems = $db->query($arrivedSql, $arrivedParams)->getResultArray();
 
         $data = [
-            'title' => 'Reports',
-            'from' => $from,
-            'to' => $to,
-            'summary' => $summary,
-            'top_items' => $topItems,
-            'request_summary' => $requestSummary,
-            'report_scope' => $isAdmin ? 'Central Supply' : ($user['department_name'] ?? 'My Department'),
+            'title'             => 'Reports',
+            'pending_requests'  => $pendingRequests,
+            'partial_requests'  => $partialRequests,
+            'near_expiry_items' => $nearExpiryItems,
+            'arrived_items'     => $arrivedItems,
         ];
 
         return view('templates/header', $data)

@@ -156,7 +156,7 @@
                         <label for="unit_code" class="form-label small fw-semibold text-secondary">
                             Unit Code <span class="text-danger">*</span>
                         </label>
-                        <input type="text" class="form-control input-custom text-uppercase" id="unit_code" name="unit_code" value="<?php echo old('unit_code'); ?>" required>
+                        <input type="text" class="form-control input-custom" id="unit_code" name="unit_code" value="<?php echo old('unit_code'); ?>" required>
                     </div>
                 </div>
 

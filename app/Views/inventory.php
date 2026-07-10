@@ -101,7 +101,7 @@
         <table class="table table-custom table-hover w-100" id="inventoryTable">
             <thead>
                 <tr>
-                    <th style="width: 20%">Name</th>
+                    <th style="width: 20%">Item Name</th>
                     <th style="width: 14%" class="text-center">Item Code</th>
                     <th style="width: 12%">Category</th>
                     <th style="width: 8%" class="text-center">Stock</th>
@@ -159,12 +159,12 @@
                                         }
                                     }
 
-                                    if ($allExpired && !empty($itemBatches)) {
-                                        $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
-                                        $status = 'Expired';
-                                    } elseif ($allOutOfStock && !empty($itemBatches)) {
+                                    if ($allOutOfStock && !empty($itemBatches)) {
                                         $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
                                         $status = 'Out of Stock';
+                                    } elseif ($allExpired && !empty($itemBatches)) {
+                                        $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
+                                        $status = 'Expired';
                                     } elseif ($allNearExpiry && !empty($itemBatches)) {
                                         $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
                                         $status = 'Near Expiry';
