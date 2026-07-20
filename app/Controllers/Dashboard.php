@@ -80,13 +80,13 @@ class Dashboard extends BaseController
             $data['total_no_stock'] = (int)$db->query(
                 "SELECT COUNT(*) AS cnt
                 FROM central_supply
-                WHERE status = 1 AND quantity_on_hand = 0"
+                WHERE status = 1 AND quantity_on_hand <= 0"
             )->getRowArray()['cnt'];
 
             $data['total_expired'] = (int)$db->query(
                 "SELECT COUNT(*) AS cnt
                 FROM central_supply
-                WHERE status = 1 AND expiration_date < CURDATE() AND quantity_on_hand > 0"
+                WHERE status = 1 AND expiration_date < CURDATE()"
             )->getRowArray()['cnt'];
 
             $data['total_near_expiry'] = (int)$db->query(
@@ -133,7 +133,7 @@ class Dashboard extends BaseController
                 FROM inventory i
                 INNER JOIN supply s ON s.inventory_id = i.inventory_id
                 INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                WHERE ds.department_id = ? AND i.status = 1 AND ds.quantity_on_hand = 0",
+                WHERE ds.department_id = ? AND i.status = 1 AND ds.quantity_on_hand <= 0",
                 [$deptId]
             )->getRowArray()['cnt'];
 
@@ -143,7 +143,7 @@ class Dashboard extends BaseController
                 INNER JOIN supply s ON s.inventory_id = i.inventory_id
                 INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
                 WHERE ds.department_id = ? AND i.status = 1
-                AND i.expiration_date < CURDATE() AND ds.quantity_on_hand > 0",
+                AND i.expiration_date < CURDATE()",
                 [$deptId]
             )->getRowArray()['cnt'];
 

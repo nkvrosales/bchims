@@ -127,64 +127,73 @@
                                     <?php echo (int)$item['quantity_on_hand']; ?>
                                 </span>
                             </td>
-                            <td class="text-center">
-                                <?php
-                                    $stockQty = (int)$item['quantity_on_hand'];
-                                    $expDate = $item['expiration_date'] ?? '';
-                                    $totalQty = (int)$item['total_quantity'];
-                                    $isExpired = !empty($expDate) && $expDate < date('Y-m-d') && $stockQty > 0;
-                                    $isNearExpiry = !empty($expDate) && $expDate >= date('Y-m-d') && $expDate <= date('Y-m-d', strtotime('+30 days')) && $stockQty > 0 && !$isExpired;
-                                    $lowStockThreshold = $totalQty > 0 ? max(1, (int)ceil($totalQty * 0.15)) : 0;
+                            <?php
+                                $stockQty = (int)$item['quantity_on_hand'];
+                                $expDate = $item['expiration_date'] ?? '';
+                                $totalQty = (int)$item['total_quantity'];
+                                $isExpired = !empty($expDate) && $expDate < date('Y-m-d') && $stockQty > 0;
+                                $isNearExpiry = !empty($expDate) && $expDate >= date('Y-m-d') && $expDate <= date('Y-m-d', strtotime('+30 days')) && $stockQty > 0 && !$isExpired;
+                                $lowStockThreshold = $totalQty > 0 ? max(1, (int)ceil($totalQty * 0.15)) : 0;
 
-                                    // Check batch-level statuses for this item
-                                    $hasIssue = false;
-                                    $allExpired = true;
-                                    $allOutOfStock = true;
-                                    $allNearExpiry = true;
-                                    $itemBatches = $batches_by_code[$item['item_code']] ?? [];
-                                    foreach ($itemBatches as $batch) {
-                                        $bQty = (int)$batch['quantity_on_hand'];
-                                        $bExp = $batch['expiration_date'] ?? '';
-                                        $bExpired = !empty($bExp) && $bExp < date('Y-m-d') && $bQty > 0;
-                                        $bNear = !empty($bExp) && $bExp >= date('Y-m-d') && $bExp <= date('Y-m-d', strtotime('+30 days')) && $bQty > 0 && !$bExpired;
-                                        if ($bQty > 0 && !$bExpired) $allExpired = false;
-                                        if ($bQty > 0) $allOutOfStock = false;
-                                        if ($bQty > 0 && !$bNear) $allNearExpiry = false;
-                                        if ($bExpired || $bNear || $bQty === 0) {
-                                            $hasIssue = true;
-                                        }
+                                // Check batch-level statuses for this item
+                                $hasIssue = false;
+                                $allExpired = true;
+                                $allOutOfStock = true;
+                                $allNearExpiry = true;
+                                $itemBatches = $batches_by_code[$item['item_code']] ?? [];
+                                foreach ($itemBatches as $batch) {
+                                    $bQty = (int)$batch['quantity_on_hand'];
+                                    $bExp = $batch['expiration_date'] ?? '';
+                                    $bExpired = !empty($bExp) && $bExp < date('Y-m-d') && $bQty > 0;
+                                    $bNear = !empty($bExp) && $bExp >= date('Y-m-d') && $bExp <= date('Y-m-d', strtotime('+30 days')) && $bQty > 0 && !$bExpired;
+                                    if ($bQty > 0 && !$bExpired) $allExpired = false;
+                                    if ($bQty > 0) $allOutOfStock = false;
+                                    if ($bQty > 0 && !$bNear) $allNearExpiry = false;
+                                    if ($bExpired || $bNear || $bQty === 0) {
+                                        $hasIssue = true;
                                     }
+                                }
 
-                                    if ($allOutOfStock && !empty($itemBatches)) {
-                                        $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                        $status = 'Out of Stock';
-                                    } elseif ($allExpired && !empty($itemBatches)) {
-                                        $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
-                                        $status = 'Expired';
-                                    } elseif ($allNearExpiry && !empty($itemBatches)) {
-                                        $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                        $status = 'Near Expiry';
-                                    } elseif ($hasIssue) {
-                                        $badge  = 'bg-info-subtle text-dark border border-info-subtle';
-                                        $status = 'View Details';
-                                    } elseif ($isExpired) {
-                                        $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
-                                        $status = 'Expired';
-                                    } elseif ($isNearExpiry) {
-                                        $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                        $status = 'Near Expiry';
-                                    } elseif ($stockQty === 0) {
-                                        $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
-                                        $status = 'Out of Stock';
-                                    } elseif ($stockQty <= $lowStockThreshold) {
-                                        $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
-                                        $status = 'Low Stock';
-                                    } else {
-                                        $badge  = 'bg-success-subtle text-dark border border-success-subtle';
-                                        $status = 'In Stock';
-                                    }
-                                ?>
-                                    <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
+                                if ($allOutOfStock && !empty($itemBatches)) {
+                                    $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                    $status = 'Out of Stock';
+                                    $sortStatus = 3;
+                                } elseif ($allExpired && !empty($itemBatches)) {
+                                    $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
+                                    $status = 'Expired';
+                                    $sortStatus = 4;
+                                } elseif ($allNearExpiry && !empty($itemBatches)) {
+                                    $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                    $status = 'Near Expiry';
+                                    $sortStatus = 2;
+                                } elseif ($hasIssue) {
+                                    $badge  = 'bg-info-subtle text-dark border border-info-subtle';
+                                    $status = 'View Details';
+                                    $sortStatus = 1;
+                                } elseif ($isExpired) {
+                                    $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
+                                    $status = 'Expired';
+                                    $sortStatus = 5;
+                                } elseif ($isNearExpiry) {
+                                    $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                    $status = 'Near Expiry';
+                                    $sortStatus = 3;
+                                } elseif ($stockQty === 0) {
+                                    $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
+                                    $status = 'Out of Stock';
+                                    $sortStatus = 4;
+                                } elseif ($stockQty <= $lowStockThreshold) {
+                                    $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
+                                    $status = 'Low Stock';
+                                    $sortStatus = 2;
+                                } else {
+                                    $badge  = 'bg-success-subtle text-dark border border-success-subtle';
+                                    $status = 'In Stock';
+                                    $sortStatus = 0;
+                                }
+                            ?>
+                            <td class="text-center" data-order="<?php echo $sortStatus; ?>">
+                                <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
                                     <?php echo $status; ?>
                                 </span>
                             </td>
@@ -558,20 +567,22 @@ function _batchManageRenderTable() {
     var sortAsc = _batchManageSortAsc;
 
     if (sortCol >= 0) {
-        var keys = ['item_name', 'inventory_code', 'quantity_on_hand', 'unit', 'expiration_date', 'stock_status'];
+        var sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', 'unit', 'expiration_date', 'stock_status', ''];
         <?php if ($isAdmin): ?>
-        keys = ['item_name', 'inventory_code', 'quantity_on_hand', 'unit', 'expiration_date', 'stock_status'];
+        sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', '', 'unit', 'expiration_date', 'stock_status', ''];
         <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
-        keys = ['item_name', 'inventory_code', 'quantity_on_hand', 'quantity_used', 'unit', 'expiration_date', 'stock_status'];
+        sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', 'quantity_used', 'unit', 'expiration_date', 'stock_status', ''];
         <?php endif; ?>
-        var key = keys[sortCol];
+        var key = sortKeys[sortCol];
+        if (!key) { /* non-sortable column, do nothing */ }
+        else {
         batches.sort(function(a, b) {
             var va, vb;
             if (key === 'quantity_on_hand' || key === 'quantity_used') {
                 va = parseInt(a[key]) || 0;
                 vb = parseInt(b[key]) || 0;
             } else if (key === 'stock_status') {
-                var order = {'In Stock':0,'Low Stock':1,'Near Expiry':2,'Out of Stock':3,'Expired':4,'Archived':5};
+                var order = {'In Stock':0,'View Details':1,'Low Stock':2,'Near Expiry':3,'Out of Stock':4,'Expired':5,'Archived':6};
                 var bqtyA = parseInt(a.quantity_on_hand)||0, bqtyB = parseInt(b.quantity_on_hand)||0;
                 var bexpA = a.expiration_date||'', bexpB = b.expiration_date||'';
                 var btotalA = parseInt(a.quantity)||0, btotalB = parseInt(b.quantity)||0;
@@ -593,10 +604,11 @@ function _batchManageRenderTable() {
             if (va > vb) return sortAsc ? 1 : -1;
             return 0;
         });
+        }
     } else {
         // Default sort: by stock status, then expiration date
         batches.sort(function(a, b) {
-            var order = {'In Stock':0,'Low Stock':1,'Near Expiry':2,'Out of Stock':3,'Expired':4,'Archived':5};
+            var order = {'In Stock':0,'View Details':1,'Low Stock':2,'Near Expiry':3,'Out of Stock':4,'Expired':5,'Archived':6};
             var bqtyA = parseInt(a.quantity_on_hand)||0, bqtyB = parseInt(b.quantity_on_hand)||0;
             var bexpA = a.expiration_date||'', bexpB = b.expiration_date||'';
             var btotalA = parseInt(a.quantity)||0, btotalB = parseInt(b.quantity)||0;
@@ -704,10 +716,16 @@ function _batchManageRenderTable() {
     }
     wrapper.innerHTML = html;
 
+    var sortKeysRef = ['item_name', 'inventory_code', 'quantity_on_hand', 'unit', 'expiration_date', 'stock_status', ''];
+    <?php if ($isAdmin): ?>
+    sortKeysRef = ['item_name', 'inventory_code', 'quantity_on_hand', '', 'unit', 'expiration_date', 'stock_status', ''];
+    <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
+    sortKeysRef = ['item_name', 'inventory_code', 'quantity_on_hand', 'quantity_used', 'unit', 'expiration_date', 'stock_status', ''];
+    <?php endif; ?>
     var ths = wrapper.querySelectorAll('#batchManageTable thead th');
     ths.forEach(function(th) {
         var col = parseInt(th.getAttribute('data-col'));
-        if (isNaN(col)) return;
+        if (isNaN(col) || !sortKeysRef[col]) return;
         th.addEventListener('click', function() {
             if (_batchManageSortCol === col) {
                 _batchManageSortAsc = !_batchManageSortAsc;
