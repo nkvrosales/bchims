@@ -28,6 +28,18 @@ class SupplyRequestModel extends Model
             request.quantity_served AS served_quantity,
             request.request_date AS created_at,
             request.updated_at,
+            CONCAT(
+                DATE_FORMAT(request.created_at, '%Y-%m-%d'),
+                '-',
+                LPAD(
+                    (SELECT COUNT(*) + 1 FROM request r2
+                     WHERE DATE(r2.created_at) = DATE(request.created_at)
+                     AND r2.request_id < request.request_id
+                     AND r2.status > 0),
+                    3,
+                    '0'
+                )
+            ) AS reference_no,
             central_supply.central_supply_id AS central_supply_id,
             central_supply.item_name AS item_name,
             central_supply.item_code AS item_code,
@@ -71,7 +83,11 @@ class SupplyRequestModel extends Model
         }
 
         if (!empty($status_filter)) {
-            $builder = $builder->where('request.request_status', (int)$status_filter);
+            if ((int)$status_filter === 6) {
+                $builder = $builder->where('request.status', 0);
+            } else {
+                $builder = $builder->where('request.request_status', (int)$status_filter);
+            }
         }
 
         if (!empty($dept_filter)) {

@@ -6,14 +6,14 @@ use CodeIgniter\Model;
 
 class SupplierModel extends Model
 {
-    protected $table      = 'source';
-    protected $primaryKey = 'source_id';
+    protected $table      = 'supplier';
+    protected $primaryKey = 'supplier_id';
 
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
 
-    protected $allowedFields = ['source_type', 'supplier_name', 'contact_person', 'contact_number', 'address', 'status'];
+    protected $allowedFields = ['supplier_type', 'supplier_name', 'contact_person', 'contact_number', 'email', 'address', 'status'];
     protected $useTimestamps = false;
 
     /**
@@ -35,7 +35,7 @@ class SupplierModel extends Model
         }
 
         if (!empty($type_filter)) {
-            $builder = $builder->where('source_type', $type_filter);
+            $builder = $builder->where('supplier_type', $type_filter);
         }
 
         if ($status_filter !== '') {

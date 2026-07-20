@@ -48,10 +48,10 @@ class Suppliers extends BaseController
         $type_filter = trim((string) $this->request->getGet('type_filter'));
         $status_filter = trim((string) $this->request->getGet('status_filter'));
 
-        $sources = $this->supplierModel->search_suppliers($search, $type_filter, $status_filter);
+        $suppliers = $this->supplierModel->search_suppliers($search, $type_filter, $status_filter);
 
         $data['title']       = 'Suppliers';
-        $data['sources']     = $sources;
+        $data['suppliers']   = $suppliers;
         $data['search']      = $search;
         $data['type_filter'] = $type_filter;
         $data['status_filter'] = $status_filter;
@@ -70,10 +70,11 @@ class Suppliers extends BaseController
         }
 
         $rules = [
-            'source_type'    => 'required|in_list[Supplier,Donation,Others]',
-            'supplier_name'  => 'required|max_length[150]|is_unique[source.supplier_name]',
+            'supplier_type'  => 'required|in_list[Supplier,Donation,Others]',
+            'supplier_name'  => 'required|max_length[150]|is_unique[supplier.supplier_name]',
             'contact_person' => 'permit_empty|max_length[150]',
             'contact_number' => 'permit_empty|max_length[50]',
+            'email'          => 'permit_empty|max_length[150]|valid_email',
             'address'        => 'permit_empty',
         ];
 
@@ -83,18 +84,19 @@ class Suppliers extends BaseController
 
         if ($this->validate($rules, $customErrors)) {
             $insertData = [
-                'source_type'    => $this->request->getPost('source_type'),
+                'supplier_type'  => $this->request->getPost('supplier_type'),
                 'supplier_name'  => ucwords(strtolower($this->request->getPost('supplier_name'))),
                 'contact_person' => $this->request->getPost('contact_person') ?: null,
                 'contact_number' => $this->request->getPost('contact_number') ?: null,
+                'email'          => $this->request->getPost('email') ?: null,
                 'address'        => $this->request->getPost('address') ?: null,
             ];
 
             if ($this->supplierModel->insert($insertData)) {
                 $this->auditModel->log_activity(
-                    'CREATE_SOURCE',
-                    'Sources',
-                    "Created source: {$insertData['supplier_name']} ({$insertData['source_type']})."
+                    'CREATE_SUPPLIER',
+                    'Suppliers',
+                    "Created supplier: {$insertData['supplier_name']} ({$insertData['supplier_type']})."
                 );
 
                 session()->setFlashdata('success', 'Supplier successfully created.');
@@ -119,8 +121,8 @@ class Suppliers extends BaseController
             return redirect()->to('suppliers');
         }
 
-        $source = $this->supplierModel->find($id);
-        if (empty($source)) {
+        $supplier = $this->supplierModel->find($id);
+        if (empty($supplier)) {
             session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
@@ -132,10 +134,11 @@ class Suppliers extends BaseController
         }
 
         $rules = [
-            'source_type'    => 'required|in_list[Supplier,Donation,Others]',
-            'supplier_name'  => "required|max_length[150]|is_unique[source.supplier_name,source_id,{$id}]",
+            'supplier_type'  => 'required|in_list[Supplier,Donation,Others]',
+            'supplier_name'  => "required|max_length[150]|is_unique[supplier.supplier_name,supplier_id,{$id}]",
             'contact_person' => 'permit_empty|max_length[150]',
             'contact_number' => 'permit_empty|max_length[50]',
+            'email'          => 'permit_empty|max_length[150]|valid_email',
             'address'        => 'permit_empty',
         ];
 
@@ -144,33 +147,34 @@ class Suppliers extends BaseController
         ];
 
         if ($this->validate($rules, $customErrors)) {
-            $oldSource = $this->supplierModel->find($id);
+            $oldSupplier = $this->supplierModel->find($id);
 
             $updateData = [
-                'source_type'    => $this->request->getPost('source_type'),
+                'supplier_type'  => $this->request->getPost('supplier_type'),
                 'supplier_name'  => ucwords(strtolower($this->request->getPost('supplier_name'))),
                 'contact_person' => $this->request->getPost('contact_person') ?: null,
                 'contact_number' => $this->request->getPost('contact_number') ?: null,
+                'email'          => $this->request->getPost('email') ?: null,
                 'address'        => $this->request->getPost('address') ?: null,
             ];
 
             if ($this->supplierModel->update($id, $updateData)) {
                 $changes = [];
-                $sourceFields = ['supplier_name' => 'Name', 'source_type' => 'Type', 'contact_person' => 'Contact Person', 'contact_number' => 'Contact Number', 'address' => 'Address'];
-                foreach ($sourceFields as $key => $label) {
-                    $oldVal = $oldSource[$key] ?? '';
+                $supplierFields = ['supplier_name' => 'Name', 'supplier_type' => 'Type', 'contact_person' => 'Contact Person', 'contact_number' => 'Contact Number', 'email' => 'Email', 'address' => 'Address'];
+                foreach ($supplierFields as $key => $label) {
+                    $oldVal = $oldSupplier[$key] ?? '';
                     $newVal = $updateData[$key] ?? '';
                     if ((string)$oldVal !== (string)$newVal) {
                         $changes[] = "{$label}: '{$oldVal}' → '{$newVal}'";
                     }
                 }
-                $auditDesc = "Updated source: {$updateData['supplier_name']} ({$updateData['source_type']}).";
+                $auditDesc = "Updated supplier: {$updateData['supplier_name']} ({$updateData['supplier_type']}).";
                 if ($changes) {
                     $auditDesc .= ' Changes: ' . implode(', ', $changes);
                 }
                 $this->auditModel->log_activity(
-                    'UPDATE_SOURCE',
-                    'Sources',
+                    'UPDATE_SUPPLIER',
+                    'Suppliers',
                     $auditDesc,
                     $id
                 );
@@ -181,7 +185,7 @@ class Suppliers extends BaseController
 
             session()->setFlashdata('modal_mode', 'edit');
             session()->setFlashdata('modal_edit_id', $id);
-            session()->setFlashdata('modal_errors', '<li>An error occurred while updating the source.</li>');
+            session()->setFlashdata('modal_errors', '<li>An error occurred while updating the supplier.</li>');
             return redirect()->to('suppliers')->withInput();
         }
 
@@ -199,8 +203,8 @@ class Suppliers extends BaseController
             return redirect()->to('suppliers');
         }
 
-        $source = $this->supplierModel->find($id);
-        if (empty($source)) {
+        $supplier = $this->supplierModel->find($id);
+        if (empty($supplier)) {
             session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
@@ -208,8 +212,8 @@ class Suppliers extends BaseController
         if ($this->supplierModel->update($id, ['status' => 0])) {
             $this->auditModel->log_activity(
                 'DEACTIVATE_SUPPLIER',
-                'Sources',
-                "Deactivated supplier: {$source['supplier_name']}.",
+                'Suppliers',
+                "Deactivated supplier: {$supplier['supplier_name']}.",
                 $id
             );
             session()->setFlashdata('success', 'Supplier successfully deactivated.');
@@ -228,8 +232,8 @@ class Suppliers extends BaseController
             return redirect()->to('suppliers');
         }
 
-        $source = $this->supplierModel->find($id);
-        if (empty($source)) {
+        $supplier = $this->supplierModel->find($id);
+        if (empty($supplier)) {
             session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
@@ -237,8 +241,8 @@ class Suppliers extends BaseController
         if ($this->supplierModel->update($id, ['status' => 1])) {
             $this->auditModel->log_activity(
                 'REACTIVATE_SUPPLIER',
-                'Sources',
-                "Reactivated supplier: {$source['supplier_name']}.",
+                'Suppliers',
+                "Reactivated supplier: {$supplier['supplier_name']}.",
                 $id
             );
             session()->setFlashdata('success', 'Supplier successfully reactivated.');
@@ -257,14 +261,14 @@ class Suppliers extends BaseController
             return redirect()->to('suppliers');
         }
 
-        $source = $this->supplierModel->find($id);
-        if (empty($source)) {
+        $supplier = $this->supplierModel->find($id);
+        if (empty($supplier)) {
             session()->setFlashdata('error', 'Supplier not found.');
             return redirect()->to('suppliers');
         }
 
         $db = \Config\Database::connect();
-        $inUse = $db->table('central_supply')->where('source_id', $id)->countAllResults();
+        $inUse = $db->table('central_supply')->where('supplier_id', $id)->countAllResults();
 
         if ($inUse > 0) {
             session()->setFlashdata('error', 'Cannot delete a supplier that is currently used by inventory stock.');
@@ -273,9 +277,9 @@ class Suppliers extends BaseController
 
         if ($this->supplierModel->delete($id)) {
             $this->auditModel->log_activity(
-                'DELETE_SOURCE',
-                'Sources',
-                "Deleted supplier: {$source['supplier_name']}.",
+                'DELETE_SUPPLIER',
+                'Suppliers',
+                "Deleted supplier: {$supplier['supplier_name']}.",
                 $id
             );
             session()->setFlashdata('success', 'Supplier successfully deleted.');

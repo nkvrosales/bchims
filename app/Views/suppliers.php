@@ -94,13 +94,13 @@
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($sources)): ?>
-                    <?php foreach ($sources as $source): ?>
+                <?php if (!empty($suppliers)): ?>
+                    <?php foreach ($suppliers as $supplier): ?>
                         <tr>
-                            <td class="fw text-dark"><?php echo htmlspecialchars($source['supplier_name']); ?></td>
-                            <td><?php echo htmlspecialchars($source['source_type']); ?></td>
+                            <td class="fw text-dark"><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
+                            <td><?php echo htmlspecialchars($supplier['supplier_type']); ?></td>
                             <td class="text-center">
-                                <?php if (($source['status'] ?? 1) == 1): ?>
+                                <?php if (($supplier['status'] ?? 1) == 1): ?>
                                     <span class="badge badge-action rounded-pill bg-success-subtle text-dark border border-success-subtle text-uppercase">Active</span>
                                 <?php else: ?>
                                     <span class="badge badge-action rounded-pill bg-secondary-subtle text-dark border border-secondary-subtle text-uppercase">Inactive</span>
@@ -112,11 +112,11 @@
                                         Actions
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                        <?php if (($source['status'] ?? 1) == 1): ?>
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openSupplierModal('edit', <?php echo $source['source_id']; ?>, '<?php echo htmlspecialchars($source['source_type'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['supplier_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_person'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['contact_number'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($source['address'] ?? '', ENT_QUOTES); ?>')" title="Manage Supplier">Manage</a></li>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateSupplierModal-<?php echo $source['source_id']; ?>" title="Deactivate Supplier">Deactivate</a></li>
+                                        <?php if (($supplier['status'] ?? 1) == 1): ?>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openSupplierModal('edit', <?php echo $supplier['supplier_id']; ?>, '<?php echo htmlspecialchars($supplier['supplier_type'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['supplier_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['contact_person'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['contact_number'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['email'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['address'] ?? '', ENT_QUOTES); ?>')" title="Manage Supplier">Manage</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateSupplierModal-<?php echo $supplier['supplier_id']; ?>" title="Deactivate Supplier">Deactivate</a></li>
                                         <?php else: ?>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreSupplierModal-<?php echo $source['source_id']; ?>" title="Reactivate Supplier">Reactivate</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreSupplierModal-<?php echo $supplier['supplier_id']; ?>" title="Reactivate Supplier">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -181,14 +181,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="source_type" class="form-label small fw-semibold text-secondary">
+                        <label for="supplier_type" class="form-label small fw-semibold text-secondary">
                             Supplier Type <span class="text-danger">*</span>
                         </label>
-                        <select class="form-select input-custom" id="source_type" name="source_type" required>
+                        <select class="form-select input-custom" id="supplier_type" name="supplier_type" required>
                             <option value="" disabled selected hidden>Select Type</option>
-                            <option value="Supplier" <?php echo old('source_type') === 'Supplier' ? 'selected' : ''; ?>>Supplier</option>
-                            <option value="Donation" <?php echo old('source_type') === 'Donation' ? 'selected' : ''; ?>>Donation</option>
-                            <option value="Others" <?php echo old('source_type') === 'Others' ? 'selected' : ''; ?> style="display:none;">Others</option>
+                            <option value="Supplier" <?php echo old('supplier_type') === 'Supplier' ? 'selected' : ''; ?>>Supplier</option>
+                            <option value="Donation" <?php echo old('supplier_type') === 'Donation' ? 'selected' : ''; ?>>Donation</option>
+                            <option value="Others" <?php echo old('supplier_type') === 'Others' ? 'selected' : ''; ?> style="display:none;">Others</option>
                         </select>
                     </div>
 
@@ -214,6 +214,17 @@
                                value="<?php echo old('contact_number'); ?>">
                     </div>
 
+                    <div class="mb-3">
+                        <label for="email" class="form-label small fw-semibold text-secondary">
+                            Email
+                        </label>
+                        <input type="email"
+                               class="form-control input-custom"
+                               id="email"
+                               name="email"
+                               value="<?php echo old('email'); ?>">
+                    </div>
+
                     <div>
                         <label for="address" class="form-label small fw-semibold text-secondary">
                             Address
@@ -235,9 +246,7 @@
                         Close
                     </button>
                     <button type="submit" id="supplierFormSubmitBtn"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                            class="btn btn-success-custom">
                         Add Supplier
                     </button>
                 </div>
@@ -248,7 +257,7 @@
 </div>
 
 <script>
-function openSupplierModal(mode, id, type, name, person, number, address) {
+function openSupplierModal(mode, id, type, name, person, number, email, address) {
     var form = document.getElementById('supplierForm');
     var label = document.getElementById('supplierModalLabel');
     var btn = document.getElementById('supplierFormSubmitBtn');
@@ -256,19 +265,21 @@ function openSupplierModal(mode, id, type, name, person, number, address) {
         form.action = '<?php echo base_url('suppliers/edit'); ?>/' + id;
         label.textContent = 'Manage Supplier';
         btn.textContent = 'Update Supplier';
-        document.getElementById('source_type').value = type || '';
+        document.getElementById('supplier_type').value = type || '';
         document.getElementById('supplier_name').value = name || '';
         document.getElementById('contact_person').value = person || '';
         document.getElementById('contact_number').value = number || '';
+        document.getElementById('email').value = email || '';
         document.getElementById('address').value = address || '';
     } else {
         form.action = '<?php echo base_url('suppliers/create'); ?>';
         label.textContent = 'Add New Supplier';
         btn.textContent = 'Add Supplier';
-        document.getElementById('source_type').value = '';
+        document.getElementById('supplier_type').value = '';
         document.getElementById('supplier_name').value = '';
         document.getElementById('contact_person').value = '';
         document.getElementById('contact_number').value = '';
+        document.getElementById('email').value = '';
         document.getElementById('address').value = '';
     }
     new bootstrap.Modal(document.getElementById('supplierModal')).show();
@@ -276,14 +287,15 @@ function openSupplierModal(mode, id, type, name, person, number, address) {
 
 <?php if ($modal_mode === 'edit' && $modal_edit_id): ?>
 document.addEventListener('DOMContentLoaded', function () {
-    openSupplierModal('edit', <?php echo $modal_edit_id; ?>, '<?php echo addslashes(old('source_type', '')); ?>', '<?php echo addslashes(old('supplier_name', '')); ?>', '<?php echo addslashes(old('contact_person', '')); ?>', '<?php echo addslashes(old('contact_number', '')); ?>', '<?php echo addslashes(old('address', '')); ?>');
+    openSupplierModal('edit', <?php echo $modal_edit_id; ?>, '<?php echo addslashes(old('supplier_type', '')); ?>', '<?php echo addslashes(old('supplier_name', '')); ?>', '<?php echo addslashes(old('contact_person', '')); ?>', '<?php echo addslashes(old('contact_number', '')); ?>', '<?php echo addslashes(old('email', '')); ?>', '<?php echo addslashes(old('address', '')); ?>');
 });
 <?php elseif ($modal_mode === 'create'): ?>
 document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('source_type').value = '<?php echo addslashes(old('source_type', '')); ?>';
+    document.getElementById('supplier_type').value = '<?php echo addslashes(old('supplier_type', '')); ?>';
     document.getElementById('supplier_name').value = '<?php echo addslashes(old('supplier_name', '')); ?>';
     document.getElementById('contact_person').value = '<?php echo addslashes(old('contact_person', '')); ?>';
     document.getElementById('contact_number').value = '<?php echo addslashes(old('contact_number', '')); ?>';
+    document.getElementById('email').value = '<?php echo addslashes(old('email', '')); ?>';
     document.getElementById('address').value = '<?php echo addslashes(old('address', '')); ?>';
     new bootstrap.Modal(document.getElementById('supplierModal')).show();
 });
@@ -294,17 +306,17 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
 });
 </script>
 
-<?php if (!empty($sources)): ?>
-    <?php foreach ($sources as $source): ?>
+<?php if (!empty($suppliers)): ?>
+    <?php foreach ($suppliers as $supplier): ?>
     <!-- ===================== DEACTIVATE SUPPLIER MODAL ===================== -->
-    <div class="modal fade" id="deactivateSupplierModal-<?php echo $source['source_id']; ?>" tabindex="-1"
-         aria-labelledby="deactivateSupplierModalLabel-<?php echo $source['source_id']; ?>" aria-hidden="true">
+    <div class="modal fade" id="deactivateSupplierModal-<?php echo $supplier['supplier_id']; ?>" tabindex="-1"
+         aria-labelledby="deactivateSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="deactivateSupplierModalLabel-<?php echo $source['source_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="deactivateSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Deactivate Supplier
                         </h5>
@@ -321,9 +333,9 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                         <div class="d-flex align-items-center gap-3">
                             <div>
                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                                    <?php echo htmlspecialchars($source['supplier_name']); ?>
+                                    <?php echo htmlspecialchars($supplier['supplier_name']); ?>
                                 </div>
-                                <div class="text-muted small"><?php echo htmlspecialchars($source['source_type']); ?></div>
+                                <div class="text-muted small"><?php echo htmlspecialchars($supplier['supplier_type']); ?></div>
                             </div>
                         </div>
                     </div>
@@ -341,7 +353,7 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('suppliers/archive/' . $source['source_id']); ?>"
+                    <a href="<?php echo base_url('suppliers/archive/' . $supplier['supplier_id']); ?>"
                        style="
                                background: #ef4444;;
                                color: #fff;
@@ -367,14 +379,14 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
     </div>
 
     <!-- ===================== RESTORE SUPPLIER MODAL ===================== -->
-    <div class="modal fade" id="restoreSupplierModal-<?php echo $source['source_id']; ?>" tabindex="-1"
-         aria-labelledby="restoreSupplierModalLabel-<?php echo $source['source_id']; ?>" aria-hidden="true">
+    <div class="modal fade" id="restoreSupplierModal-<?php echo $supplier['supplier_id']; ?>" tabindex="-1"
+         aria-labelledby="restoreSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="restoreSupplierModalLabel-<?php echo $source['source_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="restoreSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Reactivate Supplier
                         </h5>
@@ -391,9 +403,9 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                         <div class="d-flex align-items-center gap-3">
                             <div>
                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                                    <?php echo htmlspecialchars($source['supplier_name']); ?>
+                                    <?php echo htmlspecialchars($supplier['supplier_name']); ?>
                                 </div>
-                                <div class="text-muted small"><?php echo htmlspecialchars($source['source_type']); ?></div>
+                                <div class="text-muted small"><?php echo htmlspecialchars($supplier['supplier_type']); ?></div>
                             </div>
                         </div>
                     </div>
@@ -411,23 +423,8 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('suppliers/restore/' . $source['source_id']); ?>"
-                       style="
-                               background: #10b981;
-                               color: #fff;
-                               border: 1px solid transparent;
-                               border-radius: 8px;
-                               padding: 0.5rem 1.5rem;
-                               font-size: 0.9rem;
-                               font-weight: 600;
-                               text-decoration: none;
-                                cursor: pointer;
-                                display: inline-flex;
-                                align-items: center;
-                                height: 38px;
-                            "
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                    <a href="<?php echo base_url('suppliers/restore/' . $supplier['supplier_id']); ?>"
+                       class="btn btn-success-custom">
                          Reactivate Supplier
                     </a>
                 </div>

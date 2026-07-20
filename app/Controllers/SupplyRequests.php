@@ -51,10 +51,6 @@ class SupplyRequests extends BaseController
     {
         if ($res = $this->checkAuth()) return $res;
 
-        if (strtolower((string) session()->get('role')) === 'viewer') {
-            return redirect()->to('dashboard');
-        }
-
         $userId = session()->get('user_id');
         $user   = $this->userModel->get_user_by_id($userId);
         $role   = session()->get('role');
@@ -68,6 +64,13 @@ class SupplyRequests extends BaseController
             $items    = [];
             $categories = [];
             
+            $deptModel = new \App\Models\DepartmentModel();
+            $departments = $deptModel->get_departments();
+        } elseif (strtolower((string) $role) === 'viewer') {
+            $requests = $this->requestModel->get_requests(null, $user['department_id'] ?? 0, $search, $status_filter);
+            $items    = [];
+            $categories = [];
+
             $deptModel = new \App\Models\DepartmentModel();
             $departments = $deptModel->get_departments();
         } else {
@@ -116,7 +119,7 @@ class SupplyRequests extends BaseController
             $unitsByName[$ur['item_name']][] = $ur['unit'];
         }
 
-        $data['title']         = is_admin_role() ? 'Central Supply Requests' : ($user['department_name'] ?? 'My') . ' Requests';
+        $data['title']         = is_admin_role() ? 'Central Supply Requests' : (strtolower((string) $role) === 'viewer' ? ($user['department_name'] ?? 'Department') . ' Requests' : ($user['department_name'] ?? 'My') . ' Requests');
         $data['requests']      = $requests;
         $data['user']          = $user;
         $data['items']         = $items;
@@ -398,40 +401,50 @@ class SupplyRequests extends BaseController
         }
 
         $qtyRequested = (int)$request['quantity_requested'];
-        $csIds = $this->request->getPost('central_supply_id') ?: [];
-        $qties = $this->request->getPost('quantity') ?: [];
-
         $modalId = 'serveModal_' . $id;
+        $db = \Config\Database::connect();
 
-        // Auto-select batches using FEFO (closest expiry first) if none provided
-        if (empty($csIds) || !is_array($csIds)) {
-            $db = \Config\Database::connect();
-            $batches = $db->table('central_supply')
-                          ->where('item_name', $request['item_name'])
-                          ->where('unit', $request['item_unit'])
-                          ->where('quantity_on_hand >', 0)
-                          ->orderBy('expiration_date', 'ASC')
-                          ->get()->getResultArray();
+        // Full serving is always allocated using FEFO: batches with the nearest
+        // expiry date are used first, and batches with no expiry are used last.
+        $batches = $db->table('central_supply')
+                      // Item code is the product identity. Names can vary due to
+                      // corrections or typos between otherwise identical batches.
+                      ->where('item_code', $request['item_code'])
+                      ->where('unit', $request['item_unit'])
+                      ->where('status', 1)
+                      ->where('quantity_on_hand >', 0)
+                      ->orderBy('expiration_date IS NULL', 'ASC', false)
+                      ->orderBy('expiration_date', 'ASC')
+                      ->orderBy('central_supply_id', 'ASC')
+                      ->get()->getResultArray();
 
-            $csIds = [];
-            $qties = [];
-            $need = $qtyRequested;
-            foreach ($batches as $b) {
-                if ($need <= 0) break;
-                $take = min((int)$b['quantity_on_hand'], $need);
-                $csIds[] = (int)$b['central_supply_id'];
-                $qties[] = $take;
-                $need -= $take;
-            }
+        $totalAvailable = array_sum(array_map(static function ($batch) {
+            return (int) $batch['quantity_on_hand'];
+        }, $batches));
 
-            if (empty($csIds)) {
-                session()->setFlashdata('open_modal', $modalId);
-                session()->setFlashdata('modal_errors', 'No available stock to serve this request.');
-                return redirect()->to('requests');
-            }
+        if ($totalAvailable < $qtyRequested) {
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata(
+                'modal_errors',
+                "Insufficient stock for {$request['item_name']}."
+            );
+            return redirect()->to('requests');
         }
 
-        $db = \Config\Database::connect();
+        $csIds = [];
+        $qties = [];
+        $need = $qtyRequested;
+        foreach ($batches as $batch) {
+            if ($need <= 0) {
+                break;
+            }
+
+            $take = min((int) $batch['quantity_on_hand'], $need);
+            $csIds[] = (int) $batch['central_supply_id'];
+            $qties[] = $take;
+            $need -= $take;
+        }
+
         $db->transStart();
 
         $totalServed = 0;
@@ -468,11 +481,20 @@ class SupplyRequests extends BaseController
                 return redirect()->to('requests');
             }
 
+            // Keep the deduction conditional so a concurrent serve cannot make
+            // a batch go below zero after the availability check above.
             $db->table('central_supply')
                ->where('central_supply_id', $csId)
-               ->update([
-                   'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
-               ]);
+               ->where('quantity_on_hand >=', $qty)
+               ->set('quantity_on_hand', 'quantity_on_hand - ' . $qty, false)
+               ->update();
+
+            if ($db->affectedRows() !== 1) {
+                $db->transRollback();
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'. Please try again.");
+                return redirect()->to('requests');
+            }
 
             $totalServed += $qty;
             if (!$firstBatch) $firstBatch = $csItem;
@@ -578,7 +600,6 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        $notes   = trim((string)$this->request->getPost('partial_notes'));
         $request = $this->_getRequest($id);
 
         if (!$request) {
@@ -595,23 +616,9 @@ class SupplyRequests extends BaseController
         $qtyServed    = (int)$request['quantity_served'];
         $remainingQty = $qtyRequested - $qtyServed;
 
-        $csIds = $this->request->getPost('central_supply_id') ?: [];
-        $qties = $this->request->getPost('quantity') ?: [];
-
         $modalId = 'partialModal_' . $id;
 
-        if (empty($csIds) || !is_array($csIds)) {
-            session()->setFlashdata('open_modal', $modalId);
-            session()->setFlashdata('modal_errors', 'Please select at least one inventory batch.');
-            return redirect()->to('requests');
-        }
-
-        $totalServed = 0;
-        foreach ($csIds as $i => $csId) {
-            $qty = isset($qties[$i]) ? (int)$qties[$i] : 0;
-            if ($qty <= 0) continue;
-            $totalServed += $qty;
-        }
+        $totalServed = (int) $this->request->getPost('quantity');
 
         if ($totalServed <= 0 || $totalServed >= $remainingQty) {
             session()->setFlashdata('open_modal', $modalId);
@@ -620,6 +627,48 @@ class SupplyRequests extends BaseController
         }
 
         $db = \Config\Database::connect();
+
+        // Allocate a partial serve by FEFO. Expiring batches are consumed first;
+        // a batch without an expiration date is used only after dated batches.
+        $batches = $db->table('central_supply')
+                      // Allocate across all batches for this product code, even
+                      // when a batch name was entered with a minor variation.
+                      ->where('item_code', $request['item_code'])
+                      ->where('unit', $request['item_unit'])
+                      ->where('status', 1)
+                      ->where('quantity_on_hand >', 0)
+                      ->orderBy('expiration_date IS NULL', 'ASC', false)
+                      ->orderBy('expiration_date', 'ASC')
+                      ->orderBy('central_supply_id', 'ASC')
+                      ->get()->getResultArray();
+
+        $totalAvailable = array_sum(array_map(static function ($batch) {
+            return (int) $batch['quantity_on_hand'];
+        }, $batches));
+
+        if ($totalAvailable < $totalServed) {
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata(
+                'modal_errors',
+                "Insufficient stock for {$request['item_name']}."
+            );
+            return redirect()->to('requests');
+        }
+
+        $csIds = [];
+        $qties = [];
+        $need = $totalServed;
+        foreach ($batches as $batch) {
+            if ($need <= 0) {
+                break;
+            }
+
+            $take = min((int) $batch['quantity_on_hand'], $need);
+            $csIds[] = (int) $batch['central_supply_id'];
+            $qties[] = $take;
+            $need -= $take;
+        }
+
         $db->transStart();
 
         $firstBatch = null;
@@ -657,9 +706,16 @@ class SupplyRequests extends BaseController
 
             $db->table('central_supply')
                ->where('central_supply_id', $csId)
-               ->update([
-                   'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
-               ]);
+               ->where('quantity_on_hand >=', $qty)
+               ->set('quantity_on_hand', 'quantity_on_hand - ' . $qty, false)
+               ->update();
+
+            if ($db->affectedRows() !== 1) {
+                $db->transRollback();
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'. Please try again.");
+                return redirect()->to('requests');
+            }
 
             if (!$firstBatch) $firstBatch = $csItem;
             $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
@@ -745,6 +801,7 @@ class SupplyRequests extends BaseController
         }
 
         // Update request
+        $notes = trim((string) $this->request->getPost('partial_notes'));
         $updateData = [
             'request_status'      => 2,
             'quantity_served'     => $qtyServed + $totalServed,
@@ -752,10 +809,7 @@ class SupplyRequests extends BaseController
             'partial_date'        => date('Y-m-d H:i:s'),
         ];
         if ($notes !== '') {
-            $existingNotes = $request['notes'] ?? '';
-            $updateData['notes'] = $existingNotes !== ''
-                ? $existingNotes . "\n---\n" . $notes
-                : $notes;
+            $updateData['notes'] = $notes;
         }
         $this->requestModel->update($id, $updateData);
 
@@ -809,7 +863,7 @@ class SupplyRequests extends BaseController
 
         $notes = trim((string) $this->request->getPost('reject_notes'));
 
-        $updateData = ['request_status' => 4, 'cancelled_date' => date('Y-m-d H:i:s')];
+        $updateData = ['request_status' => 5, 'cancelled_date' => date('Y-m-d H:i:s')];
         if ($notes !== '') {
             $updateData['notes'] = $notes;
         }
@@ -870,7 +924,7 @@ class SupplyRequests extends BaseController
 
         $notes = trim((string) $this->request->getPost('cancel_notes'));
 
-        $updateData = ['request_status' => 5, 'cancelled_date' => date('Y-m-d H:i:s')];
+        $updateData = ['request_status' => 4, 'cancelled_date' => date('Y-m-d H:i:s')];
         if ($notes !== '') {
             $updateData['notes'] = $notes;
         }
@@ -930,40 +984,47 @@ class SupplyRequests extends BaseController
             return redirect()->to('requests');
         }
 
-        $csIds = $this->request->getPost('central_supply_id') ?: [];
-        $qties = $this->request->getPost('quantity') ?: [];
-
         $modalId = 'completePartialModal_' . $id;
+        $db = \Config\Database::connect();
 
-        // Auto-select batches using FEFO (closest expiry first) if none provided
-        if (empty($csIds) || !is_array($csIds)) {
-            $db = \Config\Database::connect();
-            $batches = $db->table('central_supply')
-                          ->where('item_name', $request['item_name'])
-                          ->where('unit', $request['item_unit'])
-                          ->where('quantity_on_hand >', 0)
-                          ->orderBy('expiration_date', 'ASC')
-                          ->get()->getResultArray();
+        // Finish partial requests with the same FEFO allocation as full serves.
+        $batches = $db->table('central_supply')
+                      ->where('item_code', $request['item_code'])
+                      ->where('unit', $request['item_unit'])
+                      ->where('status', 1)
+                      ->where('quantity_on_hand >', 0)
+                      ->orderBy('expiration_date IS NULL', 'ASC', false)
+                      ->orderBy('expiration_date', 'ASC')
+                      ->orderBy('central_supply_id', 'ASC')
+                      ->get()->getResultArray();
 
-            $csIds = [];
-            $qties = [];
-            $need = $remainingQty;
-            foreach ($batches as $b) {
-                if ($need <= 0) break;
-                $take = min((int)$b['quantity_on_hand'], $need);
-                $csIds[] = (int)$b['central_supply_id'];
-                $qties[] = $take;
-                $need -= $take;
-            }
+        $totalAvailable = array_sum(array_map(static function ($batch) {
+            return (int) $batch['quantity_on_hand'];
+        }, $batches));
 
-            if (empty($csIds)) {
-                session()->setFlashdata('open_modal', $modalId);
-                session()->setFlashdata('modal_errors', 'No available stock to complete this request.');
-                return redirect()->to('requests');
-            }
+        if ($totalAvailable < $remainingQty) {
+            session()->setFlashdata('open_modal', $modalId);
+            session()->setFlashdata(
+                'modal_errors',
+                "Insufficient stock for {$request['item_name']}."
+            );
+            return redirect()->to('requests');
         }
 
-        $db = \Config\Database::connect();
+        $csIds = [];
+        $qties = [];
+        $need = $remainingQty;
+        foreach ($batches as $batch) {
+            if ($need <= 0) {
+                break;
+            }
+
+            $take = min((int) $batch['quantity_on_hand'], $need);
+            $csIds[] = (int) $batch['central_supply_id'];
+            $qties[] = $take;
+            $need -= $take;
+        }
+
         $db->transStart();
         $totalServed = 0;
         $firstBatch = null;
@@ -1001,9 +1062,16 @@ class SupplyRequests extends BaseController
 
             $db->table('central_supply')
                ->where('central_supply_id', $csId)
-               ->update([
-                   'quantity_on_hand' => $csItem['quantity_on_hand'] - $qty,
-               ]);
+               ->where('quantity_on_hand >=', $qty)
+               ->set('quantity_on_hand', 'quantity_on_hand - ' . $qty, false)
+               ->update();
+
+            if ($db->affectedRows() !== 1) {
+                $db->transRollback();
+                session()->setFlashdata('open_modal', $modalId);
+                session()->setFlashdata('modal_errors', "Insufficient stock for inventory '{$csItem['inventory_code']}'. Please try again.");
+                return redirect()->to('requests');
+            }
 
             $totalServed += $qty;
             if (!$firstBatch) $firstBatch = $csItem;

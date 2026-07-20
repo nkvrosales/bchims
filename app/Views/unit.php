@@ -169,9 +169,7 @@
                         Close
                     </button>
                     <button type="submit" id="unitFormSubmitBtn"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                            class="btn btn-success-custom">
                         Add Unit
                     </button>
                 </div>
@@ -284,9 +282,7 @@ document.getElementById('unitModal')?.addEventListener('hidden.bs.modal', functi
                         Close
                     </button>
                     <a href="<?php echo base_url('unit/restore/' . $unit['unit_id']); ?>"
-                       style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                       onmouseover="this.style.background='#059669'"
-                       onmouseout="this.style.background='#10b981'">
+                       class="btn btn-success-custom">
                         Reactivate Unit
                     </a>
                 </div>

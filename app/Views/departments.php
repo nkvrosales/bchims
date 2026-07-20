@@ -131,8 +131,7 @@
     </div>
 
 
-<!-- ===================== CREATE DEPARTMENT MODAL ===================== -->
-<!-- ===================== SINGLE DEPARTMENT MODAL (Add/Edit) ===================== -->
+<!-- ===================== ADD/EDIT MODAL ===================== -->
 <div class="modal fade" id="deptModal" tabindex="-1" aria-labelledby="deptModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
@@ -207,9 +206,7 @@
                         Close
                     </button>
                     <button type="submit" id="deptFormSubmitBtn"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                            class="btn btn-success-custom">
                         Add Department
                     </button>
                 </div>
@@ -289,7 +286,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                     <?php echo htmlspecialchars($dept['name']); ?>
                                 </div>
-                                <div class="text-muted small">Hospital Department</div>
+                                <div class="text-muted small"><?php echo htmlspecialchars($dept['code']); ?></div>
                             </div>
                         </div>
                     </div>
@@ -333,7 +330,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
         </div>
     </div>
     <?php else: ?>
-    <!-- ===================== RESTORE DEPARTMENT MODAL ===================== -->
+    <!-- ===================== REACTIVATE DEPARTMENT MODAL ===================== -->
     <div class="modal fade" id="restoreDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
          aria-labelledby="restoreDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -379,22 +376,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                         Close
                     </button>
                     <a href="<?php echo base_url('departments/restore/' . $dept['id']); ?>"
-                       style="
-                               background: #10b981;
-                               color: #fff;
-                               border: 1px solid transparent;
-                               border-radius: 8px;
-                               padding: 0.5rem 1.5rem;
-                               font-size: 0.9rem;
-                               font-weight: 600;
-                               text-decoration: none;
-                                cursor: pointer;
-                                display: inline-flex;
-                                align-items: center;
-                                height: 38px;
-                            "
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                       class="btn btn-success-custom">
                          Reactivate Department
                     </a>
                 </div>

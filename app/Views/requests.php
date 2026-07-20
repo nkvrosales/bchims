@@ -3,15 +3,17 @@ $requestStatusMap = [
     1 => 'Pending',
     2 => 'Partially Served',
     3 => 'Served',
-    4 => 'Rejected',
-    5 => 'Cancelled',
+    4 => 'Cancelled',
+    5 => 'Rejected',
+    6 => 'Archived',
 ];
 $requestBadgeMap = [
     1 => 'bg-warning-subtle text-dark border border-warning-subtle',
     2 => 'bg-primary-subtle text-dark border border-primary-subtle',
     3 => 'bg-success-subtle text-dark border border-success-subtle',
-    4 => 'bg-danger-subtle text-dark border border-danger-subtle',
-    5 => 'bg-secondary-subtle text-dark border border-secondary-subtle',
+    4 => 'bg-secondary-subtle text-dark border border-secondary-subtle',
+    5 => 'bg-danger-subtle text-dark border border-danger-subtle',
+    6 => 'bg-dark-subtle text-dark border border-dark-subtle',
 ];
 ?>
     <!-- Page Title Section -->
@@ -70,14 +72,15 @@ $requestBadgeMap = [
                 <select id="req_search_status" name="status_filter" class="db-search-select">
                     <option value="">- Select Status -</option>
                     <option value="1" <?php echo (($status_filter ?? '') === '1') ? 'selected' : ''; ?>>Pending</option>
-                    <option value="3" <?php echo (($status_filter ?? '') === '3') ? 'selected' : ''; ?>>Served</option>
                     <option value="2" <?php echo (($status_filter ?? '') === '2') ? 'selected' : ''; ?>>Partially Served</option>
-                    <option value="4" <?php echo (($status_filter ?? '') === '4') ? 'selected' : ''; ?>>Rejected</option>
-                    <option value="5" <?php echo (($status_filter ?? '') === '5') ? 'selected' : ''; ?>>Cancelled</option>
+                    <option value="3" <?php echo (($status_filter ?? '') === '3') ? 'selected' : ''; ?>>Served</option>
+                    <option value="4" <?php echo (($status_filter ?? '') === '4') ? 'selected' : ''; ?>>Cancelled</option>
+                    <option value="5" <?php echo (($status_filter ?? '') === '5') ? 'selected' : ''; ?>>Rejected</option>
+                    <option value="6" <?php echo (($status_filter ?? '') === '6') ? 'selected' : ''; ?>>Archived</option>
                 </select>
                 <label for="req_search_status">Status</label>
             </div>
-            <?php if (is_admin_role()): ?>
+            <?php if (is_admin_role() || strtolower((string) session()->get('role')) === 'viewer'): ?>
             <div class="db-search-field db-search-field--dropdown">
                 <select id="req_search_dept" name="dept_filter" class="db-search-select">
                     <option value="">- Select Department -</option>
@@ -121,8 +124,8 @@ $requestBadgeMap = [
             <table class="table table-custom table-hover w-100" id="supplyRequestsTable">
                 <thead>
                     <tr>
-                        <th style="width: 7%">ID</th>
                         <th style="width: 11%">Request Date</th>
+                        <th class="text-center" style="width: 11%">Reference ID</th>
                         <th style="width: 11%" class="col-last-updated">Last Updated</th>
                         <th style="width: 11%">Requester</th>
                         <th style="width: 9%">Department</th>
@@ -137,11 +140,11 @@ $requestBadgeMap = [
                     <?php if (!empty($requests)): ?>
                         <?php foreach ($requests as $req): ?>
                             <tr>
-                                <td class="font-monospace" style="font-size: 0.85rem; color: var(--text-secondary);" data-order="<?php echo $req['request_id']; ?>">
-                                    #<?php echo $req['request_id']; ?>
-                                </td>
                                 <td data-order="<?php echo htmlspecialchars($req['created_at'] ?? ''); ?>">
                                     <span class="text-dark"><?php echo !empty($req['created_at']) ? date('M j, Y h:i A', strtotime($req['created_at'])) : 'N/A'; ?></span>
+                                </td>
+                                <td class="text-center" data-order="<?php echo $req['request_id']; ?>">
+                                    <?php echo htmlspecialchars($req['reference_no'] ?? '#' . $req['request_id']); ?>
                                 </td>
                                 <td class="col-last-updated" data-order="<?php echo htmlspecialchars($req['updated_at'] ?? $req['created_at'] ?? ''); ?>">
                                     <span class="text-dark"><?php echo !empty($req['updated_at']) ? date('M j, Y h:i A', strtotime($req['updated_at'])) : (!empty($req['created_at']) ? date('M j, Y h:i A', strtotime($req['created_at'])) : 'N/A'); ?></span>
@@ -164,11 +167,15 @@ $requestBadgeMap = [
                                 <td>
                                     <span class="text-dark"><?php echo htmlspecialchars($req['item_unit'] ?? ''); ?></span>
                                 </td>
-                                <td data-order="<?php echo $req['request_status']; ?>">
-                                    <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
-                                    <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
-                                        <?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?>
-                                    </span>
+                                <td data-order="<?php echo ($req['status'] ?? 1) == 0 ? 6 : $req['request_status']; ?>">
+                                    <?php if (($req['status'] ?? 1) == 0): ?>
+                                        <span class="badge badge-action rounded-pill bg-dark-subtle text-dark border border-dark-subtle">Archived</span>
+                                    <?php else: ?>
+                                        <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
+                                        <span class="badge badge-action rounded-pill <?php echo $badge; ?>">
+                                            <?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-end">
                                     <?php if (($req['status'] ?? 1) == 0): ?>
@@ -182,6 +189,15 @@ $requestBadgeMap = [
                                             </ul>
                                         </div>
                                         <?php endif; ?>
+                                    <?php elseif (strtolower((string) session()->get('role')) === 'viewer'): ?>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal_<?php echo $req['request_id']; ?>" title="View Details">View</a></li>
+                                            </ul>
+                                        </div>
                                     <?php elseif (session()->get('role') === 'encoder' && $req['request_status'] == 1): ?>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600;">
@@ -252,14 +268,14 @@ $requestBadgeMap = [
             <?php if ($req['request_status'] == 1 || $req['request_status'] == 2): ?>
                 <!-- Serve Modal -->
                 <div class="modal fade" id="serveModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="serveModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-md">
+                    <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                            <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="serveModalLabel_<?php echo $req['request_id']; ?>">Serve Supply Request</h5>
+                            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                <h5 class="modal-title fw-bold mb-0" id="serveModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">Serve Request</h5>
                                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/serve/' . $req['request_id']); ?>">
-                                <div class="modal-body px-4 py-4 text-center">
+                                <div class="modal-body px-4 py-4">
                                     <?php if (session()->getFlashdata('open_modal') === 'serveModal_' . $req['request_id'] && $modal_errors = session()->getFlashdata('modal_errors')): ?>
                                     <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
                                         <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
@@ -272,19 +288,19 @@ $requestBadgeMap = [
                                         </div>
                                     </div>
                                     <?php endif; ?>
-                                    <p class="text-muted small mb-3">
-                                        Transfer <strong><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>
-                                        to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).
-                                    </p>
-                                    <div class="d-flex justify-content-center gap-3 small mb-3">
-                                        <div class="text-center">
-                                            <div class="fw-bold text-dark"><?php echo $req['quantity_requested']; ?></div>
-                                            <div class="text-muted">Requested</div>
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    <?php echo htmlspecialchars($req['item_name']); ?>
+                                                </div>
+                                                <div class="text-muted small"><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)</div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="text-muted mb-3">
-                                       Are you sure you want to serve this supply request?
-                                    </div>
+                                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                        Are you sure you want to serve this request?
+                                    </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                     <button type="button"
@@ -295,10 +311,8 @@ $requestBadgeMap = [
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#059669'"
-                                            onmouseout="this.style.background='#10b981'">
-                                        Serve Supplies
+                                            class="btn btn-success-custom">
+                                        Serve Request
                                     </button>
                                 </div>
                             </form>
@@ -312,26 +326,33 @@ $requestBadgeMap = [
                 <div class="modal fade" id="rejectModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="rejectModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                            <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="rejectModalLabel_<?php echo $req['request_id']; ?>">Reject Request</h5>
+                            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                <h5 class="modal-title fw-bold mb-0" id="rejectModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">Reject Request</h5>
                                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/reject/' . $req['request_id']); ?>">
-                                <div class="modal-body px-4 py-4 text-center">
-                                    <h5 class="fw-semibold text-dark mb-2">Reject This Request?</h5>
-                                    <p class="text-muted small mb-0">
-                                        This will mark request <strong>#<?php echo $req['request_id']; ?></strong> from
-                                        <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong>
-                                        as <strong>Rejected</strong>.
-                                    </p>
-                                    <div class="mb-3 text-start">
+                                <div class="modal-body px-4 py-4">
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    <?php echo htmlspecialchars($req['item_name']); ?>
+                                                </div>
+                                                <div class="text-muted small"><?php echo (int)$req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="reject_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Remarks</label>
                                         <textarea class="form-control input-custom"
                                                 id="reject_notes_<?php echo $req['request_id']; ?>"
                                                 name="reject_notes"
                                                 rows="3"
-                                                placeholder="Remarks about this rejection."></textarea>
+                                                placeholder="Remarks..."></textarea>
                                     </div>
+                                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                        Are you sure you want to reject this request?
+                                    </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                     <button type="button"
@@ -361,10 +382,10 @@ $requestBadgeMap = [
                 ?>
                 <!-- Partial Serve Modal -->
                 <div class="modal fade" id="partialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="partialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                            <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="partialModalLabel_<?php echo $req['request_id']; ?>">Partially Serve Request</h5>
+                            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                <h5 class="modal-title fw-bold mb-0" id="partialModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">Partially Serve Request</h5>
                                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/partial/' . $req['request_id']); ?>">
@@ -381,76 +402,39 @@ $requestBadgeMap = [
                                         </div>
                                     </div>
                                     <?php endif; ?>
-                                    <div class="text-center mb-3">
-                                        <h6 class="fw-semibold text-dark">Specify Quantity to Serve</h6>
-                                        <p class="text-muted small mb-0">
-                                            Requested: <strong><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>.<br>
-                                            <?php if ((int)$req['quantity_served'] > 0): ?>
-                                                Already Served: <strong><?php echo $req['quantity_served']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong> &mdash; Remaining: <strong><?php echo $remaining; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></strong>.<br>
-                                            <?php endif; ?>
-                                        </p>
-                                    </div>
-                                    <div class="mb-3 small text-muted">
-                                        Specify quantities from each inventory batch below. The total will be served as a partial.
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    <?php echo htmlspecialchars($req['item_name']); ?>
+                                                </div>
+                                                <div class="text-muted small">Requested: <?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?><?php if ((int)$req['quantity_served'] > 0): ?> &middot; Remaining: <?php echo $remaining; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?><?php endif; ?></div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
-                                        <div class="row g-2 mb-2 d-none d-md-flex">
-                                            <div class="col-lg-7">
-                                                <label class="form-label small fw-semibold text-secondary">Select Inventory <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-lg-2">
-                                                <label class="form-label small fw-semibold text-secondary">QTY <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-lg-3">
-                                                <label class="form-label small fw-semibold text-secondary">Action</label>
-                                            </div>
-                                        </div>
-
-                                        <div class="partial-batch-rows" data-request-id="<?php echo $req['request_id']; ?>">
-                                            <div class="partial-batch-row row g-2 align-items-end mb-2 pb-2 border-bottom border-light-subtle">
-                                                <!-- Inventory dropdown -->
-                                                <div class="col-lg-7 col-12">
-                                                    <label class="form-label small fw-semibold text-secondary d-md-none">Select Inventory <span class="text-danger">*</span></label>
-                                                    <select class="form-select input-custom partial-batch-select" name="central_supply_id[]" required style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                                                        <option value="" disabled selected hidden>Select Inventory</option>
-                                                        <?php $batches = $batches_by_code[$req['item_name']] ?? []; ?>
-                                                        <?php $unitBatches = array_filter($batches, function($b) use ($req) { return $b['unit'] === ($req['item_unit'] ?? ''); }); ?>
-                                                        <?php if (empty($unitBatches)): ?>
-                                                        <option value="" disabled>No available stock</option>
-                                                        <?php else: ?>
-                                                        <?php foreach ($unitBatches as $batch): ?>
-                                                        <option value="<?php echo $batch['central_supply_id']; ?>">
-                                                            <?php echo htmlspecialchars($batch['item_name']); ?> (<?php echo htmlspecialchars($batch['inventory_code']); ?>) &mdash; Exp: <?php echo $batch['expiration_date'] ? date('M j, Y', strtotime($batch['expiration_date'])) : 'N/A'; ?> &mdash; Avail: <?php echo (int)$batch['quantity_on_hand']; ?> <?php echo htmlspecialchars($batch['unit'] ?? ''); ?>
-                                                        </option>
-                                                        <?php endforeach; ?>
-                                                        <?php endif; ?>
-                                                    </select>
-                                                </div>
-                                                <!-- Qty -->
-                                                <div class="col-lg-2 col-12">
-                                                    <label class="form-label small fw-semibold text-secondary d-md-none">QTY <span class="text-danger">*</span></label>
-                                                    <input type="number" class="form-control input-custom partial-batch-qty" name="quantity[]" min="1" value="1" required placeholder="QTY" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
-                                                </div>
-                                                <!-- Actions -->
-                                                <div class="col-lg-3 col-12 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
-                                                    <button type="button" onclick="batchRow.add(this)" class="btn btn-add-partial-batch d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                                                        <span>ADD</span>
-                                                    </button>
-                                                    <button type="button" onclick="batchRow.remove(this)" class="btn-remove-partial-batch btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px; display: none;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
-                                                        <i class="fa-regular fa-trash-can"></i> <span>Remove</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <label for="partial_quantity_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Quantity <span class="text-danger">*</span></label>
+                                        <input type="number"
+                                               class="form-control input-custom"
+                                               id="partial_quantity_<?php echo $req['request_id']; ?>"
+                                               name="quantity"
+                                               min="1"
+                                               max="<?php echo $partialMax; ?>"
+                                               value="1"
+                                               required
+                                               style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                                     </div>
                                     <div class="mb-3">
                                         <label for="partial_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Remarks</label>
                                         <textarea class="form-control input-custom"
-                                                id="partial_notes_<?php echo $req['request_id']; ?>" 
-                                                name="partial_notes" 
-                                                rows="3" 
-                                                placeholder="Remarks about this partial serve."></textarea>
+                                                  id="partial_notes_<?php echo $req['request_id']; ?>"
+                                                  name="partial_notes"
+                                                  rows="3"
+                                                  placeholder="Remarks..."></textarea>
                                     </div>
+                                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                        Are you sure you want to partially serve this request?
+                                    </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                     <button type="button"
@@ -461,9 +445,7 @@ $requestBadgeMap = [
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#059669'"
-                                            onmouseout="this.style.background='#10b981'">
+                                            class="btn btn-success-custom">
                                         Serve Partial
                                     </button>
                                 </div>
@@ -476,14 +458,14 @@ $requestBadgeMap = [
             <?php if ($req['request_status'] == 2): ?>
                 <!-- Complete Partial Serve Modal -->
                 <div class="modal fade" id="completePartialModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="completePartialModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-md">
+                    <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                            <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="completePartialModalLabel_<?php echo $req['request_id']; ?>">Complete Partially Served Request</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                <h5 class="modal-title fw-bold mb-0" id="completePartialModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">Complete Partial Serve</h5>
+                                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/complete_partial/' . $req['request_id']); ?>">
-                                <div class="modal-body px-4 py-4 text-center">
+                                <div class="modal-body px-4 py-4">
                                     <?php if (session()->getFlashdata('open_modal') === 'completePartialModal_' . $req['request_id'] && $modal_errors = session()->getFlashdata('modal_errors')): ?>
                                     <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 py-3">
                                         <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem; top: 0.5rem; right: 0.5rem;"></button>
@@ -497,14 +479,18 @@ $requestBadgeMap = [
                                     </div>
                                     <?php endif; ?>
                                     <?php $remaining = $req['quantity_requested'] - $req['quantity_served']; ?>
-                                    <h5 class="fw-semibold text-dark mb-2">Serve Remaining Quantity</h5>
-                                    <p class="text-muted small mb-3">
-                                        This request has already been partially served.<br>
-                                        Requested: <strong><?php echo $req['quantity_requested']; ?></strong> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?>, Already Served: <strong><?php echo $req['quantity_served']; ?></strong> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?>.<br>
-                                        Remaining to serve: <strong><?php echo $remaining; ?></strong> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong> to <strong><?php echo htmlspecialchars($req['requester_full_name']); ?></strong> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>).<br>
-                                    </p>
-                                    <p class="text-muted mb-3">
-                                        Are you sure you want to complete this supply request?
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    <?php echo htmlspecialchars($req['item_name']); ?>
+                                                </div>
+                                                <div class="text-muted small">Remaining: <?php echo $remaining; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                        Are you sure you want to complete this request?
                                     </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
@@ -516,9 +502,7 @@ $requestBadgeMap = [
                                         Close
                                     </button>
                                     <button type="submit"
-                                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                                            onmouseover="this.style.background='#059669'"
-                                            onmouseout="this.style.background='#10b981'">
+                                            class="btn btn-success-custom">
                                         Complete Request
                                     </button>
                                 </div>
@@ -550,8 +534,12 @@ $requestBadgeMap = [
                                 </div>
                                 <div class="col-6">
                                     <label class="small fw-semibold text-secondary d-block">Status</label>
-                                    <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
-                                    <span class="badge rounded-pill <?php echo $badge; ?>"><?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?></span>
+                                    <?php if (($req['status'] ?? 1) == 0): ?>
+                                        <span class="badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle">Archived</span>
+                                    <?php else: ?>
+                                        <?php $badge = $requestBadgeMap[$req['request_status']] ?? 'bg-warning-subtle text-dark border border-warning-subtle'; ?>
+                                        <span class="badge rounded-pill <?php echo $badge; ?>"><?php echo $requestStatusMap[$req['request_status']] ?? 'Unknown'; ?></span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="col-12"><hr class="my-1"></div>
                                 <div class="col-6">
@@ -606,10 +594,8 @@ $requestBadgeMap = [
                                 <?php if (!empty($req['notes'])): ?>
                                 <div class="col-12"><hr class="my-1"></div>
                                 <div class="col-12">
-                                    <label class="small fw-semibold text-secondary d-block mb-1">Notes</label>
-                                    <div class="bg-light rounded-3 p-3 border" style="white-space: pre-line; font-size: 0.95rem; color: #1f2937; line-height: 1.6;">
-                                        <?php echo htmlspecialchars($req['notes']); ?>
-                                    </div>
+                                    <label class="small fw-semibold text-secondary d-block mb-1">Remarks</label>
+                                    <div class="bg-light rounded-3 p-3 border" style="white-space: pre-line; font-size: 0.95rem; color: #1f2937; line-height: 1.6;"><?php echo htmlspecialchars(trim($req['notes'])); ?></div>
                                 </div>
                                 <?php endif; ?>
                             </div>
@@ -632,25 +618,33 @@ $requestBadgeMap = [
                 <div class="modal fade" id="cancelModal_<?php echo $req['request_id']; ?>" tabindex="-1" aria-labelledby="cancelModalLabel_<?php echo $req['request_id']; ?>" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
-                            <div class="modal-header border-bottom px-4">
-                                <h5 class="modal-title fw-bold text-dark" id="cancelModalLabel_<?php echo $req['request_id']; ?>">Cancel Request</h5>
+                            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                                <h5 class="modal-title fw-bold mb-0" id="cancelModalLabel_<?php echo $req['request_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">Cancel Request</h5>
                                 <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                             </div>
                             <form method="POST" action="<?php echo base_url('requests/cancel/' . $req['request_id']); ?>">
                                 <div class="modal-body px-4 py-4">
-                                    <div class="text-center mb-3">
-                                        <p class="text-muted small mb-0">
-                                            Are you sure you want to cancel request <strong>#<?php echo $req['request_id']; ?></strong> for <strong><?php echo $req['quantity_requested']; ?></strong> unit(s) of <strong><?php echo htmlspecialchars($req['item_name']); ?></strong>? This action cannot be undone.
-                                        </p>
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    <?php echo htmlspecialchars($req['item_name']); ?>
+                                                </div>
+                                                <div class="text-muted small"><?php echo (int)$req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="cancel_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Reason</label>
+                                        <label for="cancel_notes_<?php echo $req['request_id']; ?>" class="form-label small fw-semibold text-secondary">Remarks</label>
                                         <textarea class="form-control input-custom"
                                                   id="cancel_notes_<?php echo $req['request_id']; ?>"
                                                   name="cancel_notes"
                                                   rows="3"
-                                                   placeholder="Reason for cancellation..."></textarea>
+                                                   placeholder="Remarks..."></textarea>
                                     </div>
+                                    <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
+                                        Are you sure you want to cancel this request?
+                                    </p>
                                 </div>
                                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
                                     <button type="button"
@@ -659,7 +653,7 @@ $requestBadgeMap = [
                                             onmouseover="this.style.background='#f9fafb'"
                                             onmouseout="this.style.background='#fff'">Close</button>
                                     <button type="submit"
-                                            style="background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
+                                            style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
                                             onmouseover="this.style.background='#dc2626'"
                                             onmouseout="this.style.background='#ef4444'">Cancel Request</button>
                                 </div>
@@ -761,9 +755,7 @@ $requestBadgeMap = [
                                             Close
                                         </button>
                                         <button type="submit"
-                                                style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                                                onmouseover="this.style.background='#059669'"
-                                                onmouseout="this.style.background='#10b981'">
+                                                class="btn btn-success-custom">
                                             Restore Request
                                         </button>
                                     </div>
@@ -815,7 +807,8 @@ $requestBadgeMap = [
                                 <i class="fa-solid fa-triangle-exclamation mt-1"></i>
                                 <div>
                                     <span class="fw-bold d-block mb-1">Please correct the errors below:</span>
-                                    <div class="small">Item not found. Please choose from the available items in the dropdown.</div>
+                                    <div id="createRequestItemError" class="small" style="display:none;">Invalid Item. Please select an item.</div>
+                                    <div id="createRequestUnitError" class="small" style="display:none;">Invalid Unit. Please select a unit.</div>
                                 </div>
                             </div>
                         </div>
@@ -885,9 +878,7 @@ $requestBadgeMap = [
                             Close
                         </button>
                         <button type="submit"
-                                style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                                onmouseover="this.style.background='#059669'"
-                                onmouseout="this.style.background='#10b981'"
+                                class="btn btn-success-custom"
                                 id="btnSubmitSupplyRequest">
                             Submit Request
                         </button>
@@ -917,7 +908,7 @@ $requestBadgeMap = [
                     <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
                     <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                         <option value="">All Categories</option>
-                        ${categories.map(c => `<option value="${c.category_id}">${escapeHtml(c.category_code + ' - ' + c.category_description)}</option>`).join('')}
+                        ${categories.map(c => `<option value="${c.category_id}">${escapeHtml(c.category_code + ' - ' + c.category_name)}</option>`).join('')}
                     </select>
                 </div>
 
@@ -958,7 +949,7 @@ $requestBadgeMap = [
 
                 <!-- Add/Remove Actions -->
                 <div class="request-item-actions col-lg-2 col-12 d-flex gap-2 align-items-center justify-content-end justify-content-md-start">
-                    <button type="button" class="btn btn-add-row d-flex align-items-center gap-1" style="background: #10b981; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: background 0.15s; height: 42px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    <button type="button" class="btn btn-success-custom btn-add-row d-flex align-items-center gap-1" style="padding: 0.5rem 1rem; height: 42px;">
                         <span>ADD</span>
                     </button>
                     <button type="button" class="btn-remove-row btn btn-link text-decoration-none d-flex align-items-center gap-1 p-0" style="font-size: 0.9rem; color: #64748b; cursor: pointer; transition: color 0.15s; border: none; background: none; outline: none; height: 42px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
@@ -1005,6 +996,7 @@ $requestBadgeMap = [
                 hiddenInput.value = '';
                 searchInput.value = '';
                 clearBtn.style.display = 'none';
+                searchInput.style.borderColor = '#cbd5e1';
                 searchInput.focus();
                 filterAndRender(row);
             });
@@ -1136,6 +1128,7 @@ $requestBadgeMap = [
                         var u = this.getAttribute('data-unit');
                         unitInput.value = u;
                         unitInput.setAttribute('data-selected-unit', u);
+                        unitInput.style.borderColor = '#cbd5e1';
                         row.querySelector('.row-unit-dropdown').style.display = 'none';
                         var clearBtn = row.querySelector('.row-unit-clear');
                         if (clearBtn) clearBtn.style.display = 'block';
@@ -1166,6 +1159,7 @@ $requestBadgeMap = [
                 clearBtn.addEventListener('click', function() {
                     unitInput.value = '';
                     unitInput.setAttribute('data-selected-unit', '');
+                    unitInput.style.borderColor = '#cbd5e1';
                     clearBtn.style.display = 'none';
                 });
             }
@@ -1198,16 +1192,29 @@ $requestBadgeMap = [
             form.addEventListener('submit', function(e) {
                 var rows = container.querySelectorAll('.request-item-row');
                 var valid = true;
+                var hasItemError = false;
+                var hasUnitError = false;
                 rows.forEach((row, index) => {
                     var hiddenInput = row.querySelector('.row-item-id');
                     var searchInput = row.querySelector('.row-item-search');
+                    var clearBtn = row.querySelector('.row-item-clear');
+                    var unitInput = row.querySelector('.row-unit-search');
+                    var unitClearBtn = row.querySelector('.row-unit-clear');
                     if (!hiddenInput.value) {
                         valid = false;
-                        searchInput.classList.add('is-invalid');
+                        hasItemError = true;
                         searchInput.style.borderColor = '#ef4444';
+                        if (clearBtn) clearBtn.style.display = 'block';
                     } else {
-                        searchInput.classList.remove('is-invalid');
                         searchInput.style.borderColor = '#cbd5e1';
+                    }
+                    if (!unitInput.getAttribute('data-selected-unit')) {
+                        valid = false;
+                        hasUnitError = true;
+                        unitInput.style.borderColor = '#ef4444';
+                        if (unitClearBtn) unitClearBtn.style.display = 'block';
+                    } else {
+                        unitInput.style.borderColor = '#cbd5e1';
                     }
                 });
 
@@ -1215,6 +1222,10 @@ $requestBadgeMap = [
                     e.preventDefault();
                     var alertEl = document.getElementById('createRequestAlert');
                     if (alertEl) alertEl.style.display = '';
+                    var itemErr = document.getElementById('createRequestItemError');
+                    var unitErr = document.getElementById('createRequestUnitError');
+                    if (itemErr) itemErr.style.display = hasItemError ? '' : 'none';
+                    if (unitErr) unitErr.style.display = hasUnitError ? '' : 'none';
                 }
             });
         }
@@ -1267,7 +1278,7 @@ $requestBadgeMap = [
                             <label class="form-label small fw-semibold text-secondary d-md-none">Category</label>
                             <select class="form-select input-custom row-category-select" style="border-radius: 8px; border-color: #cbd5e1; height: 42px;">
                                 <option value="">All Categories</option>
-                                ${categories.map(c => `<option value="${c.category_id}" ${String(c.category_id) === String(categoryId) ? 'selected' : ''}>${escapeHtml(c.category_code + ' - ' + c.category_description)}</option>`).join('')}
+                                ${categories.map(c => `<option value="${c.category_id}" ${String(c.category_id) === String(categoryId) ? 'selected' : ''}>${escapeHtml(c.category_code + ' - ' + c.category_name)}</option>`).join('')}
                             </select>
                         </div>
 
@@ -1487,8 +1498,6 @@ $requestBadgeMap = [
         }
 
         <?php if (session()->get('role') === 'encoder'): ?>
-        #supplyRequestsTable th:nth-child(1),
-        #supplyRequestsTable td:nth-child(1),
         #supplyRequestsTable th:nth-child(4),
         #supplyRequestsTable td:nth-child(4),
         #supplyRequestsTable th:nth-child(5),

@@ -91,7 +91,7 @@
                     <?php foreach ($categories as $category): ?>
                         <tr>
                             <td class="fw text-dark">
-                                <?php echo !empty($category['category_description']) ? htmlspecialchars($category['category_description']) : 'N/A'; ?>
+                                <?php echo !empty($category['category_name']) ? htmlspecialchars($category['category_name']) : 'N/A'; ?>
                             </td>
                             <td class="fw text-dark" style="font-size: 0.875rem;">
                                 <?php echo htmlspecialchars($category['category_code']); ?>
@@ -110,7 +110,7 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                         <?php if (($category['status'] ?? 1) == 1): ?>
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openCategoryModal('edit', <?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['category_description'] ?? '', ENT_QUOTES); ?>')" title="Manage Category">Manage</a></li>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openCategoryModal('edit', <?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['category_name'] ?? '', ENT_QUOTES); ?>')" title="Manage Category">Manage</a></li>
                                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveCategoryModal-<?php echo $category['category_id']; ?>" title="Deactivate Category">Deactivate</a></li>
                                         <?php else: ?>
                                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreCategoryModal-<?php echo $category['category_id']; ?>" title="Reactivate Category">Reactivate</a></li>
@@ -125,7 +125,7 @@
         </table>
     </div>
 
-<!-- ===================== SINGLE CATEGORY MODAL (Add/Edit) ===================== -->
+<!-- ===================== ADD/EDIT MODAL ===================== -->
 <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
@@ -166,14 +166,14 @@
                     <?php endif; ?>
 
                     <div class="mb-3">
-                        <label for="category_description" class="form-label small fw-semibold text-secondary">
+                        <label for="category_name" class="form-label small fw-semibold text-secondary">
                             Category Name <span class="text-danger">*</span>
                         </label>
                         <input type="text"
                                class="form-control input-custom"
-                               id="category_description"
-                               name="category_description"
-                               value="<?php echo old('category_description'); ?>"
+                               id="category_name"
+                               name="category_name"
+                               value="<?php echo old('category_name'); ?>"
                                required>
                     </div>
 
@@ -200,9 +200,7 @@
                         Close
                     </button>
                     <button type="submit" id="categoryFormSubmitBtn"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                            class="btn btn-success-custom">
                         Add Category
                     </button>
                 </div>
@@ -213,7 +211,7 @@
 </div>
 
 <script>
-function openCategoryModal(mode, id, code, desc) {
+function openCategoryModal(mode, id, code, name) {
     var form = document.getElementById('categoryForm');
     var label = document.getElementById('categoryModalLabel');
     var btn = document.getElementById('categoryFormSubmitBtn');
@@ -222,25 +220,25 @@ function openCategoryModal(mode, id, code, desc) {
         label.textContent = 'Manage Category';
         btn.textContent = 'Update Category';
         document.getElementById('category_code').value = code || '';
-        document.getElementById('category_description').value = desc || '';
+        document.getElementById('category_name').value = name || '';
     } else {
         form.action = '<?php echo base_url('categories/create'); ?>';
         label.textContent = 'Add New Category';
         btn.textContent = 'Add Category';
         document.getElementById('category_code').value = '';
-        document.getElementById('category_description').value = '';
+        document.getElementById('category_name').value = '';
     }
     new bootstrap.Modal(document.getElementById('categoryModal')).show();
 }
 
 <?php if ($modal_mode === 'edit' && $modal_edit_id): ?>
 document.addEventListener('DOMContentLoaded', function () {
-    openCategoryModal('edit', <?php echo $modal_edit_id; ?>, '<?php echo addslashes(old('category_code', '')); ?>', '<?php echo addslashes(old('category_description', '')); ?>');
+    openCategoryModal('edit', <?php echo $modal_edit_id; ?>, '<?php echo addslashes(old('category_code', '')); ?>', '<?php echo addslashes(old('category_name', '')); ?>');
 });
 <?php elseif ($modal_mode === 'create'): ?>
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('category_code').value = '<?php echo addslashes(old('category_code', '')); ?>';
-    document.getElementById('category_description').value = '<?php echo addslashes(old('category_description', '')); ?>';
+    document.getElementById('category_name').value = '<?php echo addslashes(old('category_name', '')); ?>';
     new bootstrap.Modal(document.getElementById('categoryModal')).show();
 });
 <?php endif; ?>
@@ -252,7 +250,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
 
 <?php if (!empty($categories)): ?>
     <?php foreach ($categories as $category): ?>
-    <!-- ===================== ARCHIVE CATEGORY MODAL ===================== -->
+    <!-- ===================== DEACTIVATE CATEGORY MODAL ===================== -->
     <div class="modal fade" id="archiveCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
          aria-labelledby="archiveCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -279,10 +277,10 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                         <div class="d-flex align-items-center gap-3">
                             <div>
                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                                    <?php echo htmlspecialchars($category['category_code']); ?>
+                                    <?php echo !empty($category['category_name']) ? htmlspecialchars($category['category_name']) : 'No name'; ?>
                                 </div>
                                 <div class="text-muted small">
-                                    <?php echo !empty($category['category_description']) ? htmlspecialchars($category['category_description']) : 'No description'; ?>
+                                    <?php echo htmlspecialchars($category['category_code']); ?>
                                 </div>
                             </div>
                         </div>
@@ -352,7 +350,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                                     <?php echo htmlspecialchars($category['category_code']); ?>
                                 </div>
                                 <div class="text-muted small">
-                                    <?php echo !empty($category['category_description']) ? htmlspecialchars($category['category_description']) : 'No description'; ?>
+                                    <?php echo !empty($category['category_name']) ? htmlspecialchars($category['category_name']) : 'No name'; ?>
                                 </div>
                             </div>
                         </div>
@@ -372,22 +370,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                         Close
                     </button>
                     <a href="<?php echo base_url('categories/restore/' . $category['category_id']); ?>"
-                       style="
-                               background: #10b981;
-                               color: #fff;
-                               border: 1px solid transparent;
-                               border-radius: 8px;
-                               padding: 0.5rem 1.5rem;
-                               font-size: 0.9rem;
-                               font-weight: 600;
-                               text-decoration: none;
-                                cursor: pointer;
-                                display: inline-flex;
-                                align-items: center;
-                                height: 38px;
-                            "
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                       class="btn btn-success-custom">
                          Reactivate Category
                     </a>
                 </div>

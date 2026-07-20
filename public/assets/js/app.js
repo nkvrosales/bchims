@@ -335,7 +335,7 @@ $(document).ready(function() {
             pageLength: 10,
             ordering: true,
             searching: true,
-            order: [[0, 'desc']],
+            order: [[8, 'asc'], [0, 'desc']],
             language: {
                 paginate: {
                     previous: '<i class="fa-solid fa-angle-left"></i>',
@@ -350,8 +350,7 @@ $(document).ready(function() {
             },
             columnDefs: [
                 { orderable: false, targets: 9 },
-                { type: 'num', targets: 0 },
-                { className: 'text-center', targets: [3, 4, 5, 6, 7, 8] }
+                { className: 'text-center', targets: [1, 3, 4, 5, 6, 7, 8] }
             ],
             initComplete: function () {
                 var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');
@@ -389,8 +388,8 @@ $(document).ready(function() {
                 zeroRecords: 'No items found'
             },
             columnDefs: [
-                { orderable: false, targets: 6 },
-                { className: 'text-center', targets: [2] }
+                { orderable: false, targets: 5 },
+                { className: 'text-center', targets: [1, 2, 3, 4, 5] }
             ],
             initComplete: function () {
                 var $searchInput = $('#inventoryTable_wrapper .dataTables_filter input');

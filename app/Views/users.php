@@ -334,7 +334,7 @@
                                        style="padding-right: 40px;">
                                 <button type="button" id="toggleCreatePassword" tabindex="-1"
                                         style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
-                                    <i class="bi bi-eye-slash"></i>
+                                    <i class="bi bi-eye"></i>
                                 </button>
                             </div>
                         </div>
@@ -399,9 +399,7 @@
                     </button>
                     <button type="submit"
                             id="btnSubmitUser"
-                            style="background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;"
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10b981'">
+                            class="btn btn-success-custom">
                         Add User
                     </button>
                 </div>
@@ -470,7 +468,7 @@
                         <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                             <h5 class="modal-title fw-bold mb-0" id="activateUserModalLabel-<?php echo $u['id']; ?>"
                                 style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
-                                Activate User Account
+                                Reactivate User Account
                             </h5>
                             <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
                         </div>
@@ -488,7 +486,7 @@
                                 </div>
                             </div>
                             <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">
-                                Are you sure you want to activate this user account?
+                                Are you sure you want to reactivate this user account?
                             </p>
                         </div>
                         <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end">
@@ -497,9 +495,7 @@
                                     onmouseover="this.style.background='#f9fafb'"
                                     onmouseout="this.style.background='#fff'">Cancel</button>
                             <a href="<?php echo base_url('users/activate/' . $u['id']); ?>"
-                               style="background: #10b981; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
-                               onmouseover="this.style.background='#059669'"
-                               onmouseout="this.style.background='#10b981'">Activate Account</a>
+                               class="btn btn-success-custom">Reactivate Account</a>
                         </div>
                     </div>
                 </div>
@@ -655,8 +651,8 @@
         
         var icon = toggleBtn?.querySelector('i');
         if (icon) {
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
         }
 
         var errorAlert = this.querySelector('.modal-body .alert.alert-danger');
@@ -676,14 +672,14 @@
     togglePasswordBtn?.addEventListener('click', function() {
         var icon = this.querySelector('i');
         if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
-        } else {
-            passwordInput.type = 'password';
-            icon.classList.remove('bi-eye');
-            icon.classList.add('bi-eye-slash');
-        }
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
     });
 
     function toggleAdminDept() {

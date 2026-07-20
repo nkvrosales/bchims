@@ -69,13 +69,13 @@ class Categories extends BaseController
 
         $rules = [
             'category_code'        => 'required|alpha_dash|max_length[10]|is_unique[category.category_code]',
-            'category_description' => 'required|max_length[100]',
+            'category_name' => 'required|max_length[100]',
         ];
 
         if ($this->validate($rules)) {
             $insertData = [
                 'category_code'        => strtoupper($this->request->getPost('category_code')),
-                'category_description' => ucwords(strtolower($this->request->getPost('category_description'))),
+                'category_name' => ucwords(strtolower($this->request->getPost('category_name'))),
             ];
 
             if ($this->categoryModel->insert($insertData)) {
@@ -121,7 +121,7 @@ class Categories extends BaseController
 
         $rules = [
             'category_code'        => "required|alpha_dash|max_length[10]|is_unique[category.category_code,category_id,{$id}]",
-            'category_description' => 'required|max_length[100]',
+            'category_name' => 'required|max_length[100]',
         ];
 
         if ($this->validate($rules)) {
@@ -129,7 +129,7 @@ class Categories extends BaseController
 
             $updateData = [
                 'category_code'        => strtoupper($this->request->getPost('category_code')),
-                'category_description' => ucwords(strtolower($this->request->getPost('category_description'))),
+                'category_name' => ucwords(strtolower($this->request->getPost('category_name'))),
             ];
 
             if ($this->categoryModel->update($id, $updateData)) {
@@ -137,8 +137,8 @@ class Categories extends BaseController
                 if (($oldCat['category_code'] ?? '') !== $updateData['category_code']) {
                     $changes[] = "Code: '{$oldCat['category_code']}' → '{$updateData['category_code']}'";
                 }
-                if (($oldCat['category_description'] ?? '') !== ($updateData['category_description'] ?? '')) {
-                    $changes[] = "Name: '{$oldCat['category_description']}' → '{$updateData['category_description']}'";
+                if (($oldCat['category_name'] ?? '') !== ($updateData['category_name'] ?? '')) {
+                    $changes[] = "Name: '{$oldCat['category_name']}' → '{$updateData['category_name']}'";
                 }
                 $auditDesc = "Updated category: {$updateData['category_code']}.";
                 if ($changes) {

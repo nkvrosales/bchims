@@ -78,41 +78,31 @@ class Dashboard extends BaseController
             )->getRowArray()['cnt'];
 
             $data['total_no_stock'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh
-                    FROM central_supply
-                    WHERE status = 1
-                    GROUP BY item_code, item_name
-                    HAVING total_qoh = 0
-                ) AS grouped"
+                "SELECT COUNT(*) AS cnt
+                FROM central_supply
+                WHERE status = 1 AND quantity_on_hand = 0"
             )->getRowArray()['cnt'];
 
             $data['total_expired'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh, MAX(expiration_date) AS max_exp
-                    FROM central_supply
-                    WHERE status = 1
-                    GROUP BY item_code, item_name
-                    HAVING max_exp < CURDATE() AND total_qoh > 0
-                ) AS grouped"
+                "SELECT COUNT(*) AS cnt
+                FROM central_supply
+                WHERE status = 1 AND expiration_date < CURDATE() AND quantity_on_hand > 0"
             )->getRowArray()['cnt'];
 
             $data['total_near_expiry'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT item_code, item_name, SUM(quantity_on_hand) AS total_qoh, MAX(expiration_date) AS max_exp
-                    FROM central_supply
-                    WHERE status = 1
-                    GROUP BY item_code, item_name
-                    HAVING max_exp BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND total_qoh > 0
-                ) AS grouped"
+                "SELECT COUNT(*) AS cnt
+                FROM central_supply
+                WHERE status = 1
+                AND expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                AND quantity_on_hand > 0"
             )->getRowArray()['cnt'];
 
             $data['near_expiry_items'] = $db->query(
-                "SELECT item_code, item_name, SUM(quantity_on_hand) AS quantity_on_hand, MAX(expiration_date) AS expiration_date
+                "SELECT item_code, item_name, quantity_on_hand, expiration_date
                 FROM central_supply
                 WHERE status = 1
-                GROUP BY item_code, item_name
-                HAVING MAX(expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(quantity_on_hand) > 0
+                AND expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                AND quantity_on_hand > 0
                 ORDER BY expiration_date ASC
                 LIMIT 5"
             )->getResultArray();
@@ -139,53 +129,44 @@ class Dashboard extends BaseController
             )->getRowArray()['cnt'];
 
             $data['total_no_stock'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh
-                    FROM inventory i
-                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                    WHERE ds.department_id = ? AND i.status = 1
-                    GROUP BY i.item_code, i.item_name
-                    HAVING total_qoh = 0
-                ) AS grouped",
+                "SELECT COUNT(*) AS cnt
+                FROM inventory i
+                INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                WHERE ds.department_id = ? AND i.status = 1 AND ds.quantity_on_hand = 0",
                 [$deptId]
             )->getRowArray()['cnt'];
 
             $data['total_expired'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh, MAX(i.expiration_date) AS max_exp
-                    FROM inventory i
-                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                    WHERE ds.department_id = ? AND i.status = 1
-                    GROUP BY i.item_code, i.item_name
-                    HAVING max_exp < CURDATE() AND total_qoh > 0
-                ) AS grouped",
-                [$deptId]
-            )->getRowArray()['cnt'];
-
-            $data['total_near_expiry'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt FROM (
-                    SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS total_qoh, MAX(i.expiration_date) AS max_exp
-                    FROM inventory i
-                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                    WHERE ds.department_id = ? AND i.status = 1
-                    GROUP BY i.item_code, i.item_name
-                    HAVING max_exp BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND total_qoh > 0
-                ) AS grouped",
-                [$deptId]
-            )->getRowArray()['cnt'];
-
-            $data['near_expiry_items'] = $db->query(
-                "SELECT i.item_code, i.item_name, SUM(ds.quantity_on_hand) AS quantity_on_hand, MAX(i.expiration_date) AS expiration_date
+                "SELECT COUNT(*) AS cnt
                 FROM inventory i
                 INNER JOIN supply s ON s.inventory_id = i.inventory_id
                 INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
                 WHERE ds.department_id = ? AND i.status = 1
-                GROUP BY i.item_code, i.item_name
-                HAVING MAX(i.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(ds.quantity_on_hand) > 0
-                ORDER BY expiration_date ASC
+                AND i.expiration_date < CURDATE() AND ds.quantity_on_hand > 0",
+                [$deptId]
+            )->getRowArray()['cnt'];
+
+            $data['total_near_expiry'] = (int)$db->query(
+                "SELECT COUNT(*) AS cnt
+                FROM inventory i
+                INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                WHERE ds.department_id = ? AND i.status = 1
+                AND i.expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                AND ds.quantity_on_hand > 0",
+                [$deptId]
+            )->getRowArray()['cnt'];
+
+            $data['near_expiry_items'] = $db->query(
+                "SELECT i.item_code, i.item_name, ds.quantity_on_hand, i.expiration_date
+                FROM inventory i
+                INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                WHERE ds.department_id = ? AND i.status = 1
+                AND i.expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                AND ds.quantity_on_hand > 0
+                ORDER BY i.expiration_date ASC
                 LIMIT 5",
                 [$deptId]
             )->getResultArray();

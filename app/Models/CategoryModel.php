@@ -13,7 +13,7 @@ class CategoryModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
 
-    protected $allowedFields = ['category_code', 'category_description', 'status'];
+    protected $allowedFields = ['category_code', 'category_name', 'status'];
     protected $useTimestamps = false;
 
     /**
@@ -29,7 +29,7 @@ class CategoryModel extends Model
 
         if (!empty($search)) {
             $builder = $builder->groupStart()
-                               ->like('category_description', $search)
+                               ->like('category_name', $search)
                                ->orLike('category_code', $search)
                                ->groupEnd();
         }

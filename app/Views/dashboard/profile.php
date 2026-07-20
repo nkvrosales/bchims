@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<!-- Validation Error Alerts if any -->
+<!-- Validation Error Alerts -->
 <?php if (validation_errors() || isset($error)): ?>
     <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-3 fade show" role="alert">
         <div class="d-flex align-items-start gap-2">
@@ -40,34 +40,10 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function togglePasswordVisibility(btnId, inputId) {
-        var btn = document.getElementById(btnId);
-        var input = document.getElementById(inputId);
-        if (!btn || !input) return;
-        btn.addEventListener('click', function() {
-            var icon = this.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-    }
-    togglePasswordVisibility('toggleOldPassword', 'old_password');
-    togglePasswordVisibility('toggleNewPassword', 'password');
-    togglePasswordVisibility('toggleConfirmPassword', 'confirm_password');
-});
-</script>
     </div>
 <?php endif; ?>
 
-<!-- Success Alerts if any -->
+<!-- Success Alerts -->
 <?php if (session()->getFlashdata('success')): ?>
     <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3" role="alert">
         <div class="d-flex align-items-center gap-2">
@@ -82,11 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="row fade-in-up" style="animation-delay: 0.1s;">
     <div class="col-lg-6 col-12">
         <div class="standard-card">
-            <div class="card-header-styled mb-4">
-                <h5 class="card-title-styled">
-                    <span>Profile</span>
-                </h5>
-            </div>
+            
 
             <form method="POST" action="<?php echo base_url('dashboard/profile'); ?>" class="row g-3">
                 
@@ -153,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                style="padding-right: 40px;">
                         <button type="button" id="toggleOldPassword" tabindex="-1"
                                 style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
-                            <i class="bi bi-eye-slash"></i>
+                            <i class="bi bi-eye"></i>
                         </button>
                     </div>
                 </div>
@@ -171,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                style="padding-right: 40px;">
                         <button type="button" id="toggleNewPassword" tabindex="-1"
                                 style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
-                            <i class="bi bi-eye-slash"></i>
+                            <i class="bi bi-eye"></i>
                         </button>
                     </div>
                 </div>
@@ -188,15 +160,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                style="padding-right: 40px;">
                         <button type="button" id="toggleConfirmPassword" tabindex="-1"
                                 style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #475569; cursor: pointer; padding: 4px 8px; z-index: 5; display: none;">
-                            <i class="bi bi-eye-slash"></i>
+                            <i class="bi bi-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Submission Actions -->
-                <div class="col-12 d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary-custom px-4 py-2 d-flex align-items-center gap-2 hover-lift">
-                        <span>Save Changes</span>
+                <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                    <button type="submit" class="btn btn-success-custom d-inline-flex align-items-center gap-2">
+                        <span>Save Profile</span>
                     </button>
                 </div>
             </form>
@@ -222,12 +194,12 @@ document.addEventListener('DOMContentLoaded', function () {
             var icon = btn.querySelector('i');
             if (inp.type === 'password') {
                 inp.type = 'text';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            } else {
-                inp.type = 'password';
                 icon.classList.remove('bi-eye');
                 icon.classList.add('bi-eye-slash');
+            } else {
+                inp.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
             }
         });
     });

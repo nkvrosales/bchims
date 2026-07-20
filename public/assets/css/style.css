@@ -1,8 +1,3 @@
-/*
- * Hospital Inventory Management System — Core Stylesheet
- * Premium Modern Aesthetic Design (Electric Indigo & Slate Cyan Theme)
- */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -67,7 +62,7 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--text-secondary);
 }
 
-/* Elegant Light Slate Background (Login Page) */
+/* (Login Page) */
 .login-bg {
     min-height: 100vh;
     background: url('../images/bchbg.jpg') no-repeat center center / cover !important;
@@ -129,7 +124,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #64748b !important;
 }
 
-/* Fix: reset btn-outline-secondary overrides inside login input-groups */
+
 .login-card .input-group .btn-outline-secondary {
     border-radius: 0 0.375rem 0.375rem 0 !important;
     padding: 0.5rem 0.85rem !important;
@@ -171,7 +166,25 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 50rem !important;
 }
 
-/* Custom premium styling for btn-outline-primary (ghost button) */
+.btn-success-custom {
+    background: #10b981 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.5rem 1.5rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.18s ease;
+}
+
+.btn-success-custom:hover, .btn-success-custom:focus, .btn-success-custom:active {
+    background: #059669 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+
 .btn-outline-primary {
     color: #10b981 !important;
     border-color: #10b981 !important;
@@ -272,7 +285,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1.5rem 0.75rem;
     margin: 0;
     flex-grow: 1;
-    /* Allow scrolling when sidebar content taller than screen */
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -454,7 +466,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.95rem;
 }
 
-/* Premium User Profile Button */
+
 .navbar-user-profile-btn {
     display: inline-flex;
     align-items: center;

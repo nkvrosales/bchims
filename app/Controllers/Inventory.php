@@ -40,7 +40,7 @@ class Inventory extends BaseController
         return null;
     }
 
-    protected function resolveSourceId($sourceValue, $sourceName = null)
+    protected function resolveSupplierId($sourceValue, $sourceName = null)
     {
         $db = \Config\Database::connect();
 
@@ -51,17 +51,17 @@ class Inventory extends BaseController
             case 'others':
                 $customName = trim($sourceName ?? '');
                 if (!empty($customName)) {
-                    $existing = $db->table('source')
+                    $existing = $db->table('supplier')
                         ->where('supplier_name', $customName)
                         ->get()
                         ->getRowArray();
 
                     if (!empty($existing)) {
-                        return (int)$existing['source_id'];
+                        return (int)$existing['supplier_id'];
                     }
 
-                    $db->table('source')->insert([
-                        'source_type'   => 'Others',
+                    $db->table('supplier')->insert([
+                        'supplier_type' => 'Others',
                         'supplier_name' => $customName,
                         'status'        => 1,
                     ]);
@@ -72,17 +72,17 @@ class Inventory extends BaseController
                 $sourceType = 'Supplier';
         }
 
-        $existing = $db->table('source')
-            ->where('source_type', $sourceType)
+        $existing = $db->table('supplier')
+            ->where('supplier_type', $sourceType)
             ->get()
             ->getRowArray();
 
         if (!empty($existing)) {
-            return (int)$existing['source_id'];
+            return (int)$existing['supplier_id'];
         }
 
-        $db->table('source')->insert([
-            'source_type'   => $sourceType,
+        $db->table('supplier')->insert([
+            'supplier_type' => $sourceType,
             'supplier_name' => $sourceType,
         ]);
 
@@ -133,14 +133,24 @@ class Inventory extends BaseController
             ->get()
             ->getResultArray();
 
-        $data['sources'] = \Config\Database::connect()
-            ->table('source')
+        $data['suppliers'] = \Config\Database::connect()
+            ->table('supplier')
             ->where('status', 1)
             ->orderBy('supplier_name', 'ASC')
             ->get()
             ->getResultArray();
 
         $data['units'] = (new UnitModel())->get_units();
+
+        // Get all existing item codes for the dropdown
+        $data['all_item_codes'] = \Config\Database::connect()
+            ->table('central_supply')
+            ->select('item_code')
+            ->distinct()
+            ->where('status', 1)
+            ->orderBy('item_code', 'ASC')
+            ->get()
+            ->getResultArray();
 
         if (!$isAdmin) {
             $data['department_batches'] = [];
@@ -176,8 +186,8 @@ class Inventory extends BaseController
             'item_code'        => 'required|alpha_dash|max_length[50]',
             'name'        => 'required|max_length[150]',
             'category_id' => 'required|integer',
-            'source_type' => 'required|in_list[supplier,donation,others]',
-            'source_name' => 'permit_empty|max_length[150]',
+            'supplier_type' => 'required|in_list[supplier,donation,others]',
+            'supplier_name' => 'permit_empty|max_length[150]',
             'quantity'    => 'required|integer|greater_than[0]',
             'unit'               => 'required',
             'expiration_date'    => 'required|valid_date',
@@ -216,7 +226,7 @@ class Inventory extends BaseController
 
             $itemName   = ucwords(strtolower($this->request->getPost('name')));
             $quantity   = (int)$this->request->getPost('quantity');
-            $sourceId   = $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name'));
+            $sourceId   = $this->resolveSupplierId($this->request->getPost('supplier_type'), $this->request->getPost('supplier_name'));
             $batchNum   = $this->request->getPost('batch_num') ?: null;
             $lotNum     = $this->request->getPost('lot_num')   ?: null;
             $expiration = $this->request->getPost('expiration_date') ?: null;
@@ -239,7 +249,7 @@ class Inventory extends BaseController
                     'quantity'         => $quantity,
                     'quantity_on_hand' => $quantity,
                     'category_id'      => $categoryId,
-                    'source_id'        => $sourceId,
+                'supplier_id' => $sourceId,
                     'remarks'          => $remarks,
                 ];
                 $this->itemModel->insert($insert_data);
@@ -278,7 +288,7 @@ class Inventory extends BaseController
                         'quantity'         => 0,
                         'quantity_on_hand' => 0,
                         'category_id'      => $categoryId,
-                        'source_id'        => $sourceId, // source tracked in central_supply only
+                        'supplier_id'      => $sourceId, // supplier tracked in central_supply only
                     ]);
                     $csId = $db->insertID();
                 } else {
@@ -381,8 +391,8 @@ class Inventory extends BaseController
             'item_code'   => 'required|alpha_dash|max_length[50]',
             'name'        => 'required|max_length[150]',
             'category_id' => 'required|integer',
-            'source_type' => 'required|in_list[supplier,donation,others]',
-            'source_name' => 'permit_empty|max_length[150]',
+            'supplier_type' => 'required|in_list[supplier,donation,others]',
+            'supplier_name' => 'permit_empty|max_length[150]',
             'quantity'    => 'required|integer|greater_than_equal_to[0]',
             'unit'               => 'required',
             'expiration_date'    => 'required|valid_date',
@@ -409,7 +419,7 @@ class Inventory extends BaseController
                 'item_code'       => strtoupper($this->request->getPost('item_code')),
                 'item_name'       => ucwords(strtolower($this->request->getPost('name'))),
                 'category_id'     => (int)$this->request->getPost('category_id'),
-                'source_id'       => $this->resolveSourceId($this->request->getPost('source_type'), $this->request->getPost('source_name')),
+                'supplier_id'     => $this->resolveSupplierId($this->request->getPost('supplier_type'), $this->request->getPost('supplier_name')),
                 'batch_num'       => $this->request->getPost('batch_num') ?: null,
                 'lot_num'         => $this->request->getPost('lot_num')   ?: null,
                 'expiration_date' => $this->request->getPost('expiration_date') ?: null,
@@ -425,8 +435,8 @@ class Inventory extends BaseController
                 // Also update supply unit for admin if needed
                 $db->table('supply')->where('central_supply_id', $id)->update(['unit' => $update_data['unit']]);
             } else {
-                // For staff: remove source_id from inventory update (not a column in inventory table)
-                unset($update_data['source_id']);
+                // For staff: remove supplier_id from inventory update (not a column in inventory table)
+                unset($update_data['supplier_id']);
                 $this->itemModel->update($id, $update_data);
                 // Sync quantity_on_hand in department_supply
                 $dsRow = $db->table('department_supply')
@@ -717,7 +727,8 @@ class Inventory extends BaseController
         $itemName = $this->request->getPost('item_name') ?: '';
         $itemCode = $this->request->getPost('item_code') ?: '';
         $quantity = (int)$this->request->getPost('quantity');
-        $reason = $this->request->getPost('reason') ?: '';
+        // Accept the old field name for compatibility with already-open forms.
+        $remarks = $this->request->getPost('remarks') ?: ($this->request->getPost('reason') ?: '');
 
         if ($quantity <= 0) {
             session()->setFlashdata('error', 'Quantity must be greater than zero.');
@@ -783,11 +794,9 @@ class Inventory extends BaseController
                ->set('quantity_used', 'quantity_used + ' . $take, false)
                ->update();
 
-            // Decrement central_supply
-            $db->table('central_supply')
-               ->where('central_supply_id', $m['central_supply_id'])
-               ->set('quantity_on_hand', 'quantity_on_hand - ' . $take, false)
-               ->update();
+            // Central stock was deducted when this batch was transferred to the
+            // department. Consumption must only reduce the department's stock;
+            // deducting central_supply here would count the same units twice.
 
             $remaining -= $take;
             $updatedAny = true;
@@ -800,8 +809,8 @@ class Inventory extends BaseController
         } else {
             $displayName = $itemName ?: $itemCode;
             $auditDesc = "Consumed {$quantity} unit(s) of {$displayName}.";
-            if ($reason) {
-                $auditDesc .= " Reason: {$reason}";
+            if ($remarks) {
+                $auditDesc .= " Remarks: {$remarks}";
             }
             $this->auditModel->log_activity(
                 'CONSUME_ITEM',

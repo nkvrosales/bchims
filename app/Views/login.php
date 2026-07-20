@@ -92,7 +92,7 @@
                        autocomplete="current-password"
                        style="border-left: none; border-right: none; border-color: #e2e8f0;">
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1" style="border-color: #e2e8f0; border-left: none; color: #94a3b8; background-color: #ffffff;">
-                    <i class="fa-solid fa-eye-slash"></i>
+                    <i class="fa-solid fa-eye"></i>
                 </button>
             </div>
         </div>
@@ -113,14 +113,14 @@
         const passwordInput = document.getElementById('password');
         const icon = this.querySelector('i');
         if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        } else {
-            passwordInput.type = 'password';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        }
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
     });
 
     // Form Submit Animations

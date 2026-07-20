@@ -159,7 +159,6 @@
                     </a>
                 </li>
 
-                <?php if (strtolower((string) session()->get('role')) !== 'viewer'): ?>
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('requests'); ?>"
                        class="sidebar-link <?php echo (isset($title) && (strpos($title, 'Requests') !== false)) ? 'active' : ''; ?>" id="navSupplyRequests" title="Requests">
@@ -167,7 +166,6 @@
                         <span>Requests</span>
                     </a>
                 </li>
-                <?php endif; ?>
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('reports'); ?>"
