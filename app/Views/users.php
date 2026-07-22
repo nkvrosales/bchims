@@ -550,7 +550,7 @@
             document.getElementById('modal_email').disabled = false;
             passwordInput.value = '';
             roleSelect.value = data.role || '';
-            document.getElementById('modal_department_id').value = data.departmentId || '';
+            document.getElementById('modal_department_id').value = data.departmentId ?? '';
             document.getElementById('modal_department_id').disabled = false;
             
             roleSelect.disabled = false;
@@ -578,7 +578,7 @@
             document.getElementById('modal_email').value = data.email || '';
             document.getElementById('modal_email').disabled = false;
             passwordInput.value = '';
-            document.getElementById('modal_department_id').value = data.departmentId || '';
+            document.getElementById('modal_department_id').value = data.departmentId ?? '';
             document.getElementById('modal_department_id').disabled = false;
             
             const isSelf = data.isSelf === 'true' || data.isSelf === true;
@@ -615,7 +615,7 @@
             document.getElementById('modal_username').value = data.username || '';
             document.getElementById('modal_email').value = data.email || 'N/A';
             passwordInput.value = '';
-            document.getElementById('modal_department_id').value = data.departmentId || '';
+            document.getElementById('modal_department_id').value = data.departmentId ?? '';
             roleSelect.value = data.role || '';
             roleSelect.disabled = true;
             
@@ -685,8 +685,15 @@
     function toggleAdminDept() {
         var role = document.getElementById('modal_role').value;
         var opt = document.getElementById('optAdminDept');
+        var departmentSelect = document.getElementById('modal_department_id');
+        var administratorRole = role === 'admin' || role === 'dev';
         if (opt) {
-            opt.style.display = (!role || role === 'encoder' || role === 'viewer') ? 'none' : '';
+            opt.style.display = administratorRole ? '' : 'none';
+        }
+        // Do not retain the hidden Administrator value after changing to an
+        // operational account level. The user must choose a real department.
+        if (!administratorRole && departmentSelect && departmentSelect.value === '0') {
+            departmentSelect.value = '';
         }
     }
 

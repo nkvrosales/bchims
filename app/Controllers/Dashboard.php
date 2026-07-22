@@ -78,33 +78,94 @@ class Dashboard extends BaseController
             )->getRowArray()['cnt'];
 
             $data['total_no_stock'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt
-                FROM central_supply
-                WHERE status = 1 AND quantity_on_hand <= 0"
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT cs.item_code
+                    FROM central_supply cs
+                    WHERE cs.status = 1
+                    GROUP BY cs.item_code
+                    HAVING MAX(cs.quantity_on_hand) <= 0
+                ) AS grouped"
             )->getRowArray()['cnt'];
 
             $data['total_expired'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt
-                FROM central_supply
-                WHERE status = 1 AND expiration_date < CURDATE()"
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT cs.item_code
+                    FROM central_supply cs
+                    WHERE cs.status = 1
+                    GROUP BY cs.item_code
+                    HAVING SUM(cs.quantity_on_hand) > 0
+                       AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND (cs.expiration_date IS NULL OR cs.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) = 0
+                ) AS grouped"
             )->getRowArray()['cnt'];
 
             $data['total_near_expiry'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt
-                FROM central_supply
-                WHERE status = 1
-                AND expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-                AND quantity_on_hand > 0"
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT cs.item_code
+                    FROM central_supply cs
+                    WHERE cs.status = 1
+                    GROUP BY cs.item_code
+                    HAVING SUM(cs.quantity_on_hand) > 0
+                       AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND (cs.expiration_date IS NULL OR cs.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) > 0
+                       AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND cs.expiration_date IS NOT NULL AND cs.expiration_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) = 0
+                       AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND cs.expiration_date IS NULL THEN 1 ELSE 0 END) = 0
+                ) AS grouped"
             )->getRowArray()['cnt'];
 
             $data['near_expiry_items'] = $db->query(
-                "SELECT item_code, item_name, quantity_on_hand, expiration_date
-                FROM central_supply
-                WHERE status = 1
-                AND expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-                AND quantity_on_hand > 0
-                ORDER BY expiration_date ASC
-                LIMIT 5"
+                "SELECT cs.item_code, MIN(cs.item_name) AS item_name, MAX(cs.inventory_code) AS inventory_code, MAX(cs.unit) AS unit, SUM(cs.quantity_on_hand) AS quantity_on_hand, MIN(cs.expiration_date) AS expiration_date
+                 FROM central_supply cs
+                 WHERE cs.status = 1
+                 GROUP BY cs.item_code
+                 HAVING SUM(cs.quantity_on_hand) > 0
+                    AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND (cs.expiration_date IS NULL OR cs.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) > 0
+                    AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND cs.expiration_date IS NOT NULL AND cs.expiration_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) = 0
+                    AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND cs.expiration_date IS NULL THEN 1 ELSE 0 END) = 0
+                 ORDER BY MIN(cs.expiration_date) ASC
+                 LIMIT 5"
+            )->getResultArray();
+
+            $data['expired_items'] = $db->query(
+                "SELECT cs.item_code, MIN(cs.item_name) AS item_name, MAX(cs.inventory_code) AS inventory_code, MAX(cs.unit) AS unit, SUM(cs.quantity_on_hand) AS quantity_on_hand, MAX(cs.expiration_date) AS expiration_date
+                 FROM central_supply cs
+                 WHERE cs.status = 1
+                 GROUP BY cs.item_code
+                 HAVING SUM(cs.quantity_on_hand) > 0
+                    AND SUM(CASE WHEN cs.quantity_on_hand > 0 AND (cs.expiration_date IS NULL OR cs.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) = 0
+                 ORDER BY MAX(cs.expiration_date) DESC
+                 LIMIT 5"
+            )->getResultArray();
+
+            $data['no_stock_items'] = $db->query(
+                "SELECT cs.item_code, MIN(cs.item_name) AS item_name, MAX(cs.inventory_code) AS inventory_code, MAX(cs.unit) AS unit, SUM(cs.quantity_on_hand) AS quantity_on_hand, MAX(cs.expiration_date) AS expiration_date
+                 FROM central_supply cs
+                 WHERE cs.status = 1
+                 GROUP BY cs.item_code
+                 HAVING SUM(cs.quantity_on_hand) <= 0
+                 LIMIT 5"
+            )->getResultArray();
+
+            $data['recent_requests'] = $db->query(
+                "SELECT r.request_id, r.quantity_requested, r.quantity_served, r.request_status, r.created_at,
+                        CONCAT(u.first_name, ' ', u.last_name) AS requester_name, i.item_name, i.item_code, i.inventory_code, i.unit,
+                        CONCAT(
+                            DATE_FORMAT(r.created_at, '%Y-%m-%d'),
+                            '-',
+                            LPAD(
+                                (SELECT COUNT(*) + 1 FROM request r2
+                                 WHERE DATE(r2.created_at) = DATE(r.created_at)
+                                 AND r2.request_id < r.request_id
+                                 AND r2.status > 0),
+                                3,
+                                '0'
+                            )
+                        ) AS reference_no
+                 FROM request r
+                 JOIN user u ON u.user_id = r.user_id
+                 JOIN supply s ON s.request_id = r.request_id
+                 JOIN inventory i ON i.inventory_id = s.inventory_id
+                 WHERE r.request_status IN (1, 2) AND r.status > 0
+                 ORDER BY r.created_at DESC
+                 LIMIT 5"
             )->getResultArray();
         } else {
             // Staff: count pending (1) and partially served (2) requests for this department
@@ -128,46 +189,117 @@ class Dashboard extends BaseController
                 [$deptId]
             )->getRowArray()['cnt'];
 
+            // Match inventory listing: only count items that were actually received
+            // (quantity_received > 0). Pending/unfulfilled request placeholders have
+            // received = 0 and must not inflate the No Stock KPI.
             $data['total_no_stock'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt
-                FROM inventory i
-                INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                WHERE ds.department_id = ? AND i.status = 1 AND ds.quantity_on_hand <= 0",
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1 AND ds.quantity_received > 0
+                    GROUP BY i.item_code
+                    HAVING SUM(ds.quantity_on_hand) <= 0
+                ) AS grouped",
                 [$deptId]
             )->getRowArray()['cnt'];
 
             $data['total_expired'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt
-                FROM inventory i
-                INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                WHERE ds.department_id = ? AND i.status = 1
-                AND i.expiration_date < CURDATE()",
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code
+                    HAVING SUM(ds.quantity_on_hand) > 0
+                       AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND (i.expiration_date IS NULL OR i.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) = 0
+                ) AS grouped",
                 [$deptId]
             )->getRowArray()['cnt'];
 
             $data['total_near_expiry'] = (int)$db->query(
-                "SELECT COUNT(*) AS cnt
-                FROM inventory i
-                INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                WHERE ds.department_id = ? AND i.status = 1
-                AND i.expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-                AND ds.quantity_on_hand > 0",
+                "SELECT COUNT(*) AS cnt FROM (
+                    SELECT i.item_code
+                    FROM inventory i
+                    INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                    INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                    WHERE ds.department_id = ? AND i.status = 1
+                    GROUP BY i.item_code
+                    HAVING SUM(ds.quantity_on_hand) > 0
+                       AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND (i.expiration_date IS NULL OR i.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) > 0
+                       AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND i.expiration_date IS NOT NULL AND i.expiration_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) = 0
+                       AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND i.expiration_date IS NULL THEN 1 ELSE 0 END) = 0
+                ) AS grouped",
                 [$deptId]
             )->getRowArray()['cnt'];
 
             $data['near_expiry_items'] = $db->query(
-                "SELECT i.item_code, i.item_name, ds.quantity_on_hand, i.expiration_date
-                FROM inventory i
-                INNER JOIN supply s ON s.inventory_id = i.inventory_id
-                INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
-                WHERE ds.department_id = ? AND i.status = 1
-                AND i.expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-                AND ds.quantity_on_hand > 0
-                ORDER BY i.expiration_date ASC
-                LIMIT 5",
+                "SELECT i.item_code, MIN(i.item_name) AS item_name, MAX(i.inventory_code) AS inventory_code, MAX(i.unit) AS unit, SUM(ds.quantity_on_hand) AS quantity_on_hand, MIN(i.expiration_date) AS expiration_date
+                 FROM inventory i
+                 INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                 INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                 WHERE ds.department_id = ? AND i.status = 1
+                 GROUP BY i.item_code
+                 HAVING SUM(ds.quantity_on_hand) > 0
+                    AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND (i.expiration_date IS NULL OR i.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) > 0
+                    AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND i.expiration_date IS NOT NULL AND i.expiration_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) = 0
+                    AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND i.expiration_date IS NULL THEN 1 ELSE 0 END) = 0
+                 ORDER BY MIN(i.expiration_date) ASC
+                 LIMIT 5",
+                [$deptId]
+            )->getResultArray();
+
+            $data['expired_items'] = $db->query(
+                "SELECT i.item_code, MIN(i.item_name) AS item_name, MAX(i.inventory_code) AS inventory_code, MAX(i.unit) AS unit, SUM(ds.quantity_on_hand) AS quantity_on_hand, MAX(i.expiration_date) AS expiration_date
+                 FROM inventory i
+                 INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                 INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                 WHERE ds.department_id = ? AND i.status = 1
+                 GROUP BY i.item_code
+                 HAVING SUM(ds.quantity_on_hand) > 0
+                    AND SUM(CASE WHEN ds.quantity_on_hand > 0 AND (i.expiration_date IS NULL OR i.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) = 0
+                 ORDER BY MAX(i.expiration_date) DESC
+                 LIMIT 5",
+                [$deptId]
+            )->getResultArray();
+
+            $data['no_stock_items'] = $db->query(
+                "SELECT i.item_code, MIN(i.item_name) AS item_name, MAX(i.inventory_code) AS inventory_code, MAX(i.unit) AS unit, SUM(ds.quantity_on_hand) AS quantity_on_hand, MAX(i.expiration_date) AS expiration_date
+                 FROM inventory i
+                 INNER JOIN supply s ON s.inventory_id = i.inventory_id
+                 INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                 WHERE ds.department_id = ? AND i.status = 1 AND ds.quantity_received > 0
+                 GROUP BY i.item_code
+                 HAVING SUM(ds.quantity_on_hand) <= 0
+                 LIMIT 5",
+                [$deptId]
+            )->getResultArray();
+
+            $data['recent_requests'] = $db->query(
+                "SELECT r.request_id, r.quantity_requested, r.quantity_served, r.request_status, r.created_at,
+                        CONCAT(u.first_name, ' ', u.last_name) AS requester_name, i.item_name, i.item_code, i.inventory_code, i.unit,
+                        CONCAT(
+                            DATE_FORMAT(r.created_at, '%Y-%m-%d'),
+                            '-',
+                            LPAD(
+                                (SELECT COUNT(*) + 1 FROM request r2
+                                 WHERE DATE(r2.created_at) = DATE(r.created_at)
+                                 AND r2.request_id < r.request_id
+                                 AND r2.status > 0),
+                                3,
+                                '0'
+                            )
+                        ) AS reference_no
+                 FROM request r
+                 JOIN user u ON u.user_id = r.user_id
+                 JOIN supply s ON s.request_id = r.request_id
+                 JOIN inventory i ON i.inventory_id = s.inventory_id
+                 JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                 WHERE r.request_status IN (1, 2) AND r.status > 0 AND ds.department_id = ?
+                 ORDER BY r.created_at DESC
+                 LIMIT 5",
                 [$deptId]
             )->getResultArray();
         }

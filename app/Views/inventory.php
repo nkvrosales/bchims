@@ -136,7 +136,6 @@
                                 $lowStockThreshold = $totalQty > 0 ? max(1, (int)ceil($totalQty * 0.15)) : 0;
 
                                 // Check batch-level statuses for this item
-                                $hasIssue = false;
                                 $allExpired = true;
                                 $allOutOfStock = true;
                                 $allNearExpiry = true;
@@ -149,9 +148,6 @@
                                     if ($bQty > 0 && !$bExpired) $allExpired = false;
                                     if ($bQty > 0) $allOutOfStock = false;
                                     if ($bQty > 0 && !$bNear) $allNearExpiry = false;
-                                    if ($bExpired || $bNear || $bQty === 0) {
-                                        $hasIssue = true;
-                                    }
                                 }
 
                                 if ($allOutOfStock && !empty($itemBatches)) {
@@ -165,23 +161,19 @@
                                 } elseif ($allNearExpiry && !empty($itemBatches)) {
                                     $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
                                     $status = 'Near Expiry';
-                                    $sortStatus = 2;
-                                } elseif ($hasIssue) {
-                                    $badge  = 'bg-info-subtle text-dark border border-info-subtle';
-                                    $status = 'View Details';
-                                    $sortStatus = 1;
+                                    $sortStatus = 0;
                                 } elseif ($isExpired) {
                                     $badge  = 'bg-dark-subtle text-dark border border-dark-subtle';
                                     $status = 'Expired';
-                                    $sortStatus = 5;
+                                    $sortStatus = 4;
                                 } elseif ($isNearExpiry) {
                                     $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
                                     $status = 'Near Expiry';
-                                    $sortStatus = 3;
+                                    $sortStatus = 0;
                                 } elseif ($stockQty === 0) {
                                     $badge  = 'bg-danger-subtle text-dark border border-danger-subtle';
                                     $status = 'Out of Stock';
-                                    $sortStatus = 4;
+                                    $sortStatus = 3;
                                 } elseif ($stockQty <= $lowStockThreshold) {
                                     $badge  = 'bg-warning-subtle text-dark border border-warning-subtle';
                                     $status = 'Low Stock';
@@ -189,7 +181,7 @@
                                 } else {
                                     $badge  = 'bg-success-subtle text-dark border border-success-subtle';
                                     $status = 'In Stock';
-                                    $sortStatus = 0;
+                                    $sortStatus = 1;
                                 }
                             ?>
                             <td class="text-center" data-order="<?php echo $sortStatus; ?>">
@@ -203,7 +195,10 @@
                                         Actions
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                         <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
+                                        <?php if (strtolower((string) session()->get('role')) === 'encoder' && (int) $item['quantity_on_hand'] > 0): ?>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openConsumeModal({item_code: "<?php echo $item["item_code"]; ?>", item_name: "<?php echo $item["item_name"]; ?>"})'>Consume</a></li>
+                                        <?php endif; ?>
+                                        <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick='openItemModal("manage-batches", <?php echo json_encode([
                                             "item_code" => $item["item_code"],
                                             "name" => $item["item_name"],
@@ -582,7 +577,7 @@ function _batchManageRenderTable() {
                 va = parseInt(a[key]) || 0;
                 vb = parseInt(b[key]) || 0;
             } else if (key === 'stock_status') {
-                var order = {'In Stock':0,'View Details':1,'Low Stock':2,'Near Expiry':3,'Out of Stock':4,'Expired':5,'Archived':6};
+                var order = {'Near Expiry':0,'In Stock':1,'Low Stock':2,'Out of Stock':3,'Expired':4,'Archived':5};
                 var bqtyA = parseInt(a.quantity_on_hand)||0, bqtyB = parseInt(b.quantity_on_hand)||0;
                 var bexpA = a.expiration_date||'', bexpB = b.expiration_date||'';
                 var btotalA = parseInt(a.quantity)||0, btotalB = parseInt(b.quantity)||0;
@@ -608,7 +603,7 @@ function _batchManageRenderTable() {
     } else {
         // Default sort: by stock status, then expiration date
         batches.sort(function(a, b) {
-            var order = {'In Stock':0,'View Details':1,'Low Stock':2,'Near Expiry':3,'Out of Stock':4,'Expired':5,'Archived':6};
+            var order = {'Near Expiry':0,'In Stock':1,'Low Stock':2,'Out of Stock':3,'Expired':4,'Archived':5};
             var bqtyA = parseInt(a.quantity_on_hand)||0, bqtyB = parseInt(b.quantity_on_hand)||0;
             var bexpA = a.expiration_date||'', bexpB = b.expiration_date||'';
             var btotalA = parseInt(a.quantity)||0, btotalB = parseInt(b.quantity)||0;
@@ -692,17 +687,13 @@ function _batchManageRenderTable() {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, supplier_type: (b.supplier_type ? b.supplier_type.toLowerCase().replace(" ", "_") : "supplier"), supplier_name: (b.supplier_name || ""), expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
         }
         <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
-        if (barchived) {
-        html += '<li><a class="dropdown-item" href="<?php echo base_url('inventory/restore'); ?>/' + b.id + '">Restore</a></li>';
-        } else {
-        if (bqty > 0) {
-        html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'openConsumeModal(' + JSON.stringify({id: b.id, item_code: b.item_code, item_name: b.item_name}) + ')\'>Consume</a></li>';
-        }
+        if (!barchived && bqty > 0) {
+        html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'openConsumeModal(' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, item_name: b.item_name}) + ')\'>Consume</a></li>';
         }
         <?php endif; ?>
         <?php if (strtolower((string) session()->get('role')) === 'viewer'): ?>
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); showViewBatchModal(' + JSON.stringify(b) + ')\'>View</a></li>';
-        <?php else: ?>
+        <?php elseif (strtolower((string) session()->get('role')) !== 'encoder'): ?>
         if (!barchived) {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="event.stopPropagation(); new bootstrap.Modal(document.getElementById(\'archiveItemModal' + b.id + '\')).show();">Archive</a></li>';
         }
@@ -1212,6 +1203,7 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
 
                     <input type="hidden" name="item_name" id="consumeItemNameHidden">
                     <input type="hidden" name="item_code" id="consumeItemCodeHidden">
+                    <input type="hidden" name="inventory_id" id="consumeInventoryIdHidden">
 
                     <div class="mb-3">
                         <label for="consumeQuantity" class="form-label small fw-semibold text-secondary">
@@ -1222,7 +1214,7 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
 
                     <div>
                         <label for="consumeRemarks" class="form-label small fw-semibold text-secondary">Remarks</label>
-                        <textarea class="form-control input-custom" id="consumeRemarks" name="remarks" rows="3" placeholder="Remarks about consumption..."></textarea>
+                        <textarea class="form-control input-custom" id="consumeRemarks" name="remarks" rows="3" placeholder="Remarks..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
@@ -1305,17 +1297,42 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
 
 <script>
 var departmentBatches = <?php echo json_encode($department_batches ?? []); ?>;
+var reopenManageAfterConsume = false;
 
 function openConsumeModal(data) {
     document.getElementById('consumeItemName').textContent = data.item_name;
-    document.getElementById('consumeItemCode').textContent = 'Code: ' + data.item_code;
+    document.getElementById('consumeItemCode').textContent = data.inventory_code
+        ? 'Inventory Code: ' + data.inventory_code
+        : 'Item Code: ' + data.item_code;
     document.getElementById('consumeItemNameHidden').value = data.item_name;
     document.getElementById('consumeItemCodeHidden').value = data.item_code;
+    document.getElementById('consumeInventoryIdHidden').value = data.id || '';
     document.getElementById('consumeQuantity').value = '';
     document.getElementById('consumeRemarks').value = '';
 
-    new bootstrap.Modal(document.getElementById('consumeModal')).show();
+    var consumeModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('consumeModal'));
+    var itemModalEl = document.getElementById('itemModal');
+
+    // Bootstrap only displays one modal cleanly. When Consume is selected from
+    // Manage Item, close that modal first and then show Consume.
+    if (itemModalEl && itemModalEl.classList.contains('show')) {
+        reopenManageAfterConsume = true;
+        itemModalEl.addEventListener('hidden.bs.modal', function () {
+            consumeModal.show();
+        }, { once: true });
+        bootstrap.Modal.getOrCreateInstance(itemModalEl).hide();
+    } else {
+        reopenManageAfterConsume = false;
+        consumeModal.show();
+    }
 }
+
+document.getElementById('consumeModal')?.addEventListener('hidden.bs.modal', function () {
+    if (reopenManageAfterConsume && _manageBatchesData) {
+        reopenManageAfterConsume = false;
+        openItemModal('manage-batches', _manageBatchesData);
+    }
+});
 
 function showViewBatchModal(b) {
     document.getElementById('bv_inventory_code').textContent = b.inventory_code || 'N/A';

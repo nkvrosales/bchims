@@ -42,6 +42,21 @@ class Users extends BaseController
         return null;
     }
 
+    /** Return the human-readable department value used in audit entries. */
+    protected function departmentAuditLabel($departmentId): string
+    {
+        if ((string) $departmentId === '0') {
+            return 'Administrator';
+        }
+
+        if ($departmentId === null || $departmentId === '') {
+            return 'None';
+        }
+
+        $department = $this->departmentModel->find($departmentId);
+        return $department['name'] ?? $department['department_name'] ?? 'Unknown';
+    }
+
     /**
      * Display all user accounts in the database
      */
@@ -99,6 +114,13 @@ class Users extends BaseController
             $dept_id = $this->request->getPost('department_id');
             $role = $this->request->getPost('role');
             $is_active = (int)$this->request->getPost('is_active');
+            $departmentId = $dept_id !== null && $dept_id !== '' ? (int) $dept_id : null;
+
+            // Department 0 represents Administrator and is not a valid
+            // assignment for operational roles.
+            if (!in_array($role, ['dev', 'admin'], true) && $departmentId === 0) {
+                $departmentId = null;
+            }
             
             $role_map = ['dev' => 0, 'admin' => 1, 'encoder' => 2, 'viewer' => 3];
             $role_id = isset($role_map[$role]) ? $role_map[$role] : 2;
@@ -112,7 +134,7 @@ class Users extends BaseController
                 'first_name'     => $this->request->getPost('first_name'),
                 'password'       => $this->request->getPost('password'),
                 'role_id'        => $role_id,
-                'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
+                'department_id'  => $departmentId,
                 'status'         => $is_active ? 1 : 0
             );
 
@@ -187,10 +209,17 @@ class Users extends BaseController
             $dept_id = $this->request->getPost('department_id');
             $role = $this->request->getPost('role');
             $is_active = (int)$this->request->getPost('is_active');
+            $departmentId = $dept_id !== null && $dept_id !== '' ? (int) $dept_id : null;
 
             if ((int)$id === (int)$current_admin_id) {
                 $role = 'admin';
                 $is_active = 1;
+            }
+
+            // Department 0 represents Administrator and is not a valid
+            // assignment for operational roles.
+            if (!in_array($role, ['dev', 'admin'], true) && $departmentId === 0) {
+                $departmentId = null;
             }
 
             $role_map = ['dev' => 0, 'admin' => 1, 'encoder' => 2, 'viewer' => 3];
@@ -204,7 +233,7 @@ class Users extends BaseController
                 'last_name'      => $this->request->getPost('last_name'),
                 'first_name'     => $this->request->getPost('first_name'),
                 'role_id'        => $role_id,
-                'department_id'  => !empty($dept_id) ? (int)$dept_id : NULL,
+                'department_id'  => $departmentId,
                 'status'         => $is_active ? 1 : 0
             );
 
@@ -227,20 +256,8 @@ class Users extends BaseController
                     $changes[] = "Role ('{$user['role']}' -> '{$role}')";
                 }
                 if ((int)$user['department_id'] !== (int)$update_data['department_id']) {
-                    $old_dept = 'None';
-                    if (!empty($user['department_id'])) {
-                        $old_dept_obj = $this->departmentModel->find($user['department_id']);
-                        if ($old_dept_obj) {
-                            $old_dept = $old_dept_obj['name'] ?? $old_dept_obj['department_name'] ?? 'Unknown';
-                        }
-                    }
-                    $new_dept = 'None';
-                    if (!empty($update_data['department_id'])) {
-                        $new_dept_obj = $this->departmentModel->find($update_data['department_id']);
-                        if ($new_dept_obj) {
-                            $new_dept = $new_dept_obj['name'] ?? $new_dept_obj['department_name'] ?? 'Unknown';
-                        }
-                    }
+                    $old_dept = $this->departmentAuditLabel($user['department_id']);
+                    $new_dept = $this->departmentAuditLabel($update_data['department_id']);
                     $changes[] = "Department ('{$old_dept}' -> '{$new_dept}')";
                 }
                 if ((int)$user['is_active'] !== $is_active) {

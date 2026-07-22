@@ -129,7 +129,7 @@ $requestBadgeMap = [
                         <th style="width: 11%" class="col-last-updated">Last Updated</th>
                         <th style="width: 11%">Requester</th>
                         <th style="width: 9%">Department</th>
-                        <th style="width: 15%">Item Requested</th>
+                        <th style="width: 15%">Item</th>
                         <th style="width: 9%">Quantity</th>
                         <th style="width: 7%">Unit</th>
                         <th style="width: 10%">Status</th>
@@ -856,12 +856,12 @@ $requestBadgeMap = [
                         <!-- Details/Notes -->
                         <div class="row mt-3">
                             <div class="col-12">
-                                <label for="modal_notes" class="form-label small fw-semibold text-secondary">Details</label>
+                                <label for="modal_notes" class="form-label small fw-semibold text-secondary">Remarks</label>
                                 <textarea class="form-control input-custom"
                                         id="modal_notes"
                                         name="notes"
                                         rows="3"
-                                        placeholder="Details..."
+                                        placeholder="Remarks..."
                                         style="resize: none; background: #fff; border-radius: 8px; border-color: #cbd5e1 !important;"
                                         ><?php echo old('notes'); ?></textarea>
                             </div>
@@ -889,7 +889,7 @@ $requestBadgeMap = [
     <script>
     var allItems = <?php echo $items_json; ?>;
     var categories = <?php echo $categories_json; ?>;
-    var unitsByItemName = <?php echo json_encode($units_by_name ?? []); ?>;
+    var unitsByItemCode = <?php echo json_encode($units_by_code ?? []); ?>;
 
     document.addEventListener('DOMContentLoaded', function () {
         var container = document.getElementById('request-items-container');
@@ -1093,8 +1093,8 @@ $requestBadgeMap = [
             var itemId = row.querySelector('.row-item-id').value;
             if (itemId) {
                 var selectedItem = allItems.find(function(item) { return String(item.id) === String(itemId); });
-                if (selectedItem && selectedItem.name && unitsByItemName[selectedItem.name]) {
-                    return unitsByItemName[selectedItem.name].slice();
+                if (selectedItem && selectedItem.item_code && unitsByItemCode[selectedItem.item_code]) {
+                    return unitsByItemCode[selectedItem.item_code].slice();
                 }
             }
             var units = [];

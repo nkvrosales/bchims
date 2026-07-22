@@ -89,12 +89,200 @@ class Inventory extends BaseController
         return (int)$db->insertID();
     }
 
+    /** Record each expired batch once, attributed to the reserved System user. */
+    protected function logNewlyExpiredInventory(): void
+    {
+        $db = \Config\Database::connect();
+        $today = date('Y-m-d');
+
+        $centralBatches = $db->table('central_supply')
+            ->select("'Central supply' AS source, central_supply_id AS id, inventory_code, item_code, item_name, unit, expiration_date, quantity_on_hand")
+            ->where('status', 1)
+            ->where('quantity_on_hand >', 0)
+            ->where('expiration_date <', $today)
+            ->get()->getResultArray();
+
+        $departmentBatches = $db->table('inventory')
+            ->select("'Department inventory' AS source, inventory.inventory_id AS id, inventory.inventory_code, inventory.item_code, inventory.item_name, inventory.unit, inventory.expiration_date, SUM(department_supply.quantity_on_hand) AS quantity_on_hand")
+            ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
+            ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
+            ->where('inventory.status', 1)
+            ->where('inventory.expiration_date <', $today)
+            ->groupBy('inventory.inventory_id')
+            ->having('SUM(department_supply.quantity_on_hand) > 0', null, false)
+            ->get()->getResultArray();
+
+        foreach (array_merge($centralBatches, $departmentBatches) as $batch) {
+            $description = sprintf(
+                '%s batch %s (%s) expired on %s with %d %s remaining.',
+                $batch['source'],
+                $batch['inventory_code'],
+                $batch['item_name'],
+                $batch['expiration_date'],
+                (int) $batch['quantity_on_hand'],
+                trim((string) ($batch['unit'] ?? '')) ?: 'unit(s)'
+            );
+
+            $exists = $db->table('audit_log')
+                ->where('user_id', 0)
+                ->where('action_type', 'EXPIRE_INVENTORY')
+                ->like('action_description', "{$batch['source']} batch {$batch['inventory_code']} (", 'after')
+                ->countAllResults() > 0;
+
+            if (!$exists) {
+                $this->auditModel->log_system_activity('EXPIRE_INVENTORY', $description);
+            }
+        }
+    }
+
+    /** Record each near-expiry batch once, attributed to the reserved System user. */
+    protected function logNewlyNearExpiryInventory(): void
+    {
+        $db = \Config\Database::connect();
+        $today = date('Y-m-d');
+        $nearDate = date('Y-m-d', strtotime('+30 days'));
+
+        $centralBatches = $db->table('central_supply')
+            ->select("'Central supply' AS source, central_supply_id AS id, inventory_code, item_code, item_name, unit, expiration_date, quantity_on_hand")
+            ->where('status', 1)
+            ->where('quantity_on_hand >', 0)
+            ->where('expiration_date >=', $today)
+            ->where('expiration_date <=', $nearDate)
+            ->get()->getResultArray();
+
+        $departmentBatches = $db->table('inventory')
+            ->select("'Department inventory' AS source, inventory.inventory_id AS id, inventory.inventory_code, inventory.item_code, inventory.item_name, inventory.unit, inventory.expiration_date, SUM(department_supply.quantity_on_hand) AS quantity_on_hand")
+            ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
+            ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
+            ->where('inventory.status', 1)
+            ->where('inventory.expiration_date >=', $today)
+            ->where('inventory.expiration_date <=', $nearDate)
+            ->groupBy('inventory.inventory_id')
+            ->having('SUM(department_supply.quantity_on_hand) > 0', null, false)
+            ->get()->getResultArray();
+
+        foreach (array_merge($centralBatches, $departmentBatches) as $batch) {
+            $description = sprintf(
+                '%s batch %s (%s) is near expiry (expires on %s) with %d %s remaining.',
+                $batch['source'],
+                $batch['inventory_code'],
+                $batch['item_name'],
+                $batch['expiration_date'],
+                (int) $batch['quantity_on_hand'],
+                trim((string) ($batch['unit'] ?? '')) ?: 'unit(s)'
+            );
+
+            $exists = $db->table('audit_log')
+                ->where('user_id', 0)
+                ->where('action_type', 'NEAR_EXPIRY_INVENTORY')
+                ->like('action_description', "{$batch['source']} batch {$batch['inventory_code']} (", 'after')
+                ->countAllResults() > 0;
+
+            if (!$exists) {
+                $this->auditModel->log_system_activity('NEAR_EXPIRY_INVENTORY', $description);
+            }
+        }
+    }
+
+    /** Record each low-stock item once, attributed to the reserved System user. */
+    protected function logNewlyLowStockInventory(): void
+    {
+        $db = \Config\Database::connect();
+
+        $centralItems = $db->query(
+            "SELECT 'Central supply' AS source, item_code, item_name, unit, SUM(quantity_on_hand) AS quantity_on_hand
+             FROM central_supply
+             WHERE status = 1
+             GROUP BY item_code, item_name, unit
+             HAVING SUM(quantity_on_hand) <= 10 AND SUM(quantity_on_hand) > 0"
+        )->getResultArray();
+
+        $departmentItems = $db->query(
+            "SELECT 'Department inventory' AS source, i.item_code, i.item_name, i.unit, SUM(ds.quantity_on_hand) AS quantity_on_hand
+             FROM inventory i
+             INNER JOIN supply s ON s.inventory_id = i.inventory_id
+             INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+             WHERE i.status = 1
+             GROUP BY i.item_code, i.item_name, i.unit
+             HAVING SUM(ds.quantity_on_hand) <= 10 AND SUM(ds.quantity_on_hand) > 0"
+        )->getResultArray();
+
+        foreach (array_merge($centralItems, $departmentItems) as $item) {
+            $description = sprintf(
+                '%s item %s (%s) is low on stock (%d %s remaining).',
+                $item['source'],
+                $item['item_code'],
+                $item['item_name'],
+                (int) $item['quantity_on_hand'],
+                trim((string) ($item['unit'] ?? '')) ?: 'unit(s)'
+            );
+
+            $exists = $db->table('audit_log')
+                ->where('user_id', 0)
+                ->where('action_type', 'LOW_STOCK_INVENTORY')
+                ->like('action_description', "{$item['source']} item {$item['item_code']} (", 'after')
+                ->countAllResults() > 0;
+
+            if (!$exists) {
+                $this->auditModel->log_system_activity('LOW_STOCK_INVENTORY', $description);
+            }
+        }
+    }
+
+    /** Record each out-of-stock item once, attributed to the reserved System user. */
+    protected function logNewlyOutOfStockInventory(): void
+    {
+        $db = \Config\Database::connect();
+
+        $centralItems = $db->query(
+            "SELECT 'Central supply' AS source, item_code, item_name, unit
+             FROM central_supply
+             WHERE status = 1
+             GROUP BY item_code, item_name, unit
+             HAVING MAX(quantity_on_hand) <= 0"
+        )->getResultArray();
+
+        $departmentItems = $db->query(
+            "SELECT 'Department inventory' AS source, i.item_code, i.item_name, i.unit
+             FROM inventory i
+             INNER JOIN supply s ON s.inventory_id = i.inventory_id
+             INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+             WHERE i.status = 1
+             GROUP BY i.item_code, i.item_name, i.unit
+             HAVING MAX(ds.quantity_on_hand) <= 0"
+        )->getResultArray();
+
+        foreach (array_merge($centralItems, $departmentItems) as $item) {
+            $description = sprintf(
+                '%s item %s (%s) is out of stock.',
+                $item['source'],
+                $item['item_code'],
+                $item['item_name']
+            );
+
+            $exists = $db->table('audit_log')
+                ->where('user_id', 0)
+                ->where('action_type', 'OUT_OF_STOCK_INVENTORY')
+                ->like('action_description', "{$item['source']} item {$item['item_code']} (", 'after')
+                ->countAllResults() > 0;
+
+            if (!$exists) {
+                $this->auditModel->log_system_activity('OUT_OF_STOCK_INVENTORY', $description);
+            }
+        }
+    }
+
     /**
      * Display inventory search and filtering listing dashboard
      */
     public function index()
     {
         if ($res = $this->checkAuth()) return $res;
+
+        $this->logNewlyExpiredInventory();
+        $this->logNewlyNearExpiryInventory();
+        $this->logNewlyLowStockInventory();
+        $this->logNewlyOutOfStockInventory();
 
         $userId = session()->get('user_id');
         $user = $this->userModel->get_user_by_id($userId);
@@ -726,6 +914,7 @@ class Inventory extends BaseController
 
         $itemName = $this->request->getPost('item_name') ?: '';
         $itemCode = $this->request->getPost('item_code') ?: '';
+        $inventoryId = (int) $this->request->getPost('inventory_id');
         $quantity = (int)$this->request->getPost('quantity');
         // Accept the old field name for compatibility with already-open forms.
         $remarks = $this->request->getPost('remarks') ?: ($this->request->getPost('reason') ?: '');
@@ -747,11 +936,24 @@ class Inventory extends BaseController
         $builder = $db->table('supply')
             ->select('supply.supply_id, supply.department_supply_id, supply.central_supply_id')
             ->select('department_supply.quantity_on_hand AS ds_qty')
+            ->select('inventory.unit AS unit, inventory.inventory_code')
             ->join('inventory', 'inventory.inventory_id = supply.inventory_id')
             ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id')
             ->where('department_supply.department_id', $user['department_id'])
             ->where('department_supply.quantity_on_hand >', 0)
             ->where('inventory.status', 1);
+
+        if ($inventoryId > 0) {
+            // A batch selected from Manage Item may be consumed explicitly,
+            // including an expired batch.
+            $builder->where('inventory.inventory_id', $inventoryId);
+        } else {
+            // The main Consume action uses only usable stock and FEFO.
+            $builder->groupStart()
+                ->where('inventory.expiration_date >=', date('Y-m-d'))
+                ->orWhere('inventory.expiration_date', null)
+            ->groupEnd();
+        }
 
         if (!empty($itemCode)) {
             $builder->where('inventory.item_code', $itemCode);
@@ -759,7 +961,10 @@ class Inventory extends BaseController
             $builder->where('inventory.item_name', $itemName);
         }
 
-        $matches = $builder->orderBy('inventory.expiration_date', 'ASC')->get()->getResultArray();
+        // FEFO: consume the nearest non-expired batch first; undated stock is last.
+        $matches = $builder->orderBy('inventory.expiration_date IS NULL', 'ASC', false)
+                           ->orderBy('inventory.expiration_date', 'ASC')
+                           ->get()->getResultArray();
 
         if (empty($matches)) {
             $db->transRollback();
@@ -770,6 +975,7 @@ class Inventory extends BaseController
         $remaining = $quantity;
         $updatedAny = false;
         $totalAvailable = 0;
+        $consumedByUnit = [];
 
         foreach ($matches as $m) {
             $totalAvailable += (int)$m['ds_qty'];
@@ -786,6 +992,8 @@ class Inventory extends BaseController
 
             $dsQty = (int)$m['ds_qty'];
             $take = min($remaining, $dsQty);
+            $unit = trim((string) ($m['unit'] ?? '')) ?: 'unit(s)';
+            $consumedByUnit[$unit] = ($consumedByUnit[$unit] ?? 0) + $take;
 
             // Decrement department_supply
             $db->table('department_supply')
@@ -808,7 +1016,12 @@ class Inventory extends BaseController
             session()->setFlashdata('error', 'An error occurred while consuming inventory.');
         } else {
             $displayName = $itemName ?: $itemCode;
-            $auditDesc = "Consumed {$quantity} unit(s) of {$displayName}.";
+            $unitSummary = implode(', ', array_map(
+                static fn ($amount, $unit) => "{$amount} {$unit}",
+                $consumedByUnit,
+                array_keys($consumedByUnit)
+            ));
+            $auditDesc = "Consumed {$unitSummary} of {$displayName}.";
             if ($remarks) {
                 $auditDesc .= " Remarks: {$remarks}";
             }
@@ -817,7 +1030,10 @@ class Inventory extends BaseController
                 'Inventory',
                 $auditDesc
             );
-            session()->setFlashdata('success', "Successfully consumed {$quantity} unit(s).");
+            $inventoryLabel = $inventoryId > 0
+                ? ' (Inventory Code: ' . ($matches[0]['inventory_code'] ?? $itemCode) . ')'
+                : '';
+            session()->setFlashdata('success', "Successfully consumed {$unitSummary} of {$displayName}{$inventoryLabel}.");
         }
 
         return redirect()->to('inventory');

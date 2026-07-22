@@ -50,6 +50,21 @@ class AuditModel extends Model
     }
 
     /**
+     * Write an audit entry for a background/system event. User ID 0 is the
+     * reserved System account, so these events are never attributed to a user.
+     */
+    public function log_system_activity($action, $description)
+    {
+        return $this->insert([
+            'user_id'            => 0,
+            'action_type'        => strtoupper($action),
+            'action_description' => $description,
+            'ip_address'         => null,
+            'user_agent'         => 'System',
+        ]);
+    }
+
+    /**
      * Retrieve audit logs based on various optional filters.
      */
     public function get_audit_logs($filters = array(), $limit = 1000)

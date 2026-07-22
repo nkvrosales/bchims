@@ -105,9 +105,10 @@ class ItemModel extends Model
                                 // batches do not create duplicate rows.
                                 ->select('MIN(central_supply.item_name) AS item_name')
                                 ->select('MAX(central_supply.unit) AS unit')
-                                ->select('SUM(central_supply.quantity) AS quantity')
-                                ->select('SUM(central_supply.quantity) AS total_quantity')
-                                ->select('SUM(central_supply.quantity_on_hand) AS quantity_on_hand')
+                                ->select('SUM(CASE WHEN central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE() THEN central_supply.quantity ELSE 0 END) AS quantity')
+                                ->select('SUM(CASE WHEN central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE() THEN central_supply.quantity ELSE 0 END) AS total_quantity')
+                                // Expired batches remain visible in batch details, but never count as available stock.
+                                ->select('SUM(CASE WHEN central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE() THEN central_supply.quantity_on_hand ELSE 0 END) AS quantity_on_hand')
                                 // A request may be fulfilled by multiple FEFO batches.
                                 // Derive consumption from each batch's own balance so the
                                 // whole request is not attributed to the first batch.
@@ -143,16 +144,37 @@ class ItemModel extends Model
             $builder = $builder->groupBy('central_supply.item_code');
 
             if (!empty($stock_status)) {
+                // Usable stock excludes expired batches (same as the quantity_on_hand select above).
+                $usableQoh = 'SUM(CASE WHEN central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE() THEN central_supply.quantity_on_hand ELSE 0 END)';
+                $usableQty = 'SUM(CASE WHEN central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE() THEN central_supply.quantity ELSE 0 END)';
+                $totalQoh  = 'SUM(central_supply.quantity_on_hand)';
+
                 if ($stock_status === 'low_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) <= SUM(central_supply.quantity) * 0.15 AND SUM(central_supply.quantity_on_hand) > 0', null, false);
+                    // Low stock among usable inventory only.
+                    $builder = $builder->having("{$usableQoh} <= {$usableQty} * 0.15 AND {$usableQoh} > 0", null, false);
                 } elseif ($stock_status === 'out_of_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) = 0', null, false);
+                    // Truly empty: no remaining units on any batch (expired leftovers are "Expired", not OOS).
+                    $builder = $builder->having("{$totalQoh} <= 0", null, false);
                 } elseif ($stock_status === 'in_stock') {
-                    $builder = $builder->having('SUM(central_supply.quantity_on_hand) > SUM(central_supply.quantity) * 0.15', null, false);
+                    $builder = $builder->having("{$usableQoh} > {$usableQty} * 0.15", null, false);
                 } elseif ($stock_status === 'expired') {
-                    $builder = $builder->having('MAX(central_supply.expiration_date) < CURDATE() AND SUM(central_supply.quantity_on_hand) > 0', null, false);
+                    // Has remaining stock, and every batch with stock is past its expiration date.
+                    $builder = $builder->having(
+                        "{$totalQoh} > 0 AND SUM(CASE WHEN central_supply.quantity_on_hand > 0 AND (central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) = 0",
+                        null,
+                        false
+                    );
                 } elseif ($stock_status === 'near_expiry') {
-                    $builder = $builder->having('MAX(central_supply.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(central_supply.quantity_on_hand) > 0', null, false);
+                    // Has usable stock, and every batch with remaining stock expires within 30 days
+                    // (no undated stock, no stock beyond the 30-day window). Matches dashboard KPI.
+                    $builder = $builder->having(
+                        "{$totalQoh} > 0"
+                        . " AND SUM(CASE WHEN central_supply.quantity_on_hand > 0 AND (central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) > 0"
+                        . " AND SUM(CASE WHEN central_supply.quantity_on_hand > 0 AND central_supply.expiration_date IS NOT NULL AND central_supply.expiration_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) = 0"
+                        . " AND SUM(CASE WHEN central_supply.quantity_on_hand > 0 AND central_supply.expiration_date IS NULL THEN 1 ELSE 0 END) = 0",
+                        null,
+                        false
+                    );
                 }
             }
 
@@ -160,7 +182,7 @@ class ItemModel extends Model
                 $builder = $builder->limit($limit);
             }
 
-            return $builder->orderBy('SUM(central_supply.quantity_on_hand) = 0', 'ASC', false)
+            return $builder->orderBy('SUM(CASE WHEN central_supply.expiration_date IS NULL OR central_supply.expiration_date >= CURDATE() THEN central_supply.quantity_on_hand ELSE 0 END) = 0', 'ASC', false)
                            ->orderBy('MIN(central_supply.item_name)', 'ASC', false)->get()->getResultArray();
         } else {
             $builder = $this->db->table('inventory')
@@ -172,9 +194,10 @@ class ItemModel extends Model
                                 // inventory batches use a slightly different item name.
                                 ->select('MIN(inventory.item_name) AS item_name')
                                 ->select('MAX(inventory.unit) AS unit')
-                                ->select('SUM(department_supply.quantity_received) AS total_quantity')
-                                ->select('SUM(department_supply.quantity_received) AS quantity')
-                                ->select('SUM(department_supply.quantity_on_hand) AS quantity_on_hand')
+                                ->select('SUM(CASE WHEN inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE() THEN department_supply.quantity_received ELSE 0 END) AS total_quantity')
+                                ->select('SUM(CASE WHEN inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE() THEN department_supply.quantity_received ELSE 0 END) AS quantity')
+                                // Expired batches remain visible in batch details, but never count as available stock.
+                                ->select('SUM(CASE WHEN inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE() THEN department_supply.quantity_on_hand ELSE 0 END) AS quantity_on_hand')
                                 ->select('(SELECT COALESCE(SUM(r.quantity_served), 0) FROM request r JOIN supply s ON s.department_supply_id = r.department_supply_id JOIN inventory inv2 ON inv2.inventory_id = s.inventory_id WHERE inv2.item_code = inventory.item_code AND r.request_status IN (2, 3)) AS quantity_served')
                                 ->select('MAX(inventory.category_id) AS category_id')
                                 ->select('MAX(inventory.expiration_date) AS expiration_date')
@@ -211,16 +234,37 @@ class ItemModel extends Model
             $builder = $builder->groupBy('inventory.item_code');
 
             if (!empty($stock_status)) {
+                // Usable stock excludes expired batches (same as the quantity_on_hand select above).
+                $usableQoh = 'SUM(CASE WHEN inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE() THEN department_supply.quantity_on_hand ELSE 0 END)';
+                $usableQty = 'SUM(CASE WHEN inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE() THEN department_supply.quantity_received ELSE 0 END)';
+                $totalQoh  = 'SUM(department_supply.quantity_on_hand)';
+
                 if ($stock_status === 'low_stock') {
-                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) <= SUM(department_supply.quantity_received) * 0.15 AND SUM(department_supply.quantity_on_hand) > 0', null, false);
+                    // Low stock among usable inventory only.
+                    $builder = $builder->having("{$usableQoh} <= {$usableQty} * 0.15 AND {$usableQoh} > 0", null, false);
                 } elseif ($stock_status === 'out_of_stock') {
-                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) = 0', null, false);
+                    // Truly empty: no remaining units on any batch (expired leftovers are "Expired", not OOS).
+                    $builder = $builder->having("{$totalQoh} <= 0", null, false);
                 } elseif ($stock_status === 'in_stock') {
-                    $builder = $builder->having('SUM(department_supply.quantity_on_hand) > SUM(department_supply.quantity_received) * 0.15', null, false);
+                    $builder = $builder->having("{$usableQoh} > {$usableQty} * 0.15", null, false);
                 } elseif ($stock_status === 'expired') {
-                    $builder = $builder->having('MAX(inventory.expiration_date) < CURDATE() AND SUM(department_supply.quantity_on_hand) > 0', null, false);
+                    // Has remaining stock, and every batch with stock is past its expiration date.
+                    $builder = $builder->having(
+                        "{$totalQoh} > 0 AND SUM(CASE WHEN department_supply.quantity_on_hand > 0 AND (inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) = 0",
+                        null,
+                        false
+                    );
                 } elseif ($stock_status === 'near_expiry') {
-                    $builder = $builder->having('MAX(inventory.expiration_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND SUM(department_supply.quantity_on_hand) > 0', null, false);
+                    // Has usable stock, and every batch with remaining stock expires within 30 days
+                    // (no undated stock, no stock beyond the 30-day window). Matches dashboard KPI.
+                    $builder = $builder->having(
+                        "{$totalQoh} > 0"
+                        . " AND SUM(CASE WHEN department_supply.quantity_on_hand > 0 AND (inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE()) THEN 1 ELSE 0 END) > 0"
+                        . " AND SUM(CASE WHEN department_supply.quantity_on_hand > 0 AND inventory.expiration_date IS NOT NULL AND inventory.expiration_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) = 0"
+                        . " AND SUM(CASE WHEN department_supply.quantity_on_hand > 0 AND inventory.expiration_date IS NULL THEN 1 ELSE 0 END) = 0",
+                        null,
+                        false
+                    );
                 }
             }
 
@@ -228,7 +272,7 @@ class ItemModel extends Model
                 $builder = $builder->limit($limit);
             }
 
-            return $builder->orderBy('SUM(department_supply.quantity_on_hand) = 0', 'ASC', false)
+            return $builder->orderBy('SUM(CASE WHEN inventory.expiration_date IS NULL OR inventory.expiration_date >= CURDATE() THEN department_supply.quantity_on_hand ELSE 0 END) = 0', 'ASC', false)
                            ->orderBy('MIN(inventory.item_name)', 'ASC', false)->get()->getResultArray();
         }
     }

@@ -68,8 +68,63 @@
 
 <!-- Main Row Content (Stacked Tables layout) -->
 <div class="row g-4 fade-in-up" style="animation-delay: 0.1s;">
-    <!-- 1. Near Expiry Items Panel (Top Full-Width Column) -->
+    <!-- 1. Requests Panel -->
     <div class="col-12">
+        <div class="standard-card">
+            <div class="card-header-styled">
+                <h5 class="card-title-styled">
+                    <span>Pending Requests</span>
+                </h5>
+                <a href="<?php echo base_url('requests'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2">
+                    <span>View All</span>
+                </a>
+            </div>
+            <div class="table-responsive-custom">
+                <table class="table table-custom table-hover w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Request Date</th>
+                            <th style="width: 15%;">Reference ID</th>
+                            <th style="width: 20%;">Requester</th>
+                            <th style="width: 20%;">Item</th>
+                            <th style="width: 10%;">Quantity</th>
+                            <th style="width: 10%;">Unit</th>
+                            <th style="width: 10%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($recent_requests)): ?>
+                            <?php foreach ($recent_requests as $req): ?>
+                                <tr>
+                                    <td class="text-center"><?php echo date('M d, Y', strtotime($req['created_at'])); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($req['reference_no'] ?? ('#' . $req['request_id'])); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($req['requester_name']); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($req['item_name']); ?></td>
+                                    <td class="text-center"><?php echo (int)$req['quantity_requested']; ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($req['unit'] ?? 'N/A'); ?></td>
+                                    <td class="text-center">
+                                        <?php $s = (int)$req['request_status']; ?>
+                                        <span class="badge badge-action rounded-pill <?php echo $s === 1 ? 'bg-warning-subtle text-dark border border-warning-subtle' : 'bg-info-subtle text-dark border border-info-subtle'; ?>">
+                                            <?php echo $s === 1 ? 'Pending' : 'Partial'; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <span class="fw-medium">No pending requests.</span>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Near Expiry Items Panel -->
+    <div class="col-12 mt-4">
         <div class="standard-card">
             <div class="card-header-styled">
                 <h5 class="card-title-styled">
@@ -84,10 +139,13 @@
                 <table class="table table-custom table-hover w-100">
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Item Code</th>
-                            <th style="width: 35%;">Item Name</th>
-                            <th style="width: 25%;">Expiration Date</th>
-                            <th style="width: 15%;">Qty On Hand</th>
+                            <th style="width: 25%;">Item Name</th>
+                            <th style="width: 12%;">Item Code</th>
+                            <th style="width: 18%;">Inventory Code</th>
+                            <th style="width: 10%;">Stock</th>
+                            <th style="width: 10%;">Unit</th>
+                            <th style="width: 13%;">Expiry</th>
+                            <th style="width: 12%;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,23 +153,33 @@
                             <?php foreach ($near_expiry_items as $item): ?>
                                 <tr>
                                     <td class="text-center">
-                                        <?php echo htmlspecialchars($item['item_code']); ?>
-                                    </td>
-                                    <td class="text-center">
                                         <?php echo htmlspecialchars($item['item_name']); ?>
                                     </td>
                                     <td class="text-center">
-                                        <?php echo date('M d, Y', strtotime($item['expiration_date'])); ?>
+                                        <?php echo htmlspecialchars($item['item_code']); ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php echo htmlspecialchars($item['inventory_code'] ?? 'N/A'); ?>
                                     </td>
                                     <td class="text-center">
                                         <?php echo (int)$item['quantity_on_hand']; ?>
                                     </td>
-                                </tr>
+                                    <td class="text-center">
+                                        <?php echo htmlspecialchars($item['unit'] ?? 'N/A'); ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php echo !empty($item['expiration_date']) ? date('M d, Y', strtotime($item['expiration_date'])) : 'N/A'; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-action rounded-pill bg-danger-subtle text-dark border border-danger-subtle">
+                                            Near Expiry
+                                        </span>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class=" d-block fs-3 mb-2 text-secondary"></i>
                                     <span class="fw-medium">No items near expiry.</span>
                                 </td>
@@ -123,7 +191,115 @@
         </div>
     </div>
 
-    <!-- 2. Recent Activities Panel (Bottom Full-Width Column) -->
+    <!-- 3. Expired Items Panel -->
+    <div class="col-12 mt-4">
+        <div class="standard-card">
+            <div class="card-header-styled">
+                <h5 class="card-title-styled">
+                    <span>Expired Items</span>
+                </h5>
+                <a href="<?php echo base_url('inventory?stock_status=expired'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2">
+                    <span>View All</span>
+                </a>
+            </div>
+            <div class="table-responsive-custom">
+                <table class="table table-custom table-hover w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Item Name</th>
+                            <th style="width: 12%;">Item Code</th>
+                            <th style="width: 18%;">Inventory Code</th>
+                            <th style="width: 10%;">Stock</th>
+                            <th style="width: 10%;">Unit</th>
+                            <th style="width: 13%;">Expiry</th>
+                            <th style="width: 12%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($expired_items)): ?>
+                            <?php foreach ($expired_items as $item): ?>
+                                <tr>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['item_name']); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['item_code']); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['inventory_code'] ?? 'N/A'); ?></td>
+                                    <td class="text-center"><?php echo (int)$item['quantity_on_hand']; ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? 'N/A'); ?></td>
+                                    <td class="text-center"><?php echo !empty($item['expiration_date']) ? date('M d, Y', strtotime($item['expiration_date'])) : 'N/A'; ?></td>
+                                    <td class="text-center">
+                                        <span class="badge badge-action rounded-pill bg-dark-subtle text-dark border border-dark-subtle">
+                                            Expired
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <span class="fw-medium">No expired items.</span>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. No Stock Items Panel -->
+    <div class="col-12 mt-4">
+        <div class="standard-card">
+            <div class="card-header-styled">
+                <h5 class="card-title-styled">
+                    <span>Out of Stock Items</span>
+                </h5>
+                <a href="<?php echo base_url('inventory?stock_status=out_of_stock'); ?>" class="btn btn-outline-primary d-flex align-items-center gap-2">
+                    <span>View All</span>
+                </a>
+            </div>
+            <div class="table-responsive-custom">
+                <table class="table table-custom table-hover w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Item Name</th>
+                            <th style="width: 12%;">Item Code</th>
+                            <th style="width: 18%;">Inventory Code</th>
+                            <th style="width: 10%;">Stock</th>
+                            <th style="width: 10%;">Unit</th>
+                            <th style="width: 13%;">Expiry</th>
+                            <th style="width: 12%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($no_stock_items)): ?>
+                            <?php foreach ($no_stock_items as $item): ?>
+                                <tr>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['item_name']); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['item_code']); ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['inventory_code'] ?? 'N/A'); ?></td>
+                                    <td class="text-center"><?php echo (int)$item['quantity_on_hand']; ?></td>
+                                    <td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? 'N/A'); ?></td>
+                                    <td class="text-center"><?php echo !empty($item['expiration_date']) ? date('M d, Y', strtotime($item['expiration_date'])) : 'N/A'; ?></td>
+                                    <td class="text-center">
+                                        <span class="badge badge-action rounded-pill bg-danger-subtle text-dark border border-danger-subtle">
+                                            Out of Stock
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <span class="fw-medium">All items are in stock.</span>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Recent Activities Panel -->
     <div class="col-12 mt-4">
         <div class="standard-card">
             <div class="card-header-styled">

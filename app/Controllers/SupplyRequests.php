@@ -81,11 +81,19 @@ class SupplyRequests extends BaseController
                                    ->where('status', 1)
                                    ->orderBy('category_code', 'ASC')
                                    ->get()->getResultArray();
-            // Fetch in-stock Central Supply items for the request dropdown (one per item name)
+            // Fetch usable Central Supply items for the request dropdown (one per item code).
+            // Batch name variants such as "Aspirin 80mg" and "Aspirin 80mgrams"
+            // represent the same requestable item.
             $items = $this->db->table('central_supply')
-                              ->select('MAX(central_supply_id) AS id, item_name AS name, MAX(item_code) AS item_code, MAX(inventory_code) AS inventory_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id, MAX(unit) AS unit')
-                              ->groupBy('item_name')
-                              ->orderBy('item_name', 'ASC')
+                              ->select('MIN(central_supply_id) AS id, MIN(item_name) AS name, item_code, MAX(inventory_code) AS inventory_code, SUM(quantity_on_hand) AS quantity, MAX(category_id) AS category_id, MAX(unit) AS unit')
+                              ->where('status', 1)
+                              ->where('quantity_on_hand >', 0)
+                              ->groupStart()
+                                  ->where('expiration_date >=', date('Y-m-d'))
+                                  ->orWhere('expiration_date', null)
+                              ->groupEnd()
+                              ->groupBy('item_code')
+                              ->orderBy('MIN(item_name)', 'ASC', false)
                               ->get()->getResultArray();
         }
 
@@ -105,18 +113,18 @@ class SupplyRequests extends BaseController
             $batchesByCode[$name][] = $b;
         }
 
-        // Build distinct units per item name (all status=1 batches, regardless of stock level)
+        // Build distinct units per item code so naming variants share one unit list.
         $unitRows = $this->db->table('central_supply')
-                             ->select('item_name, unit')
+                             ->select('item_code, unit')
                              ->distinct()
                              ->where('status', 1)
                              ->where('unit IS NOT NULL')
                              ->where("unit != ''")
-                             ->orderBy('item_name, unit', 'ASC')
+                             ->orderBy('item_code, unit', 'ASC')
                              ->get()->getResultArray();
-        $unitsByName = [];
+        $unitsByCode = [];
         foreach ($unitRows as $ur) {
-            $unitsByName[$ur['item_name']][] = $ur['unit'];
+            $unitsByCode[$ur['item_code']][] = $ur['unit'];
         }
 
         $data['title']         = is_admin_role() ? 'Central Supply Requests' : (strtolower((string) $role) === 'viewer' ? ($user['department_name'] ?? 'Department') . ' Requests' : ($user['department_name'] ?? 'My') . ' Requests');
@@ -129,7 +137,7 @@ class SupplyRequests extends BaseController
         $data['dept_filter']   = $dept_filter;
         $data['departments']   = $departments;
         $data['batches_by_code'] = $batchesByCode;
-        $data['units_by_name']   = $unitsByName;
+        $data['units_by_code']   = $unitsByCode;
 
         return view('templates/header', $data)
              . view('requests', $data)
@@ -278,7 +286,7 @@ class SupplyRequests extends BaseController
                     'category_id'          => $item['category_id'],
                 ]);
 
-                $auditLogs[] = "{$quantity} unit(s) of {$item['item_name']}";
+                $auditLogs[] = "{$quantity} {$item['unit']} of {$item['item_name']}";
                 $successCount++;
             }
         }
@@ -413,6 +421,10 @@ class SupplyRequests extends BaseController
                       ->where('unit', $request['item_unit'])
                       ->where('status', 1)
                       ->where('quantity_on_hand >', 0)
+                      ->groupStart()
+                          ->where('expiration_date >=', date('Y-m-d'))
+                          ->orWhere('expiration_date', null)
+                      ->groupEnd()
                       ->orderBy('expiration_date IS NULL', 'ASC', false)
                       ->orderBy('expiration_date', 'ASC')
                       ->orderBy('central_supply_id', 'ASC')
@@ -498,7 +510,7 @@ class SupplyRequests extends BaseController
 
             $totalServed += $qty;
             if (!$firstBatch) $firstBatch = $csItem;
-            $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
+            $servedBatchesInfo[] = "{$qty} {$csItem['unit']} from inventory code '{$csItem['inventory_code']}' (Batch: {$csItem['batch_num']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
         }
 
         if ($totalServed !== $qtyRequested) {
@@ -576,7 +588,7 @@ class SupplyRequests extends BaseController
             $this->auditModel->log_activity(
                 'SERVE_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$totalServed} unit(s) of '{$firstBatch['item_name']}' to department '{$deptName}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
+                "Served supply request #{$id} for {$request['requester_full_name']}. Transferred {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}' to department '{$deptName}'. Inventory used: " . implode(', ', $servedBatchesInfo) . "."
             );
             session()->setFlashdata('success', "Request served! {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
@@ -637,6 +649,10 @@ class SupplyRequests extends BaseController
                       ->where('unit', $request['item_unit'])
                       ->where('status', 1)
                       ->where('quantity_on_hand >', 0)
+                      ->groupStart()
+                          ->where('expiration_date >=', date('Y-m-d'))
+                          ->orWhere('expiration_date', null)
+                      ->groupEnd()
                       ->orderBy('expiration_date IS NULL', 'ASC', false)
                       ->orderBy('expiration_date', 'ASC')
                       ->orderBy('central_supply_id', 'ASC')
@@ -718,7 +734,7 @@ class SupplyRequests extends BaseController
             }
 
             if (!$firstBatch) $firstBatch = $csItem;
-            $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
+            $servedBatchesInfo[] = "{$qty} {$csItem['unit']} from inventory code '{$csItem['inventory_code']}' (Batch: {$csItem['batch_num']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
         }
 
         // Get requester's department from joined request data
@@ -818,7 +834,7 @@ class SupplyRequests extends BaseController
         if ($db->transStatus() === false) {
             session()->setFlashdata('error', 'An error occurred while partially serving the request.');
         } else {
-            $auditDesc = "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$totalServed} of {$qtyRequested} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . ".";
+            $auditDesc = "Partially served supply request #{$id} for {$request['requester_full_name']}. Served {$totalServed} of {$qtyRequested} {$firstBatch['unit']} of '{$firstBatch['item_name']}'. Inventory used: " . implode(', ', $servedBatchesInfo) . ".";
             if ($notes) {
                 $auditDesc .= " Remarks: {$notes}";
             }
@@ -869,7 +885,7 @@ class SupplyRequests extends BaseController
         }
 
         if ($this->requestModel->update($id, $updateData)) {
-            $auditDesc = "Rejected supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'.";
+            $auditDesc = "Rejected supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} {$request['item_unit']} of '{$request['item_name']}'.";
             if ($notes) {
                 $auditDesc .= " Remarks: {$notes}";
             }
@@ -930,7 +946,7 @@ class SupplyRequests extends BaseController
         }
 
         if ($this->requestModel->update($id, $updateData)) {
-            $auditDesc = "Cancelled supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'.";
+            $auditDesc = "Cancelled supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} {$request['item_unit']} of '{$request['item_name']}'.";
             if ($notes) {
                 $auditDesc .= " Reason: {$notes}";
             }
@@ -993,6 +1009,10 @@ class SupplyRequests extends BaseController
                       ->where('unit', $request['item_unit'])
                       ->where('status', 1)
                       ->where('quantity_on_hand >', 0)
+                      ->groupStart()
+                          ->where('expiration_date >=', date('Y-m-d'))
+                          ->orWhere('expiration_date', null)
+                      ->groupEnd()
                       ->orderBy('expiration_date IS NULL', 'ASC', false)
                       ->orderBy('expiration_date', 'ASC')
                       ->orderBy('central_supply_id', 'ASC')
@@ -1075,7 +1095,7 @@ class SupplyRequests extends BaseController
 
             $totalServed += $qty;
             if (!$firstBatch) $firstBatch = $csItem;
-            $servedBatchesInfo[] = "{$qty} unit(s) from batch '{$csItem['batch_num']}' (Code: {$csItem['item_code']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
+            $servedBatchesInfo[] = "{$qty} {$csItem['unit']} from inventory code '{$csItem['inventory_code']}' (Batch: {$csItem['batch_num']}, Exp: " . ($csItem['expiration_date'] ? date('Y-m-d', strtotime($csItem['expiration_date'])) : 'N/A') . ")";
         }
 
         if ($totalServed !== $remainingQty) {
@@ -1182,7 +1202,7 @@ class SupplyRequests extends BaseController
             $this->auditModel->log_activity(
                 'COMPLETE_PARTIAL_SUPPLY_REQUEST',
                 'Supply Requests',
-                "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$totalServed} unit(s) of '{$firstBatch['item_name']}'. Batches used: " . implode(', ', $servedBatchesInfo) . "."
+                "Completed partial supply request #{$id} for {$request['requester_full_name']}. Served remaining {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}'. Inventory used: " . implode(', ', $servedBatchesInfo) . "."
             );
             session()->setFlashdata('success', "Request completed! Remaining {$totalServed} {$firstBatch['unit']} of '{$firstBatch['item_name']}' transferred to {$deptName}.");
         }
