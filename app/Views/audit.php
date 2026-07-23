@@ -61,6 +61,7 @@
             <select id="audit_search_action" name="action_filter" class="db-search-select">
                 <option value="">- Select Action -</option>
                 <option value="LOGIN"                          <?php echo (($action_filter ?? '') === 'LOGIN')                          ? 'selected' : ''; ?>>LOGIN</option>
+                <option value="LOGIN_FAILED"                   <?php echo (($action_filter ?? '') === 'LOGIN_FAILED')                   ? 'selected' : ''; ?>>LOGIN_FAILED</option>
                 <option value="LOGOUT"                         <?php echo (($action_filter ?? '') === 'LOGOUT')                         ? 'selected' : ''; ?>>LOGOUT</option>
                 <option value="CREATE_USER"                    <?php echo (($action_filter ?? '') === 'CREATE_USER')                    ? 'selected' : ''; ?>>CREATE_USER</option>
                 <option value="UPDATE_USER"                    <?php echo (($action_filter ?? '') === 'UPDATE_USER')                    ? 'selected' : ''; ?>>UPDATE_USER</option>
@@ -140,7 +141,7 @@
                                         $badge_class = 'bg-success-subtle text-dark border border-success-subtle';
                                     } elseif ($log['action'] === 'LOGOUT') {
                                         $badge_class = 'bg-secondary-subtle text-dark border border-secondary-subtle';
-                                    } elseif ($log['action'] === 'LOGIN_FAIL') {
+                                    } elseif ($log['action'] === 'LOGIN_FAILED') {
                                         $badge_class = 'bg-danger-subtle text-dark border border-danger-subtle';
                                     } elseif ($log['action'] === 'PAGE_VIEW') {
                                         $badge_class = 'bg-info-subtle text-dark border border-info-subtle';

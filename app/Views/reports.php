@@ -16,25 +16,27 @@
 
 <!-- Date Scoping & Export Bar -->
 <form method="GET" action="<?php echo base_url('reports'); ?>" id="reportFilterForm" class="fade-in-up mb-4" style="animation-delay: 0.03s;">
-    <div class="db-search-bar">
-        <div class="db-search-field">
+    <div class="db-search-bar" style="flex-wrap: wrap; gap: 8px;">
+        <div class="db-search-field" style="flex: 0 0 210px;">
             <input type="date" id="start_date" name="start_date" class="db-search-input" value="<?php echo htmlspecialchars($start_date ?? ''); ?>" placeholder=" ">
             <label for="start_date">From Date</label>
         </div>
-        <div class="db-search-field">
+        <div class="db-search-field" style="flex: 0 0 210px;">
             <input type="date" id="end_date" name="end_date" class="db-search-input" value="<?php echo htmlspecialchars($end_date ?? ''); ?>" placeholder=" ">
             <label for="end_date">To Date</label>
         </div>
-        <div class="db-search-actions">
+        <div class="d-flex align-items-center gap-2">
             <button type="submit" class="btn-db-search">
-                Filter
+                Search
             </button>
             <a href="<?php echo base_url('reports'); ?>" class="btn-db-clear">
                 Clear
             </a>
+        </div>
+        <div class="d-flex align-items-center gap-2" style="margin-left: auto;">
             <div class="db-search-separator"></div>
             <button type="button" class="btn btn-success-custom" onclick="exportAllTables()">
-                Export
+                Download Reports
             </button>
         </div>
     </div>
@@ -233,7 +235,7 @@ function exportAllTables() {
         var el = document.getElementById(t.id);
         if (el) {
             var clone = el.cloneNode(true);
-            
+
             // Remove hidden rows
             var hiddenRows = clone.querySelectorAll('tr[style*="display: none"], tr[style*="display:none"]');
             hiddenRows.forEach(function(r) { r.remove(); });
@@ -257,8 +259,18 @@ function exportAllTables() {
             XLSX.utils.book_append_sheet(wb, ws, t.name);
         }
     });
-    XLSX.writeFile(wb, 'Inventory_Reports.xlsx');
+    var datePart = filterDatePart || new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, 'BCH_Inventory_Reports_' + datePart + '.xlsx');
 }
+
+var filterDatePart = (function() {
+    var sd = '<?php echo $start_date ?? ''; ?>';
+    var ed = '<?php echo $end_date ?? ''; ?>';
+    if (sd && ed) return sd + '~' + ed;
+    if (sd) return sd;
+    if (ed) return ed;
+    return '';
+})();
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.report-sortable').forEach(function(table) {

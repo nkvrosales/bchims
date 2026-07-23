@@ -59,13 +59,18 @@ class Auth extends BaseController
                 ];
                 $session->set($session_data);
 
+                // Set cookie to track user for inactivity logout audit
+                setcookie('last_username', $username, time() + 86400 * 7, '/');
+
                 // Write audit trail log
-                $this->auditModel->log_activity('LOGIN', 'Auth', 'User logged in.');
+                $this->auditModel->log_activity('LOGIN', 'Auth', "User logged in \"{$username}\".");
 
                 // Redirect to dashboard
                 return redirect()->to('dashboard');
             } else {
                 // Set flash data and reload login page
+                $failedUser = $this->userModel->get_user_by_username($username);
+                $this->auditModel->log_activity('LOGIN_FAILED', 'Auth', "Failed login attempt \"{$username}\".", NULL, $failedUser ? $failedUser['user_id'] : NULL);
                 $session->setFlashdata('error', 'Invalid login credentials');
                 return redirect()->to('auth/login')->withInput();
             }
@@ -81,7 +86,7 @@ class Auth extends BaseController
 
         if ($session->get('logged_in')) {
             // Log logout action before destroying session
-            $this->auditModel->log_activity('LOGOUT', 'Auth', 'User logged out.');
+            $this->auditModel->log_activity('LOGOUT', 'Auth', "User logged out \"{$session->get('username')}\".");
         }
 
         // Destroy session data

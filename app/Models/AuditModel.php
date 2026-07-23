@@ -21,11 +21,11 @@ class AuditModel extends Model
     /**
      * Log a user activity in the database.
      */
-    public function log_activity($action, $module, $description, $record_id = NULL)
+    public function log_activity($action, $module, $description, $record_id = NULL, $explicitUserId = NULL)
     {
         $session = \Config\Services::session();
 
-        $user_id = $session->get('user_id');
+        $user_id = $explicitUserId ?? $session->get('user_id');
 
         if (empty($user_id)) {
             $user_id = NULL;
@@ -69,7 +69,7 @@ class AuditModel extends Model
      */
     public function get_audit_logs($filters = array(), $limit = 1000)
     {
-        $builder = $this->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
+        $builder = $this->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Unknown User') AS username, audit_log.ip_address, audit_log.user_agent")
                         ->join('user', 'user.user_id = audit_log.user_id', 'left');
 
         if (!is_admin_role()) {
@@ -105,7 +105,7 @@ class AuditModel extends Model
      */
     public function get_recent_logs($limit = 5)
     {
-        $builder = $this->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Guest') AS username, audit_log.ip_address, audit_log.user_agent")
+        $builder = $this->select("audit_log.*, audit_log.log_id AS log_id, audit_log.action_type AS action, audit_log.action_description AS description, audit_log.action_date AS created_at, CONCAT(user.first_name, ' ', user.last_name) AS full_name, COALESCE(user.username, 'Unknown User') AS username, audit_log.ip_address, audit_log.user_agent")
                         ->join('user', 'user.user_id = audit_log.user_id', 'left');
                         
         if (!is_admin_role()) {

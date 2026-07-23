@@ -9,6 +9,13 @@ class Reports extends BaseController
     protected function checkAuth()
     {
         if (!session()->get('logged_in')) {
+            $lastUser = $_COOKIE['last_username'] ?? null;
+            if ($lastUser) {
+                $um = new \App\Models\UserModel();
+                $u = $um->get_user_by_username($lastUser);
+                $this->auditModel->log_activity('LOGOUT', 'Auth', "User account logged out due to inactivity \"$lastUser\".", null, $u ? $u['user_id'] : null);
+                setcookie('last_username', '', time() - 3600, '/');
+            }
             session()->setFlashdata('session_expired', 'Your session has expired due to inactivity. Please log in again.');
             return redirect()->to('auth/login');
         }
