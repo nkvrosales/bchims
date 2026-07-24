@@ -66,7 +66,7 @@ $requestBadgeMap = [
                     value="<?php echo htmlspecialchars($search ?? ''); ?>"
                     autocomplete="off"
                 >
-                <label for="req_search_keyword">Enter ID / Requester / Item</label>
+                <label for="req_search_keyword">Enter Reference ID / Requester / Item</label>
             </div>
             <div class="db-search-field db-search-field--dropdown">
                 <select id="req_search_status" name="status_filter" class="db-search-select">

@@ -3,9 +3,17 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\AuditModel;
 
 class Reports extends BaseController
 {
+    protected $auditModel;
+
+    public function __construct()
+    {
+        $this->auditModel = new AuditModel();
+    }
+
     protected function checkAuth()
     {
         if (!session()->get('logged_in')) {
@@ -16,7 +24,7 @@ class Reports extends BaseController
                 $this->auditModel->log_activity('LOGOUT', 'Auth', "User account logged out due to inactivity \"$lastUser\".", null, $u ? $u['user_id'] : null);
                 setcookie('last_username', '', time() - 3600, '/');
             }
-            session()->setFlashdata('session_expired', 'Your session has expired due to inactivity. Please log in again.');
+            if ($lastUser) session()->setFlashdata('session_expired', 'Your session has expired due to inactivity. Please log in again.');
             return redirect()->to('auth/login');
         }
 
@@ -251,6 +259,10 @@ class Reports extends BaseController
             'low_stock_items'   => $lowStockItems,
             'expired_items'     => $expiredItems,
             'no_stock_items'    => $noStockItems,
+            'near_expiry_count' => count($nearExpiryItems),
+            'low_stock_count'   => count($lowStockItems),
+            'expired_count'     => count($expiredItems),
+            'no_stock_count'    => count($noStockItems),
         ];
 
         return view('templates/header', $data)

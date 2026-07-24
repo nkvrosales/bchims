@@ -50,7 +50,7 @@
                 value="<?php echo htmlspecialchars($search ?? ''); ?>"
                 autocomplete="off"
             >
-            <label for="inv_search_keyword">Enter Name / Item Code</label>
+            <label for="inv_search_keyword">Enter Item Name / Code</label>
         </div>
         <div class="db-search-field db-search-field--dropdown">
             <select id="inv_search_category" name="category_id" class="db-search-select">
@@ -139,7 +139,12 @@
                                 $allExpired = true;
                                 $allOutOfStock = true;
                                 $allNearExpiry = true;
-                                $itemBatches = $batches_by_code[$item['item_code']] ?? [];
+                                // Match the inventory list: archived batches do not affect
+                                // the item's current stock status.
+                                $itemBatches = array_values(array_filter(
+                                    $batches_by_code[$item['item_code']] ?? [],
+                                    static fn($batch) => (int) ($batch['status'] ?? 1) === 1
+                                ));
                                 foreach ($itemBatches as $batch) {
                                     $bQty = (int)$batch['quantity_on_hand'];
                                     $bExp = $batch['expiration_date'] ?? '';
@@ -195,15 +200,15 @@
                                         Actions
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
-                                        <?php if (strtolower((string) session()->get('role')) === 'encoder' && (int) $item['quantity_on_hand'] > 0): ?>
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openConsumeModal({item_code: "<?php echo $item["item_code"]; ?>", item_name: "<?php echo $item["item_name"]; ?>"})'>Consume</a></li>
-                                        <?php endif; ?>
                                         <?php if (strtolower((string) session()->get('role')) === 'encoder'): ?>
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick='openItemModal("manage-batches", <?php echo json_encode([
                                             "item_code" => $item["item_code"],
                                             "name" => $item["item_name"],
                                             "quantity_served" => $item["quantity_served"] ?? 0,
                                         ]); ?>)' title="Manage Item">Manage</a></li>
+                                        <?php endif; ?>
+                                        <?php if (strtolower((string) session()->get('role')) === 'encoder' && (int) $item['quantity_on_hand'] > 0): ?>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick='openConsumeModal({item_code: "<?php echo $item["item_code"]; ?>", item_name: "<?php echo $item["item_name"]; ?>"})'>Consume</a></li>
                                         <?php endif; ?>
                                         <?php if ($isAdmin): ?>
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick='openItemModal("manage-batches", <?php echo json_encode([
@@ -554,10 +559,42 @@ var _manageBatchesData = null;
 var _batchManageBatches = [];
 var _batchManageSortCol = -1;
 var _batchManageSortAsc = true;
+var _batchManageStatus = '';
+var _batchManageSearch = '';
+var _batchManageSearchCaret = null;
+var _batchManageLimit = <?php echo (int) ($batch_manage_limit ?? \App\Models\ItemModel::MANAGE_BATCH_LIMIT); ?>;
+
+function _batchManageStatusFor(batch) {
+    if (parseInt(batch.status) === 0) return 'archived';
+
+    var quantityOnHand = parseInt(batch.quantity_on_hand) || 0;
+    var quantity = parseInt(batch.quantity) || 0;
+    var threshold = quantity > 0 ? Math.max(1, Math.ceil(quantity * 0.15)) : 0;
+    var status = _batchManageGetStatus(batch.expiration_date || '', quantityOnHand, threshold);
+
+    return {
+        'In Stock': 'in_stock',
+        'Low Stock': 'low_stock',
+        'Out of Stock': 'out_of_stock',
+        'Expired': 'expired',
+        'Near Expiry': 'near_expiry'
+    }[status] || '';
+}
 
 function _batchManageRenderTable() {
     var wrapper = document.getElementById('batchManageTableWrapper');
-    var batches = _batchManageBatches.slice();
+    var batches = _batchManageBatches.filter(function(batch) {
+        var batchStatus = _batchManageStatusFor(batch);
+        // Keep archived batches hidden until they are specifically requested.
+        if (_batchManageStatus === '') return batchStatus !== 'archived';
+        return batchStatus === _batchManageStatus;
+    }).filter(function(batch) {
+        if (!_batchManageSearch) return true;
+        return [batch.item_name, batch.item_code, batch.inventory_code, batch.batch_num, batch.lot_num, batch.unit]
+            .join(' ')
+            .toLowerCase()
+            .indexOf(_batchManageSearch.toLowerCase()) !== -1;
+    });
     var sortCol = _batchManageSortCol;
     var sortAsc = _batchManageSortAsc;
 
@@ -623,6 +660,12 @@ function _batchManageRenderTable() {
         });
     }
 
+    // Match the inventory list: cap only the default list. Search and status
+    // filters must be able to return every matching batch.
+    if (_batchManageLimit > 0 && _batchManageStatus === '' && _batchManageSearch === '') {
+        batches = batches.slice(0, _batchManageLimit);
+    }
+
     var colHeaders = ['Inventory Name', 'Inventory Code', 'Stock', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
     var sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', 'unit', 'expiration_date', 'stock_status', ''];
     <?php if ($isAdmin): ?>
@@ -633,7 +676,17 @@ function _batchManageRenderTable() {
     sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', 'quantity_used', 'unit', 'expiration_date', 'stock_status', ''];
     <?php endif; ?>
 
-    var html = '<div class="mb-3"><input type="text" class="form-control form-control-sm" id="batchSearchInput" placeholder="Type to search..." style="border-radius: 8px; font-size: 0.85rem;"></div>';
+    var html = '<div class="row g-2 mb-3">';
+    html += '<div class="col-md-8"><input type="search" class="form-control form-control-sm" id="batchSearchInput" value="' + _batchManageSearch.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '" placeholder="Type to search..." style="border-radius: 8px; font-size: 0.85rem;"></div>';
+    html += '<div class="col-md-4"><select class="form-select form-select-sm" id="batchManageStatusFilter" aria-label="Filter batches by stock status" style="border-radius: 8px; font-size: 0.85rem;">';
+    html += '<option value=""' + (_batchManageStatus === '' ? ' selected' : '') + '>- Select Status -</option>';
+    html += '<option value="in_stock"' + (_batchManageStatus === 'in_stock' ? ' selected' : '') + '>In Stock</option>';
+    html += '<option value="low_stock"' + (_batchManageStatus === 'low_stock' ? ' selected' : '') + '>Low Stock</option>';
+    html += '<option value="out_of_stock"' + (_batchManageStatus === 'out_of_stock' ? ' selected' : '') + '>Out of Stock</option>';
+    html += '<option value="expired"' + (_batchManageStatus === 'expired' ? ' selected' : '') + '>Expired</option>';
+    html += '<option value="near_expiry"' + (_batchManageStatus === 'near_expiry' ? ' selected' : '') + '>Near Expiry</option>';
+    html += '<option value="archived"' + (_batchManageStatus === 'archived' ? ' selected' : '') + '>Archived</option>';
+    html += '</select></div></div>';
     html += '<div class="table-responsive-custom"><table class="table table-custom table-hover mb-0" id="batchManageTable"><thead><tr>';
     for (var c = 0; c < colHeaders.length; c++) {
         var isSortable = sortKeys[c] !== '';
@@ -677,7 +730,7 @@ function _batchManageRenderTable() {
         html += '<td class="text-center small text-muted">' + (b.unit || 'N/A') + '</td>';
         html += '<td class="text-center small">' + expDisplay + '</td>';
         html += '<td class="text-center"><span class="badge badge-action rounded-pill ' + bbadge + '">' + bstatus + '</span></td>';
-        html += '<td class="text-center"><div class="dropdown d-inline-block">';
+        html += '<td class="text-center"><div class="dropup d-inline-block">';
         html += '<button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding:2px 8px;font-size:0.7rem;font-weight:600;">Actions</button>';
         html += '<ul class="dropdown-menu dropdown-menu-end" style="font-size:0.75rem;">';
         <?php if ($isAdmin): ?>
@@ -687,13 +740,18 @@ function _batchManageRenderTable() {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, supplier_type: (b.supplier_type ? b.supplier_type.toLowerCase().replace(" ", "_") : "supplier"), supplier_name: (b.supplier_name || ""), expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
         }
         <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
-        if (!barchived && bqty > 0) {
+        if (barchived) {
+        html += '<li><a class="dropdown-item" href="<?php echo base_url('inventory/restore'); ?>/' + b.id + '">Restore</a></li>';
+        } else {
+        html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, supplier_type: (b.supplier_type ? b.supplier_type.toLowerCase().replace(" ", "_") : "supplier"), supplier_name: (b.supplier_name || ""), expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
+        if (bqty > 0) {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'openConsumeModal(' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, item_name: b.item_name}) + ')\'>Consume</a></li>';
+        }
         }
         <?php endif; ?>
         <?php if (strtolower((string) session()->get('role')) === 'viewer'): ?>
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); showViewBatchModal(' + JSON.stringify(b) + ')\'>View</a></li>';
-        <?php elseif (strtolower((string) session()->get('role')) !== 'encoder'): ?>
+        <?php elseif (strtolower((string) session()->get('role')) !== 'viewer'): ?>
         if (!barchived) {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="event.stopPropagation(); new bootstrap.Modal(document.getElementById(\'archiveItemModal' + b.id + '\')).show();">Archive</a></li>';
         }
@@ -703,7 +761,7 @@ function _batchManageRenderTable() {
     }
     html += '</tbody></table></div></div>';
     if (batches.length === 0) {
-        html = '<div class="text-muted text-center py-3">No batches found for this item.</div>';
+        html += '<div class="text-muted text-center py-3">No batches found for the selected status.</div>';
     }
     wrapper.innerHTML = html;
 
@@ -729,14 +787,24 @@ function _batchManageRenderTable() {
     });
 
     var searchInput = document.getElementById('batchSearchInput');
-    if (searchInput && batches.length > 0) {
-        searchInput.addEventListener('input', function () {
-            var filter = this.value.toLowerCase();
-            var rows = wrapper.querySelectorAll('#batchManageTable tbody tr');
-            rows.forEach(function (row) {
-                var text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
+    if (searchInput) {
+        if (_batchManageSearchCaret !== null) {
+            searchInput.focus();
+            searchInput.setSelectionRange(_batchManageSearchCaret, _batchManageSearchCaret);
+            _batchManageSearchCaret = null;
+        }
+        searchInput.addEventListener('input', function() {
+            _batchManageSearch = this.value;
+            _batchManageSearchCaret = this.selectionStart;
+            _batchManageRenderTable();
+        });
+    }
+
+    var statusFilter = document.getElementById('batchManageStatusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            _batchManageStatus = this.value;
+            _batchManageRenderTable();
         });
     }
 }
@@ -815,6 +883,9 @@ function openItemModal(mode, data) {
         _batchManageBatches = batches;
         _batchManageSortCol = -1;
         _batchManageSortAsc = true;
+        _batchManageStatus = '';
+        _batchManageSearch = '';
+        _batchManageSearchCaret = null;
         _batchManageRenderTable();
     } else {
         document.getElementById('itemFormFields').style.display = '';

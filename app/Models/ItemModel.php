@@ -6,6 +6,9 @@ use CodeIgniter\Model;
 
 class ItemModel extends Model
 {
+    /** Maximum number of batches displayed in a Manage Item modal. */
+    public const MANAGE_BATCH_LIMIT = 1000;
+
     protected $table      = 'inventory';
     protected $primaryKey = 'inventory_id';
 
@@ -280,14 +283,14 @@ class ItemModel extends Model
     /**
      * Fetch individual batches for the given item codes.
      */
-    public function get_batches_by_item_codes(array $itemCodes, $isAdmin = true, $department_id = null)
+    public function get_batches_by_item_codes(array $itemCodes, $isAdmin = true, $department_id = null, $limit = self::MANAGE_BATCH_LIMIT)
     {
         if (empty($itemCodes)) {
             return [];
         }
 
         if ($isAdmin) {
-            return $this->db->table('central_supply')
+            $builder = $this->db->table('central_supply')
                             ->select('central_supply_id AS id, central_supply.item_code, central_supply.inventory_code, central_supply.item_name, central_supply.batch_num, central_supply.lot_num, central_supply.expiration_date, central_supply.manufacturing_date, central_supply.unit, central_supply.quantity, central_supply.quantity_on_hand, central_supply.remarks, central_supply.category_id, central_supply.status, supplier.supplier_type, supplier.supplier_name')
                             // This is the amount consumed from this specific batch, not
                             // the total quantity served by a request that may span batches.
@@ -295,22 +298,32 @@ class ItemModel extends Model
                             ->join('supplier', 'supplier.supplier_id = central_supply.supplier_id', 'left')
                             ->whereIn('central_supply.item_code', $itemCodes)
                             ->orderBy('central_supply.item_code', 'ASC')
-                            ->orderBy('central_supply.expiration_date', 'ASC')
-                            ->get()
-                            ->getResultArray();
+                            ->orderBy('central_supply.expiration_date', 'ASC');
+
+            if ($limit !== null) {
+                $builder->limit($limit);
+            }
+
+            return $builder->get()->getResultArray();
         } else {
-            return $this->db->table('inventory')
-                            ->select('inventory.inventory_id AS id, inventory.item_code, inventory.inventory_code, inventory.item_name, inventory.batch_num, inventory.lot_num, inventory.expiration_date, inventory.manufacturing_date, inventory.unit, SUM(department_supply.quantity_received) AS quantity, SUM(department_supply.quantity_on_hand) AS quantity_on_hand, SUM(department_supply.quantity_used) AS quantity_used, inventory.remarks, inventory.category_id, inventory.status')
+            $builder = $this->db->table('inventory')
+                            ->select('inventory.inventory_id AS id, inventory.item_code, inventory.inventory_code, inventory.item_name, inventory.batch_num, inventory.lot_num, inventory.expiration_date, inventory.manufacturing_date, inventory.unit, SUM(department_supply.quantity_received) AS quantity, SUM(department_supply.quantity_on_hand) AS quantity_on_hand, SUM(department_supply.quantity_used) AS quantity_used, inventory.remarks, inventory.category_id, inventory.status, MAX(supplier.supplier_type) AS supplier_type, MAX(supplier.supplier_name) AS supplier_name')
                             ->select('(SELECT COALESCE(SUM(r.quantity_served), 0) FROM request r JOIN supply s ON s.department_supply_id = r.department_supply_id WHERE s.inventory_id = inventory.inventory_id AND r.request_status IN (2, 3)) AS quantity_served')
                             ->join('supply', 'supply.inventory_id = inventory.inventory_id', 'inner')
                             ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id', 'inner')
+                            ->join('central_supply', 'central_supply.central_supply_id = supply.central_supply_id', 'left')
+                            ->join('supplier', 'supplier.supplier_id = central_supply.supplier_id', 'left')
                             ->whereIn('inventory.item_code', $itemCodes)
                             ->where('department_supply.department_id', $department_id)
                             ->groupBy('inventory.inventory_id')
                             ->orderBy('inventory.item_code', 'ASC')
-                            ->orderBy('inventory.expiration_date', 'ASC')
-                            ->get()
-                            ->getResultArray();
+                            ->orderBy('inventory.expiration_date', 'ASC');
+
+            if ($limit !== null) {
+                $builder->limit($limit);
+            }
+
+            return $builder->get()->getResultArray();
         }
     }
 }

@@ -73,10 +73,13 @@ class UserModel extends Model
                         ->join('departments', 'departments.department_id = user.department_id', 'left')
                         ->join('roles', 'roles.role_id = user.role_id', 'inner');
 
-        // Hide own account and dev accounts
-        if ($keyword === '' && $role_filter === '' && $dept_filter === '' && ($status_filter === null || $status_filter === '')) {
-            $builder->where('user.user_id !=', $current_user_id)
-                    ->where('user.role_id !=', 0);
+        // Always hide system accounts and own account
+        $builder->where('user.role_id !=', 0)
+                ->where('user.user_id !=', $current_user_id);
+
+        // Hide inactive users unless status filter is active
+        if ($status_filter === null || $status_filter === '') {
+            $builder->where('user.status', 1);
         }
 
         if (!empty($keyword)) {

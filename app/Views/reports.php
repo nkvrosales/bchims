@@ -42,6 +42,42 @@
     </div>
 </form>
 
+<!-- KPI Cards -->
+<div class="row g-3 mb-4 fade-in-up" style="animation-delay: 0.04s;">
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" style="border-radius: 8px; border-left: 6px solid #f59e0b; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Near Expiry Items</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $near_expiry_count; ?></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" style="border-radius: 8px; border-left: 6px solid #f97316; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Low Stock Items</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $low_stock_count; ?></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" style="border-radius: 8px; border-left: 6px solid var(--danger); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Out of Stock Items</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $no_stock_count; ?></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-xl-3 col-12">
+        <div class="kpi-card h-100 d-flex justify-content-between align-items-center" style="border-radius: 8px; border-left: 6px solid var(--danger); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <div>
+                <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Expired Items</div>
+                <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $expired_count; ?></h3>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4 fade-in-up" style="animation-delay: 0.05s;">
     <!-- Near Expiry Items -->
     <div class="col-12">

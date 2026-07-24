@@ -32,7 +32,7 @@ class Inventory extends BaseController
                 $this->auditModel->log_activity('LOGOUT', 'Auth', "User account logged out due to inactivity \"$lastUser\".", null, $u ? $u['user_id'] : null);
                 setcookie('last_username', '', time() - 3600, '/');
             }
-            session()->setFlashdata('session_expired', 'Your session has expired due to inactivity. Please log in again.');
+            if ($lastUser) session()->setFlashdata('session_expired', 'Your session has expired due to inactivity. Please log in again.');
             return redirect()->to('auth/login');
         }
 
@@ -315,7 +315,9 @@ class Inventory extends BaseController
 
         // Fetch individual batches for expandable row details
         $itemCodes = array_column($data['items'], 'item_code');
-        $batches = $this->itemModel->get_batches_by_item_codes($itemCodes, $isAdmin, $deptId);
+        // Load all batches so the modal can filter first and then apply its display limit.
+        $batches = $this->itemModel->get_batches_by_item_codes($itemCodes, $isAdmin, $deptId, null);
+        $data['batch_manage_limit'] = ItemModel::MANAGE_BATCH_LIMIT;
         $data['batches_by_code'] = [];
         foreach ($batches as $batch) {
             $data['batches_by_code'][$batch['item_code']][] = $batch;
@@ -768,7 +770,7 @@ class Inventory extends BaseController
             $this->auditModel->log_activity(
                 'ARCHIVE_ITEM',
                 'Inventory',
-                "Archived inventory item: {$item['item_name']} (Item Code: {$item['item_code']}).",
+                "Archived inventory item: {$item['item_name']} (Inventory Code: {$item['inventory_code']}).",
                 $id
             );
 
@@ -821,7 +823,7 @@ class Inventory extends BaseController
             $this->auditModel->log_activity(
                 'RESTORE_ITEM',
                 'Inventory',
-                "Restored inventory item: {$item['item_name']} (Item Code: {$item['item_code']}).",
+                "Restored inventory item: {$item['item_name']} (Inventory Code: {$item['inventory_code']}).",
                 $id
             );
 

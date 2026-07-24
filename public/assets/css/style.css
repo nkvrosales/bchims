@@ -695,11 +695,6 @@ h1, h2, h3, h4, h5, h6 {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
 }
 
-.kpi-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.25);
-}
-
 .kpi-card::after {
     content: '';
     position: absolute;

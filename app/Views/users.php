@@ -125,7 +125,7 @@
                         $color = $avatar_palette[ord(strtoupper($u['last_name'][0] ?? 'A')) % count($avatar_palette)];
                         $is_self = ((int)$u['id'] === (int)$current_user_id);
                         $current_user_role = session()->get('role');
-                        $is_protected = (strtolower($current_user_role) === 'admin' && !$is_self && in_array(strtolower($u['role']), ['dev', 'admin']));
+                        $is_protected = (strtolower($current_user_role) === 'admin' && !$is_self && in_array(strtolower($u['role']), ['dev']));
                         $manage_mode = $is_protected ? 'view' : 'edit';
                     ?>
                     <tr>

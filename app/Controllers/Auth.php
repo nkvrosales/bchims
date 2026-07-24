@@ -91,6 +91,7 @@ class Auth extends BaseController
 
         // Destroy session data
         $session->destroy();
+        setcookie('last_username', '', time() - 3600, '/');
 
         // Redirect back to login page
         return redirect()->to('auth/login');
