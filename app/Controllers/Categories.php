@@ -92,7 +92,7 @@ class Categories extends BaseController
                     "Created category: {$insertData['category_code']}."
                 );
 
-                session()->setFlashdata('success', 'Category successfully created!');
+                session()->setFlashdata('success', 'Category successfully created.');
                 return redirect()->to('categories');
             }
 
@@ -158,7 +158,7 @@ class Categories extends BaseController
                     $id
                 );
 
-                session()->setFlashdata('success', 'Category successfully updated!');
+                session()->setFlashdata('success', 'Category successfully updated.');
                 return redirect()->to('categories');
             }
 
@@ -174,7 +174,7 @@ class Categories extends BaseController
         return redirect()->to('categories')->withInput();
     }
 
-    public function archive($id = null)
+    public function deactivate($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -203,7 +203,7 @@ class Categories extends BaseController
         return redirect()->to('categories');
     }
 
-    public function restore($id = null)
+    public function reactivate($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -232,41 +232,4 @@ class Categories extends BaseController
         return redirect()->to('categories');
     }
 
-    public function delete($id = null)
-    {
-        if ($res = $this->checkAuth()) return $res;
-
-        if (empty($id)) {
-            return redirect()->to('categories');
-        }
-
-        $category = $this->categoryModel->find($id);
-        if (empty($category)) {
-            session()->setFlashdata('error', 'Category not found.');
-            return redirect()->to('categories');
-        }
-
-        $db = \Config\Database::connect();
-        $inUse = $db->table('inventory')->where('category_id', $id)->countAllResults()
-            + $db->table('central_supply')->where('category_id', $id)->countAllResults();
-
-        if ($inUse > 0) {
-            session()->setFlashdata('error', 'Cannot delete a category that is currently used by inventory stock.');
-            return redirect()->to('categories');
-        }
-
-        if ($this->categoryModel->delete($id)) {
-            $this->auditModel->log_activity(
-                'DELETE_CATEGORY',
-                'Categories',
-                "Deleted category: {$category['category_code']}.",
-                $id
-            );
-            session()->setFlashdata('success', 'Category successfully deleted!');
-        } else {
-            session()->setFlashdata('error', 'An error occurred while deleting the category.');
-        }
-
-        return redirect()->to('categories');
-    }
 }

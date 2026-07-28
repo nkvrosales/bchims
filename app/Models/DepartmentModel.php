@@ -72,21 +72,6 @@ class DepartmentModel extends Model
     /**
      * Get all departments including inactive (for admin restore view).
      */
-    public function get_all_departments()
-    {
-        return $this->select("department_id AS id, department_name AS name, department_code AS code, status, NULL AS created_at")
-                    ->orderBy('department_name', 'ASC')
-                    ->findAll();
-    }
-
-    /**
-     * Get department by specific ID.
-     */
-    public function get_department_by_id($id)
-    {
-        return $this->find($id);
-    }
-
     /**
      * Create/Insert a new department record.
      */
@@ -114,19 +99,4 @@ class DepartmentModel extends Model
         return $this->update($id, $update_data);
     }
 
-    /**
-     * Delete a department.
-     */
-    public function delete_department($id)
-    {
-        return $this->delete($id);
-    }
-
-    /**
-     * Get total department count.
-     */
-    public function get_department_count()
-    {
-        return $this->countAllResults();
-    }
 }

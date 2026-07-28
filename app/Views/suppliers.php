@@ -116,7 +116,7 @@
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="openSupplierModal('edit', <?php echo $supplier['supplier_id']; ?>, '<?php echo htmlspecialchars($supplier['supplier_type'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['supplier_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['contact_person'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['contact_number'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['email'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($supplier['address'] ?? '', ENT_QUOTES); ?>')" title="Manage Supplier">Manage</a></li>
                                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateSupplierModal-<?php echo $supplier['supplier_id']; ?>" title="Deactivate Supplier">Deactivate</a></li>
                                         <?php else: ?>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreSupplierModal-<?php echo $supplier['supplier_id']; ?>" title="Reactivate Supplier">Reactivate</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reactivateSupplierModal-<?php echo $supplier['supplier_id']; ?>" title="Reactivate Supplier">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -353,7 +353,7 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('suppliers/archive/' . $supplier['supplier_id']); ?>"
+                    <a href="<?php echo base_url('suppliers/deactivate/' . $supplier['supplier_id']); ?>"
                        style="
                                background: #ef4444;;
                                color: #fff;
@@ -378,15 +378,15 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
         </div>
     </div>
 
-    <!-- ===================== RESTORE SUPPLIER MODAL ===================== -->
-    <div class="modal fade" id="restoreSupplierModal-<?php echo $supplier['supplier_id']; ?>" tabindex="-1"
-         aria-labelledby="restoreSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>" aria-hidden="true">
+    <!-- ===================== REACTIVATE SUPPLIER MODAL ===================== -->
+    <div class="modal fade" id="reactivateSupplierModal-<?php echo $supplier['supplier_id']; ?>" tabindex="-1"
+         aria-labelledby="reactivateSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="restoreSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="reactivateSupplierModalLabel-<?php echo $supplier['supplier_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Reactivate Supplier
                         </h5>
@@ -423,7 +423,7 @@ document.getElementById('supplierModal')?.addEventListener('hidden.bs.modal', fu
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('suppliers/restore/' . $supplier['supplier_id']); ?>"
+                    <a href="<?php echo base_url('suppliers/reactivate/' . $supplier['supplier_id']); ?>"
                        class="btn btn-success-custom">
                          Reactivate Supplier
                     </a>

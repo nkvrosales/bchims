@@ -111,9 +111,9 @@
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                         <?php if (($category['status'] ?? 1) == 1): ?>
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="openCategoryModal('edit', <?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['category_name'] ?? '', ENT_QUOTES); ?>')" title="Manage Category">Manage</a></li>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveCategoryModal-<?php echo $category['category_id']; ?>" title="Deactivate Category">Deactivate</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateCategoryModal-<?php echo $category['category_id']; ?>" title="Deactivate Category">Deactivate</a></li>
                                         <?php else: ?>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreCategoryModal-<?php echo $category['category_id']; ?>" title="Reactivate Category">Reactivate</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reactivateCategoryModal-<?php echo $category['category_id']; ?>" title="Reactivate Category">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -251,15 +251,15 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
 <?php if (!empty($categories)): ?>
     <?php foreach ($categories as $category): ?>
     <!-- ===================== DEACTIVATE CATEGORY MODAL ===================== -->
-    <div class="modal fade" id="archiveCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
-         aria-labelledby="archiveCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
+    <div class="modal fade" id="deactivateCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
+         aria-labelledby="deactivateCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <!-- Modal Header -->
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="archiveCategoryModalLabel-<?php echo $category['category_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="deactivateCategoryModalLabel-<?php echo $category['category_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Deactivate Category
                         </h5>
@@ -300,7 +300,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('categories/archive/' . $category['category_id']); ?>"
+                    <a href="<?php echo base_url('categories/deactivate/' . $category['category_id']); ?>"
                        style="
                                background: #ef4444;;
                                color: #fff;
@@ -322,15 +322,15 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
         </div>
     </div>
 
-    <!-- ===================== RESTORE CATEGORY MODAL ===================== -->
-    <div class="modal fade" id="restoreCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
-         aria-labelledby="restoreCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
+    <!-- ===================== REACTIVATE CATEGORY MODAL ===================== -->
+    <div class="modal fade" id="reactivateCategoryModal-<?php echo $category['category_id']; ?>" tabindex="-1"
+         aria-labelledby="reactivateCategoryModalLabel-<?php echo $category['category_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="restoreCategoryModalLabel-<?php echo $category['category_id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="reactivateCategoryModalLabel-<?php echo $category['category_id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Reactivate Category
                         </h5>
@@ -369,7 +369,7 @@ document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', fu
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('categories/restore/' . $category['category_id']); ?>"
+                    <a href="<?php echo base_url('categories/reactivate/' . $category['category_id']); ?>"
                        class="btn btn-success-custom">
                          Reactivate Category
                     </a>

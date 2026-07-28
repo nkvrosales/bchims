@@ -116,9 +116,9 @@
                                     <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                         <?php if (!isset($dept['status']) || $dept['status'] == 1): ?>
                                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="openDeptModal('edit', <?php echo $dept['id']; ?>, '<?php echo htmlspecialchars($dept['code'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($dept['name'], ENT_QUOTES); ?>')" title="Manage Department">Manage</a></li>
-                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveDeptModal-<?php echo $dept['id']; ?>" title="Deactivate Department">Deactivate</a></li>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateDeptModal-<?php echo $dept['id']; ?>" title="Deactivate Department">Deactivate</a></li>
                                         <?php else: ?>
-                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreDeptModal-<?php echo $dept['id']; ?>" title="Reactivate Department">Reactivate</a></li>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reactivateDeptModal-<?php echo $dept['id']; ?>" title="Reactivate Department">Reactivate</a></li>
                                         <?php endif; ?>
                                     </ul>
                                 </div>
@@ -257,16 +257,16 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
 <?php if (!empty($departments)): ?>
     <?php foreach ($departments as $dept): ?>
     <?php if (!isset($dept['status']) || $dept['status'] == 1): ?>
-    <!-- ===================== ARCHIVE DEPARTMENT MODAL ===================== -->
-    <div class="modal fade" id="archiveDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
-         aria-labelledby="archiveDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
+    <!-- ===================== DEACTIVATE DEPARTMENT MODAL ===================== -->
+    <div class="modal fade" id="deactivateDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
+         aria-labelledby="deactivateDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <!-- Modal Header -->
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="archiveDeptModalLabel-<?php echo $dept['id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="deactivateDeptModalLabel-<?php echo $dept['id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Deactivate Department
                         </h5>
@@ -305,7 +305,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('departments/archive/' . $dept['id']); ?>"
+                    <a href="<?php echo base_url('departments/deactivate/' . $dept['id']); ?>"
                        style="
                                background: #ef4444;
                                color: #fff;
@@ -331,14 +331,14 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
     </div>
     <?php else: ?>
     <!-- ===================== REACTIVATE DEPARTMENT MODAL ===================== -->
-    <div class="modal fade" id="restoreDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
-         aria-labelledby="restoreDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
+    <div class="modal fade" id="reactivateDeptModal-<?php echo $dept['id']; ?>" tabindex="-1"
+         aria-labelledby="reactivateDeptModalLabel-<?php echo $dept['id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="restoreDeptModalLabel-<?php echo $dept['id']; ?>"
+                        <h5 class="modal-title fw-bold mb-0" id="reactivateDeptModalLabel-<?php echo $dept['id']; ?>"
                             style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Reactivate Department
                         </h5>
@@ -375,7 +375,7 @@ document.getElementById('deptModal')?.addEventListener('hidden.bs.modal', functi
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('departments/restore/' . $dept['id']); ?>"
+                    <a href="<?php echo base_url('departments/reactivate/' . $dept['id']); ?>"
                        class="btn btn-success-custom">
                          Reactivate Department
                     </a>

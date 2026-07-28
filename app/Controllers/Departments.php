@@ -44,7 +44,7 @@ class Departments extends BaseController
     }
 
     /**
-     * Display all departments listing (with embedded create/edit/delete modals)
+     * Display all departments listing (with embedded create/edit modals)
      */
     public function index()
     {
@@ -81,8 +81,11 @@ class Departments extends BaseController
             'code' => 'required|max_length[50]|is_unique[departments.department_code]',
             'name' => 'required|max_length[100]|is_unique[departments.department_name]',
         ];
+        $messages = [
+            'name' => ['is_unique' => 'This department name already exists.'],
+        ];
 
-        if ($this->validate($rules)) {
+        if ($this->validate($rules, $messages)) {
             $code = strtoupper((string)$this->request->getPost('code'));
             $name = ucwords(strtolower($this->request->getPost('name')));
             $insert_data = ['code' => $code, 'name' => $name];
@@ -94,7 +97,7 @@ class Departments extends BaseController
                     "Created new hospital department: {$name} ({$code})."
                 );
 
-                session()->setFlashdata('success', 'Department successfully created!');
+                session()->setFlashdata('success', 'Department successfully created.');
                 return redirect()->to('departments');
             } else {
                 session()->setFlashdata('modal_mode', 'create');
@@ -137,8 +140,11 @@ class Departments extends BaseController
             'code' => "required|max_length[50]|is_unique[departments.department_code,department_id,{$id}]",
             'name' => "required|max_length[100]|is_unique[departments.department_name,department_id,{$id}]",
         ];
+        $messages = [
+            'name' => ['is_unique' => 'This department name already exists.'],
+        ];
 
-        if ($this->validate($rules)) {
+        if ($this->validate($rules, $messages)) {
             $code     = strtoupper((string)$this->request->getPost('code'));
             $name     = ucwords(strtolower($this->request->getPost('name')));
             $old_name = $dept['name'];
@@ -173,9 +179,9 @@ class Departments extends BaseController
     }
 
     /**
-     * Delete department record
+     * Deactivate department
      */
-    public function archive($id = NULL)
+    public function deactivate($id = NULL)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -203,7 +209,7 @@ class Departments extends BaseController
         return redirect()->to('departments');
     }
 
-    public function restore($id = NULL)
+    public function reactivate($id = NULL)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -231,35 +237,5 @@ class Departments extends BaseController
         return redirect()->to('departments');
     }
 
-    /**
-     * Delete department record (permanent)
-     */
-    public function delete($id = NULL)
-    {
-        if ($res = $this->checkAuth()) return $res;
 
-        if (empty($id)) {
-            return redirect()->to('departments');
-        }
-
-        $dept = $this->departmentModel->find($id);
-        if (empty($dept)) {
-            session()->setFlashdata('error', 'Department not found.');
-            return redirect()->to('departments');
-        }
-
-        if ($this->departmentModel->delete_department($id)) {
-            $this->auditModel->log_activity(
-                'DELETE_DEPT',
-                'Departments',
-                "Deleted hospital department: {$dept['name']}."
-            );
-
-            session()->setFlashdata('success', 'Department successfully deleted!');
-        } else {
-            session()->setFlashdata('error', 'An error occurred while trying to delete the department.');
-        }
-
-        return redirect()->to('departments');
-    }
 }

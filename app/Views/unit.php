@@ -99,9 +99,9 @@
                                 <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.8rem;">
                                     <?php if (($unit['status'] ?? 1) == 1): ?>
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="openUnitModal('edit', <?php echo $unit['unit_id']; ?>, '<?php echo htmlspecialchars($unit['unit_code'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($unit['unit_name'], ENT_QUOTES); ?>')" title="Manage Unit">Manage</a></li>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#archiveUnitModal-<?php echo $unit['unit_id']; ?>" title="Deactivate Unit">Deactivate</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deactivateUnitModal-<?php echo $unit['unit_id']; ?>" title="Deactivate Unit">Deactivate</a></li>
                                     <?php else: ?>
-                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#restoreUnitModal-<?php echo $unit['unit_id']; ?>" title="Reactivate Unit">Reactivate</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reactivateUnitModal-<?php echo $unit['unit_id']; ?>" title="Reactivate Unit">Reactivate</a></li>
                                     <?php endif; ?>
                                 </ul>
                             </div>
@@ -218,12 +218,12 @@ document.getElementById('unitModal')?.addEventListener('hidden.bs.modal', functi
 
 <?php if (!empty($units)): ?>
     <?php foreach ($units as $unit): ?>
-    <div class="modal fade" id="archiveUnitModal-<?php echo $unit['unit_id']; ?>" tabindex="-1" aria-labelledby="archiveUnitModalLabel-<?php echo $unit['unit_id']; ?>" aria-hidden="true">
+    <div class="modal fade" id="deactivateUnitModal-<?php echo $unit['unit_id']; ?>" tabindex="-1" aria-labelledby="deactivateUnitModalLabel-<?php echo $unit['unit_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="archiveUnitModalLabel-<?php echo $unit['unit_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                        <h5 class="modal-title fw-bold mb-0" id="deactivateUnitModalLabel-<?php echo $unit['unit_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Deactivate Unit
                         </h5>
                     </div>
@@ -244,7 +244,7 @@ document.getElementById('unitModal')?.addEventListener('hidden.bs.modal', functi
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('unit/archive/' . $unit['unit_id']); ?>"
+                    <a href="<?php echo base_url('unit/deactivate/' . $unit['unit_id']); ?>"
                        style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
                        onmouseover="this.style.background='#dc2626'"
                        onmouseout="this.style.background='#ef4444'">
@@ -255,12 +255,12 @@ document.getElementById('unitModal')?.addEventListener('hidden.bs.modal', functi
         </div>
     </div>
 
-    <div class="modal fade" id="restoreUnitModal-<?php echo $unit['unit_id']; ?>" tabindex="-1" aria-labelledby="restoreUnitModalLabel-<?php echo $unit['unit_id']; ?>" aria-hidden="true">
+    <div class="modal fade" id="reactivateUnitModal-<?php echo $unit['unit_id']; ?>" tabindex="-1" aria-labelledby="reactivateUnitModalLabel-<?php echo $unit['unit_id']; ?>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
                 <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
                     <div class="d-flex align-items-center gap-3">
-                        <h5 class="modal-title fw-bold mb-0" id="restoreUnitModalLabel-<?php echo $unit['unit_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
+                        <h5 class="modal-title fw-bold mb-0" id="reactivateUnitModalLabel-<?php echo $unit['unit_id']; ?>" style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                             Reactivate Unit
                         </h5>
                     </div>
@@ -281,7 +281,7 @@ document.getElementById('unitModal')?.addEventListener('hidden.bs.modal', functi
                             onmouseout="this.style.background='#fff'">
                         Close
                     </button>
-                    <a href="<?php echo base_url('unit/restore/' . $unit['unit_id']); ?>"
+                    <a href="<?php echo base_url('unit/reactivate/' . $unit['unit_id']); ?>"
                        class="btn btn-success-custom">
                         Reactivate Unit
                     </a>

@@ -333,7 +333,7 @@
                                             $badge_class = 'bg-secondary';
                                             if (in_array($log['action'], array('LOGIN', 'CREATE_DEPT', 'CREATE_USER', 'ADD_ITEM', 'COMPLETE_PARTIAL_SUPPLY_REQUEST', 'SERVE_SUPPLY_REQUEST', 'PARTIAL_SUPPLY_REQUEST'))) {
                                                 $badge_class = 'bg-success-subtle text-dark border border-success-subtle';
-                                            } elseif (in_array($log['action'], array('LOGOUT', 'DELETE_DEPT', 'DELETE_USER', 'DELETE_ITEM', 'DELETE_SUPPLY_REQUEST', 'BULK_DELETE_SUPPLY_REQUESTS'))) {
+                                            } elseif (in_array($log['action'], array('LOGOUT'))) {
                                                 $badge_class = 'bg-secondary-subtle text-dark border border-secondary-subtle';
                                             } elseif (in_array($log['action'], array('LOGIN_FAILED', 'SYSTEM_ERR', 'REJECT_SUPPLY_REQUEST'))) {
                                                 $badge_class = 'bg-danger-subtle text-dark border border-danger-subtle';

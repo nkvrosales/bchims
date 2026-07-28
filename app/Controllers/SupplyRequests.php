@@ -1218,9 +1218,7 @@ class SupplyRequests extends BaseController
     }
 
     /**
-     * Delete a supply request (Admin only).
-     * Must remove supply rows (FK: supply.request_id -> request.request_id) before
-     * deleting the request, and then clean up orphaned department_supply rows.
+     * Archive a supply request.
      */
     public function archive($id = null)
     {
@@ -1242,7 +1240,7 @@ class SupplyRequests extends BaseController
         $this->auditModel->log_activity(
             'ARCHIVE_SUPPLY_REQUEST',
             'Supply Requests',
-            "Archived supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} unit(s) of '{$request['item_name']}'"
+            "Archived supply request #{$id} from {$request['requester_full_name']} for {$request['quantity_requested']} {$request['item_unit']} of '{$request['item_name']}'"
         );
         session()->setFlashdata('success', 'Supply request archived successfully.');
 
@@ -1277,40 +1275,6 @@ class SupplyRequests extends BaseController
             "Restored supply request #{$id}."
         );
         session()->setFlashdata('success', 'Supply request restored successfully.');
-
-        return redirect()->to('requests');
-    }
-
-    /**
-     * Bulk-archive selected supply requests (Admin only).
-     */
-    public function archive_selected()
-    {
-        if ($res = $this->checkAuth()) return $res;
-
-        if (!is_admin_role()) {
-            session()->setFlashdata('error', 'Only administrators can archive supply requests.');
-            return redirect()->to('requests');
-        }
-
-        $ids = $this->request->getPost('request_ids');
-        if (empty($ids) || !is_array($ids)) {
-            session()->setFlashdata('error', 'No supply requests selected.');
-            return redirect()->to('requests');
-        }
-
-        $count = 0;
-        foreach ($ids as $id) {
-            $this->requestModel->update($id, ['status' => 0]);
-            $count++;
-        }
-
-        $this->auditModel->log_activity(
-            'BULK_ARCHIVE_SUPPLY_REQUESTS',
-            'Supply Requests',
-            "Bulk archived {$count} supply request(s)."
-        );
-        session()->setFlashdata('success', "Successfully archived {$count} supply request(s).");
 
         return redirect()->to('requests');
     }

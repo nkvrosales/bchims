@@ -11,15 +11,12 @@ $routes->get('logout', 'Auth::logout');
 $routes->group('auth', function($routes) {
     $routes->get('login', 'Auth::login', ['filter' => 'throttle']);
     $routes->post('login', 'Auth::login', ['filter' => 'throttle']);
-    $routes->get('logout', 'Auth::logout');
 });
 
 $routes->get('dashboard', 'Dashboard::index');
-$routes->get('audit', 'Dashboard::audit_trail');
+$routes->get('audit', 'Dashboard::audit_logs');
 $routes->get('reports', 'Reports::index');
 $routes->post('dashboard/log_action', 'Dashboard::log_action');
-$routes->post('dashboard/archive_logs', 'Dashboard::archive_logs');
-$routes->get('dashboard/download_archive/(:any)', 'Dashboard::download_archive/$1');
 $routes->get('dashboard/profile', 'Dashboard::profile');
 $routes->post('dashboard/profile', 'Dashboard::profile');
 
@@ -31,7 +28,6 @@ $routes->group('inventory', function($routes) {
     $routes->post('edit/(:num)', 'Inventory::edit/$1');
     $routes->get('archive/(:num)', 'Inventory::archive/$1');
     $routes->get('restore/(:num)', 'Inventory::restore/$1');
-    $routes->get('delete/(:num)', 'Inventory::delete/$1');
     $routes->post('generate_inventory_code', 'Inventory::generate_inventory_code');
     $routes->post('consume', 'Inventory::consume');
 });
@@ -42,9 +38,8 @@ $routes->group('departments', function($routes) {
     $routes->post('create', 'Departments::create');
     $routes->get('edit/(:num)', 'Departments::edit/$1');
     $routes->post('edit/(:num)', 'Departments::edit/$1');
-    $routes->get('archive/(:num)', 'Departments::archive/$1');
-    $routes->get('restore/(:num)', 'Departments::restore/$1');
-    $routes->get('delete/(:num)', 'Departments::delete/$1');
+    $routes->get('deactivate/(:num)', 'Departments::deactivate/$1');
+    $routes->get('reactivate/(:num)', 'Departments::reactivate/$1');
 });
 
 $routes->group('unit', function($routes) {
@@ -53,8 +48,8 @@ $routes->group('unit', function($routes) {
     $routes->post('create', 'Units::create');
     $routes->get('edit/(:num)', 'Units::edit/$1');
     $routes->post('edit/(:num)', 'Units::edit/$1');
-    $routes->get('archive/(:num)', 'Units::archive/$1');
-    $routes->get('restore/(:num)', 'Units::restore/$1');
+    $routes->get('deactivate/(:num)', 'Units::deactivate/$1');
+    $routes->get('reactivate/(:num)', 'Units::reactivate/$1');
 });
 
 $routes->group('users', function($routes) {
@@ -63,7 +58,7 @@ $routes->group('users', function($routes) {
     $routes->post('create', 'Users::create');
     $routes->get('edit/(:num)', 'Users::edit/$1');
     $routes->post('edit/(:num)', 'Users::edit/$1');
-    $routes->get('delete/(:num)', 'Users::delete/$1');
+    $routes->get('deactivate/(:num)', 'Users::deactivate/$1');
     $routes->get('activate/(:num)', 'Users::activate/$1');
 });
 
@@ -73,9 +68,8 @@ $routes->group('categories', function($routes) {
     $routes->post('create', 'Categories::create');
     $routes->get('edit/(:num)', 'Categories::edit/$1');
     $routes->post('edit/(:num)', 'Categories::edit/$1');
-    $routes->get('archive/(:num)', 'Categories::archive/$1');
-    $routes->get('restore/(:num)', 'Categories::restore/$1');
-    $routes->get('delete/(:num)', 'Categories::delete/$1');
+    $routes->get('deactivate/(:num)', 'Categories::deactivate/$1');
+    $routes->get('reactivate/(:num)', 'Categories::reactivate/$1');
 });
 
 $routes->group('suppliers', function($routes) {
@@ -84,9 +78,8 @@ $routes->group('suppliers', function($routes) {
     $routes->post('create', 'Suppliers::create');
     $routes->get('edit/(:num)', 'Suppliers::edit/$1');
     $routes->post('edit/(:num)', 'Suppliers::edit/$1');
-    $routes->get('archive/(:num)', 'Suppliers::archive/$1');
-    $routes->get('restore/(:num)', 'Suppliers::restore/$1');
-    $routes->get('delete/(:num)', 'Suppliers::delete/$1');
+    $routes->get('deactivate/(:num)', 'Suppliers::deactivate/$1');
+    $routes->get('reactivate/(:num)', 'Suppliers::reactivate/$1');
 });
 
 $routes->group('requests', function($routes) {
@@ -100,5 +93,4 @@ $routes->group('requests', function($routes) {
     $routes->post('cancel/(:num)', 'SupplyRequests::cancel/$1');
     $routes->post('archive/(:num)', 'SupplyRequests::archive/$1');
     $routes->post('restore/(:num)', 'SupplyRequests::restore/$1');
-    $routes->post('archive_selected', 'SupplyRequests::archive_selected');
 });

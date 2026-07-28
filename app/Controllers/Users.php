@@ -161,7 +161,7 @@ class Users extends BaseController
                     "Created new user account: {$insert_data['username']} ({$display_name}) with role {$role}, department {$dept_log}, and status " . ($insert_data['status'] ? 'Active' : 'Inactive') . "."
                 );
 
-                session()->setFlashdata('success', 'User account successfully created!');
+                session()->setFlashdata('success', 'User account successfully created.');
                 return redirect()->to('users');
             } else {
                 // DB insert error
@@ -283,7 +283,7 @@ class Users extends BaseController
 
                 $this->auditModel->log_activity('UPDATE_USER', 'Users', $audit_desc);
 
-                session()->setFlashdata('success', 'User details successfully updated!');
+                session()->setFlashdata('success', 'User details successfully updated.');
                 return redirect()->to('users');
             } else {
                 session()->setFlashdata('edit_modal_open_id', $id);
@@ -299,9 +299,9 @@ class Users extends BaseController
     }
 
     /**
-     * Delete user account from database
+     * Deactivate user account
      */
-    public function delete($id = NULL)
+    public function deactivate($id = NULL)
     {
         if ($res = $this->checkAdmin()) return $res;
 
@@ -311,7 +311,7 @@ class Users extends BaseController
 
         $current_admin_id = session()->get('user_id');
         if ((int)$id === (int)$current_admin_id) {
-            session()->setFlashdata('error', 'Critical Safeguard: You cannot delete your own logged-in admin account.');
+            session()->setFlashdata('error', 'Critical Safeguard: You cannot deactivate your own logged-in admin account.');
             return redirect()->to('users');
         }
 

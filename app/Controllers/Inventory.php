@@ -609,6 +609,39 @@ class Inventory extends BaseController
 
             // Fetch old item for audit diff
             $oldItem = $this->itemModel->find($id);
+            $requestedQuantity = (int) $this->request->getPost('quantity');
+            $departmentSupply = null;
+
+            if ($isAdmin) {
+                // The form contains the originally received quantity. Keep the
+                // consumed portion consumed when item details are saved.
+                $consumedQuantity = max(0, (int) $oldItem['quantity'] - (int) $oldItem['quantity_on_hand']);
+                if ($requestedQuantity < $consumedQuantity) {
+                    session()->setFlashdata('modal_mode', 'edit');
+                    session()->setFlashdata('modal_edit_id', $id);
+                    session()->setFlashdata('modal_errors', '<li>Quantity cannot be less than the quantity already consumed.</li>');
+                    return redirect()->to('inventory')->withInput();
+                }
+            } else {
+                $departmentSupply = $db->table('department_supply')
+                    ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
+                    ->where('supply.inventory_id', $id)
+                    ->where('department_supply.department_id', $user['department_id'])
+                    ->get()->getRowArray();
+
+                if (empty($departmentSupply)) {
+                    session()->setFlashdata('error', 'The department stock record for this item could not be found.');
+                    return redirect()->to('inventory');
+                }
+
+                $quantityDelta = $requestedQuantity - (int) $departmentSupply['quantity_received'];
+                if (((int) $departmentSupply['quantity_on_hand'] + $quantityDelta) < 0) {
+                    session()->setFlashdata('modal_mode', 'edit');
+                    session()->setFlashdata('modal_edit_id', $id);
+                    session()->setFlashdata('modal_errors', '<li>Quantity cannot be less than the quantity already consumed.</li>');
+                    return redirect()->to('inventory')->withInput();
+                }
+            }
 
             $db->transStart();
 
@@ -622,12 +655,12 @@ class Inventory extends BaseController
                 'expiration_date' => $this->request->getPost('expiration_date') ?: null,
                 'manufacturing_date' => $this->request->getPost('manufacturing_date') ?: null,
                 'unit'            => $this->request->getPost('unit') ?: null,
-                'quantity'        => (int)$this->request->getPost('quantity'),
+                'quantity'        => $requestedQuantity,
                 'remarks'         => $this->request->getPost('remarks') ?: null,
             ];
 
             if ($isAdmin) {
-                $update_data['quantity_on_hand'] = (int)$this->request->getPost('quantity');
+                $update_data['quantity_on_hand'] = $requestedQuantity - $consumedQuantity;
                 $this->itemModel->update($id, $update_data);
                 // Also update supply unit for admin if needed
                 $db->table('supply')->where('central_supply_id', $id)->update(['unit' => $update_data['unit']]);
@@ -635,30 +668,14 @@ class Inventory extends BaseController
                 // For staff: remove supplier_id from inventory update (not a column in inventory table)
                 unset($update_data['supplier_id']);
                 $this->itemModel->update($id, $update_data);
-                // Sync quantity_on_hand in department_supply
-                $dsRow = $db->table('department_supply')
-                            ->join('supply', 'supply.department_supply_id = department_supply.department_supply_id')
-                            ->where('supply.inventory_id', $id)
-                            ->where('department_supply.department_id', $user['department_id'])
-                            ->get()->getRowArray();
-                if ($dsRow) {
-                    $newQty = (int)$this->request->getPost('quantity');
-                    $oldQty = (int)$dsRow['quantity_on_hand'];
-                    $delta = $newQty - $oldQty;
-                    if ($delta > 0) {
-                        $db->table('department_supply')
-                           ->where('department_supply_id', $dsRow['department_supply_id'])
-                           ->set('quantity_received', "quantity_received + {$delta}", false)
-                           ->set('quantity_on_hand', "quantity_on_hand + {$delta}", false)
-                           ->update();
-                    } elseif ($delta < 0) {
-                        $db->table('department_supply')
-                           ->where('department_supply_id', $dsRow['department_supply_id'])
-                           ->set('quantity_on_hand', "quantity_on_hand - " . abs($delta), false)
-                           ->set('quantity_used', "quantity_used + " . abs($delta), false)
-                           ->update();
-                    }
-                }
+                // Adjust from the original received quantity, not the current
+                // balance, so merely editing a consumed item never restores stock.
+                $db->table('department_supply')
+                    ->where('department_supply_id', $departmentSupply['department_supply_id'])
+                    ->update([
+                        'quantity_received' => $requestedQuantity,
+                        'quantity_on_hand'  => (int) $departmentSupply['quantity_on_hand'] + $quantityDelta,
+                    ]);
                 // Update supply unit
                 $db->table('supply')->where('inventory_id', $id)->update(['unit' => $update_data['unit']]);
             }
@@ -701,6 +718,14 @@ class Inventory extends BaseController
             return redirect()->to('inventory')->withInput();
         }
     }
+
+    /*
+
+        $this->auditModel->log_activity('RENAME_ITEM', 'Inventory', "Renamed item: {$oldName} → {$newName} (Item Code: {$itemCode}).");
+
+        return $this->response->setJSON(['success' => true, 'name' => $newName]);
+    }
+    */
 
     /**
      * Generate next inventory code for a category (AJAX endpoint)
@@ -828,74 +853,6 @@ class Inventory extends BaseController
             );
 
             session()->setFlashdata('success', 'Item successfully restored!');
-        }
-
-        return redirect()->to('inventory');
-    }
-
-    /**
-     * Permanently delete an inventory item
-     */
-    public function delete($id = NULL)
-    {
-        if ($res = $this->checkAuth()) return $res;
-
-        if (empty($id)) {
-            return redirect()->to('inventory');
-        }
-
-        $role = session()->get('role');
-        if (strtolower((string) $role) === 'viewer') {
-            session()->setFlashdata('error', 'You do not have permission to delete inventory items.');
-            return redirect()->to('inventory');
-        }
-
-        $userId = session()->get('user_id');
-        $user = $this->userModel->get_user_by_id($userId);
-        $role = session()->get('role');
-        $isAdmin = in_array(strtolower((string) $role), ['admin', 'administrator', 'dev'], true);
-
-        $this->itemModel->set_table($isAdmin ? 'central_supply' : 'inventory');
-        $item = $this->itemModel->find($id);
-
-        if (empty($item)) {
-            session()->setFlashdata('error', 'Item not found.');
-            return redirect()->to('inventory');
-        }
-
-        $db = \Config\Database::connect();
-        $db->transStart();
-
-        if ($isAdmin) {
-            $this->itemModel->delete($id);
-        } else {
-            // Delete from supply, request, and department supply first
-            $supplies = $db->table('supply')
-                           ->join('department_supply', 'department_supply.department_supply_id = supply.department_supply_id')
-                           ->where('supply.inventory_id', $id)
-                           ->where('department_supply.department_id', $user['department_id'])
-                           ->get()->getResultArray();
-            foreach ($supplies as $s) {
-                $db->table('request')->where('department_supply_id', $s['department_supply_id'])->update(['department_supply_id' => null]);
-                $db->table('supply')->where('supply_id', $s['supply_id'])->delete();
-                $db->table('department_supply')->where('department_supply_id', $s['department_supply_id'])->delete();
-            }
-            $this->itemModel->delete($id);
-        }
-
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            session()->setFlashdata('error', 'An error occurred while deleting the item.');
-        } else {
-            $this->auditModel->log_activity(
-                'DELETE_ITEM',
-                'Inventory',
-                "Deleted inventory item: {$item['item_name']} (Item Code: {$item['item_code']}).",
-                $id
-            );
-
-            session()->setFlashdata('success', 'Item successfully deleted!');
         }
 
         return redirect()->to('inventory');

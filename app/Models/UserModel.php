@@ -48,21 +48,6 @@ class UserModel extends Model
     }
 
     /**
-     * Retrieve all user accounts.
-     */
-    public function get_users()
-    {
-        return $this->select("user.user_id AS id, user.username, user.email, user.last_name, user.first_name, CONCAT(user.first_name, ' ', user.last_name) AS full_name, roles.role_name AS role, user.status, user.created_at, user.department_id, departments.department_name AS department_name, departments.department_code AS department_code, (user.status = 1) AS is_active, (SELECT MAX(action_date) FROM audit_log WHERE audit_log.user_id = user.user_id AND audit_log.action_type = 'LOGIN') AS last_login")
-                    ->join('departments', 'departments.department_id = user.department_id', 'left')
-                    ->join('roles', 'roles.role_id = user.role_id', 'inner')
-                    ->orderBy('user.last_name', 'ASC')
-                    ->orderBy('user.first_name', 'ASC')
-                    ->limit(100)
-                    ->find();
-                    
-    }
-
-    /**
      * Search and retrieve user accounts with filters and limit from database.
      */
     public function search($keyword = null, $role_filter = null, $dept_filter = null, $status_filter = null, $limit = 1000)
@@ -164,11 +149,4 @@ class UserModel extends Model
         return $this->update($id, $data);
     }
 
-    /**
-     * Delete a user account from database.
-     */
-    public function delete_user($id)
-    {
-        return $this->delete($id);
-    }
 }

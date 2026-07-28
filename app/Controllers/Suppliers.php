@@ -202,7 +202,7 @@ class Suppliers extends BaseController
         return redirect()->to('suppliers')->withInput();
     }
 
-    public function archive($id = null)
+    public function deactivate($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -231,7 +231,7 @@ class Suppliers extends BaseController
         return redirect()->to('suppliers');
     }
 
-    public function restore($id = null)
+    public function reactivate($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -260,40 +260,4 @@ class Suppliers extends BaseController
         return redirect()->to('suppliers');
     }
 
-    public function delete($id = null)
-    {
-        if ($res = $this->checkAuth()) return $res;
-
-        if (empty($id)) {
-            return redirect()->to('suppliers');
-        }
-
-        $supplier = $this->supplierModel->find($id);
-        if (empty($supplier)) {
-            session()->setFlashdata('error', 'Supplier not found.');
-            return redirect()->to('suppliers');
-        }
-
-        $db = \Config\Database::connect();
-        $inUse = $db->table('central_supply')->where('supplier_id', $id)->countAllResults();
-
-        if ($inUse > 0) {
-            session()->setFlashdata('error', 'Cannot delete a supplier that is currently used by inventory stock.');
-            return redirect()->to('suppliers');
-        }
-
-        if ($this->supplierModel->delete($id)) {
-            $this->auditModel->log_activity(
-                'DELETE_SUPPLIER',
-                'Suppliers',
-                "Deleted supplier: {$supplier['supplier_name']}.",
-                $id
-            );
-            session()->setFlashdata('success', 'Supplier successfully deleted.');
-        } else {
-            session()->setFlashdata('error', 'An error occurred while deleting the supplier.');
-        }
-
-        return redirect()->to('suppliers');
-    }
 }

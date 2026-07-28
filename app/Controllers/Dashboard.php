@@ -316,7 +316,7 @@ class Dashboard extends BaseController
              . view('templates/footer');
     }
 
-    public function audit_trail()
+    public function audit_logs()
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -343,7 +343,7 @@ class Dashboard extends BaseController
     }
 
     /**
-     * Log client-side actions (Export CSV or Print History) to the Audit Trail via AJAX.
+     * Log client-side actions (Export CSV or Print History) to the Audit Log via AJAX.
      */
     public function log_action()
     {

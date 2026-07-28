@@ -564,6 +564,13 @@ var _batchManageSearch = '';
 var _batchManageSearchCaret = null;
 var _batchManageLimit = <?php echo (int) ($batch_manage_limit ?? \App\Models\ItemModel::MANAGE_BATCH_LIMIT); ?>;
 
+function showRestoreItemModal(item) {
+    document.getElementById('restoreItemName').textContent = item.item_name || 'this item';
+    document.getElementById('restoreItemCode').textContent = item.inventory_code || item.item_code || 'N/A';
+    document.getElementById('restoreItemConfirmBtn').href = '<?php echo base_url('inventory/restore'); ?>/' + item.id;
+    new bootstrap.Modal(document.getElementById('restoreItemModal')).show();
+}
+
 function _batchManageStatusFor(batch) {
     if (parseInt(batch.status) === 0) return 'archived';
 
@@ -720,28 +727,28 @@ function _batchManageRenderTable() {
         var expDisplay = bexp ? new Date(bexp).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
         html += '<tr>';
         html += '<td class="text-center small">' + (b.item_name || 'N/A') + '</td>';
-        html += '<td class="text-center small text-muted">' + (b.inventory_code || 'N/A') + '</td>';
-        html += '<td class="text-center">' + bqty + '</td>';
+        html += '<td class="text-center small">' + (b.inventory_code || 'N/A') + '</td>';
+        html += '<td class="text-center small">' + bqty + '</td>';
         <?php if ($isAdmin): ?>
-        html += '<td class="text-center small text-muted">' + (parseInt(b.quantity_served) || 0) + '</td>';
+        html += '<td class="text-center small">' + (parseInt(b.quantity_served) || 0) + '</td>';
         <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
         html += '<td class="text-center small">' + (b.quantity_used || 0) + '</td>';
         <?php endif; ?>
-        html += '<td class="text-center small text-muted">' + (b.unit || 'N/A') + '</td>';
+        html += '<td class="text-center small">' + (b.unit || 'N/A') + '</td>';
         html += '<td class="text-center small">' + expDisplay + '</td>';
-        html += '<td class="text-center"><span class="badge badge-action rounded-pill ' + bbadge + '">' + bstatus + '</span></td>';
-        html += '<td class="text-center"><div class="dropup d-inline-block">';
+        html += '<td class="text-center small"><span class="badge badge-action rounded-pill ' + bbadge + '">' + bstatus + '</span></td>';
+        html += '<td class="text-center small"><div class="dropup d-inline-block">';
         html += '<button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" style="padding:2px 8px;font-size:0.7rem;font-weight:600;">Actions</button>';
         html += '<ul class="dropdown-menu dropdown-menu-end" style="font-size:0.75rem;">';
         <?php if ($isAdmin): ?>
         if (barchived) {
-        html += '<li><a class="dropdown-item" href="<?php echo base_url('inventory/restore'); ?>/' + b.id + '">Restore</a></li>';
+        html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); showRestoreItemModal(' + JSON.stringify({id: b.id, item_name: b.item_name, inventory_code: b.inventory_code, item_code: b.item_code}) + ')\'>Restore</a></li>';
         } else {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, supplier_type: (b.supplier_type ? b.supplier_type.toLowerCase().replace(" ", "_") : "supplier"), supplier_name: (b.supplier_name || ""), expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
         }
         <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
         if (barchived) {
-        html += '<li><a class="dropdown-item" href="<?php echo base_url('inventory/restore'); ?>/' + b.id + '">Restore</a></li>';
+        html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); showRestoreItemModal(' + JSON.stringify({id: b.id, item_name: b.item_name, inventory_code: b.inventory_code, item_code: b.item_code}) + ')\'>Restore</a></li>';
         } else {
         html += '<li><a class="dropdown-item" href="javascript:void(0)" onclick=\'event.stopPropagation(); openItemModal("edit", ' + JSON.stringify({id: b.id, item_code: b.item_code, inventory_code: b.inventory_code, name: b.item_name, category_id: b.category_id, quantity: b.quantity, unit: b.unit, supplier_type: (b.supplier_type ? b.supplier_type.toLowerCase().replace(" ", "_") : "supplier"), supplier_name: (b.supplier_name || ""), expiration_date: b.expiration_date, manufacturing_date: b.manufacturing_date, batch_num: b.batch_num, lot_num: b.lot_num, remarks: b.remarks}) + ')\'>Manage</a></li>';
         if (bqty > 0) {
@@ -1105,7 +1112,7 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
     if (err) err.remove();
 });
 
-// Item Code combobox
+// Item Code dropdown search
 (function() {
     var input = document.getElementById('item_code');
     var dropdown = document.getElementById('itemCodeDropdown');
@@ -1151,6 +1158,29 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
     });
 })();
 </script>
+
+<!-- ===================== RESTORE ITEM MODAL ===================== -->
+<div class="modal fade" id="restoreItemModal" tabindex="-1" aria-labelledby="restoreItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
+                <h5 class="modal-title fw-bold mb-0" id="restoreItemModalLabel" style="color: #0f172a; font-size: 1.25rem;">Restore Item</h5>
+                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.6;"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <div class="p-3 bg-light rounded-3 border border-light-subtle mb-3">
+                    <div class="fw-bold text-dark" id="restoreItemName" style="font-size: 0.95rem;"></div>
+                    <div class="text-muted small">Code: <span id="restoreItemCode"></span></div>
+                </div>
+                <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to restore this inventory item?</p>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
+                <button type="button" data-bs-dismiss="modal" style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer;">Cancel</button>
+                <a id="restoreItemConfirmBtn" href="#" style="background: #16a34a; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer;">Restore Item</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ===================== ARCHIVE ITEM MODALS ===================== -->
 <?php if (!empty($items)): ?>

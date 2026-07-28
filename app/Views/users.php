@@ -207,7 +207,7 @@
                                         <?php if ((int)$u['is_active'] === 1): ?>
                                                 <li><a class="dropdown-item" href="#"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#deleteUserModal-<?php echo $u['id']; ?>"
+                                                        data-bs-target="#deactivateUserModal-<?php echo $u['id']; ?>"
                                                         title="Deactivate User">Deactivate</a></li>
                                                         <?php else: ?>
                                                         <li><a class="dropdown-item" href="#"
@@ -421,11 +421,11 @@
         <!-- ===================== STATUS TOGGLE MODAL (User: @<?php echo htmlspecialchars($u['username']); ?>) ===================== -->
         <?php if (!$is_self): ?>
             <?php if ((int)$u['is_active'] === 1): ?>
-            <div class="modal fade" id="deleteUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="deleteUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
+            <div class="modal fade" id="deactivateUserModal-<?php echo $u['id']; ?>" tabindex="-1" aria-labelledby="deactivateUserModalLabel-<?php echo $u['id']; ?>" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
                         <div class="modal-header border-bottom px-4" style="padding-top: 1.1rem; padding-bottom: 1.1rem;">
-                            <h5 class="modal-title fw-bold mb-0" id="deleteUserModalLabel-<?php echo $u['id']; ?>"
+                            <h5 class="modal-title fw-bold mb-0" id="deactivateUserModalLabel-<?php echo $u['id']; ?>"
                                 style="color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em;">
                                 Deactivate User Account
                             </h5>
@@ -453,7 +453,7 @@
                                     style="background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s; display: inline-flex; align-items: center; height: 38px;"
                                     onmouseover="this.style.background='#f9fafb'"
                                     onmouseout="this.style.background='#fff'">Cancel</button>
-                            <a href="<?php echo base_url('users/delete/' . $u['id']); ?>"
+                            <a href="<?php echo base_url('users/deactivate/' . $u['id']); ?>"
                                style="background: #ef4444; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; height: 38px;"
                                onmouseover="this.style.background='#dc2626'"
                                onmouseout="this.style.background='#ef4444'">Deactivate Account</a>

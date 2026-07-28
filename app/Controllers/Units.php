@@ -166,7 +166,7 @@ class Units extends BaseController
         return redirect()->to('unit')->withInput();
     }
 
-    public function archive($id = null)
+    public function deactivate($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
@@ -190,7 +190,7 @@ class Units extends BaseController
         return redirect()->to('unit');
     }
 
-    public function restore($id = null)
+    public function reactivate($id = null)
     {
         if ($res = $this->checkAuth()) return $res;
 
