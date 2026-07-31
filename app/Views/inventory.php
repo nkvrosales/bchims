@@ -101,7 +101,7 @@
         <table class="table table-custom table-hover w-100" id="inventoryTable">
             <thead>
                 <tr>
-                    <th style="width: 18%" class="text-center">Item Name</th>
+                    <th style="width: 18%">Item Name</th>
                     <th style="width: 14%" class="text-center">Item Code</th>
                     <th style="width: 12%">Category</th>
                     <th style="width: 10%" class="text-center">Stock</th>
@@ -113,7 +113,7 @@
                 <?php if (!empty($items)): ?>
                     <?php foreach ($items as $item): ?>
                         <tr>
-                            <td class="text-center">
+                            <td>
                                 <div class="text-dark"><?php echo htmlspecialchars($item['item_name']); ?></div>
                             </td>
                             <td class="text-dark text-center" style="font-size: 0.85rem; color: var(--text-secondary);">
@@ -673,13 +673,13 @@ function _batchManageRenderTable() {
         batches = batches.slice(0, _batchManageLimit);
     }
 
-    var colHeaders = ['Inventory Name', 'Inventory Code', 'Stock', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
+    var colHeaders = ['Item Name', 'Inventory Code', 'Stock', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
     var sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', 'unit', 'expiration_date', 'stock_status', ''];
     <?php if ($isAdmin): ?>
-    colHeaders = ['Inventory Name', 'Inventory Code', 'Stock', 'Consumed', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
+    colHeaders = ['Item Name', 'Inventory Code', 'Stock', 'Consumed', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
     sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', '', 'unit', 'expiration_date', 'stock_status', ''];
     <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
-    colHeaders = ['Inventory Name', 'Inventory Code', 'Stock', 'Consumed', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
+    colHeaders = ['Item Name', 'Inventory Code', 'Stock', 'Consumed', 'Unit', 'Expiry', 'Stock Status', 'Actions'];
     sortKeys = ['item_name', 'inventory_code', 'quantity_on_hand', 'quantity_used', 'unit', 'expiration_date', 'stock_status', ''];
     <?php endif; ?>
 
@@ -726,7 +726,7 @@ function _batchManageRenderTable() {
         else { bbadge = 'bg-success-subtle text-dark border border-success-subtle'; bstatus = 'In Stock'; }
         var expDisplay = bexp ? new Date(bexp).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
         html += '<tr>';
-        html += '<td class="text-center small">' + (b.item_name || 'N/A') + '</td>';
+        html += '<td class="text-start small">' + (b.item_name || 'N/A') + '</td>';
         html += '<td class="text-center small">' + (b.inventory_code || 'N/A') + '</td>';
         html += '<td class="text-center small">' + bqty + '</td>';
         <?php if ($isAdmin): ?>
@@ -1175,8 +1175,8 @@ document.getElementById('itemModal')?.addEventListener('hidden.bs.modal', functi
                 <p class="text-secondary mb-0" style="font-size: 0.925rem; line-height: 1.5;">Are you sure you want to restore this inventory item?</p>
             </div>
             <div class="modal-footer border-0 px-4 pb-4 pt-2 justify-content-end gap-2">
-                <button type="button" data-bs-dismiss="modal" style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer;">Cancel</button>
-                <a id="restoreItemConfirmBtn" href="#" style="background: #16a34a; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer;">Restore Item</a>
+                <button type="button" data-bs-dismiss="modal" style="background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">Close</button>
+                <a id="restoreItemConfirmBtn" href="#" style="background: #16a34a; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Restore Item</a>
             </div>
         </div>
     </div>

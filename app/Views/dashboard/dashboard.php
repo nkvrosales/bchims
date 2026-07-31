@@ -369,3 +369,56 @@
         </div>
     </div>
 </div>
+
+<div class="row g-4 mt-1 fade-in-up" style="animation-delay: 0.08s;">
+    <div class="col-12">
+        <div class="standard-card">
+            <div class="card-header-styled"><h5 class="card-title-styled"><span>Top 10 Requested Items</span></h5></div>
+            <div class="table-responsive-custom">
+                <table class="table table-custom table-hover mb-0 w-100">
+                    <thead><tr><th class="text-center" style="width: 12%;">Rank</th><th class="text-center">Item Name</th><th class="text-center" style="width: 20%;">Item Code</th><th class="text-center" style="width: 14%;">Unit</th><th class="text-center" style="width: 18%;">Total Requested</th></tr></thead>
+                    <tbody>
+                        <?php if (!empty($top_requested_by_category)): ?>
+                            <?php foreach ($top_requested_by_category as $item): ?>
+                                <tr><td class="text-center"><?php echo (int) $item['rank']; ?></td><td><?php echo htmlspecialchars($item['item_name'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['item_code'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? ''); ?></td><td class="text-center fw-semibold"><?php echo (int) $item['total_quantity']; ?></td></tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr><td colspan="5" class="text-center py-4 text-muted">No requested items found.</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="standard-card">
+            <div class="card-header-styled"><h5 class="card-title-styled"><span>Top 10 Consumed Items per Category</span></h5></div>
+            <div class="p-3">
+                <?php if (!empty($top_consumed_by_category)): ?>
+                    <div class="row g-3">
+                        <?php foreach ($top_consumed_by_category as $category): ?>
+                            <div class="col-12">
+                                <div class="border rounded-3 overflow-hidden">
+                                    <div class="px-3 py-2 fw-semibold" style="background: rgba(16, 185, 129, 0.10); color: #047857;"><?php echo htmlspecialchars(trim(($category['category_code'] ?? '') . ' - ' . ($category['category_name'] ?? 'Uncategorized'), ' -')); ?></div>
+                                    <div class="table-responsive-custom">
+                                        <table class="table table-custom table-hover mb-0 w-100">
+                                            <thead><tr><th class="text-center" style="width: 12%;">Rank</th><th class="text-center">Item Name</th><th class="text-center" style="width: 20%;">Item Code</th><th class="text-center" style="width: 14%;">Unit</th><th class="text-center" style="width: 18%;">Total Consumed</th></tr></thead>
+                                            <tbody>
+                                                <?php foreach ($category['items'] as $item): ?>
+                                                    <tr><td class="text-center"><?php echo (int) $item['rank']; ?></td><td><?php echo htmlspecialchars($item['item_name'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['item_code'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? ''); ?></td><td class="text-center fw-semibold"><?php echo (int) $item['total_quantity']; ?></td></tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center text-muted py-4">No consumed items found.</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>

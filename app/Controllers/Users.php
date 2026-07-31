@@ -116,8 +116,13 @@ class Users extends BaseController
             'department_id' => 'permit_empty|numeric',
             'is_active'     => 'required|in_list[0,1]',
         ];
+        $messages = [
+            'username' => [
+                'is_unique' => 'This username is already taken.',
+            ],
+        ];
 
-        if ($this->validate($rules)) {
+        if ($this->validate($rules, $messages)) {
             $dept_id = $this->request->getPost('department_id');
             $role = $this->request->getPost('role');
             $is_active = (int)$this->request->getPost('is_active');
@@ -147,7 +152,7 @@ class Users extends BaseController
 
             if ($this->userModel->insert_user($insert_data)) {
                 $dept_log = 'None';
-                if (!empty($insert_data['department_id'])) {
+                if ($insert_data['department_id'] !== null && $insert_data['department_id'] !== '') {
                     $dept_obj = $this->departmentModel->find($insert_data['department_id']);
                     if ($dept_obj) {
                         $dept_log = $dept_obj['name'] ?? $dept_obj['department_name'] ?? 'Unknown';
@@ -158,7 +163,7 @@ class Users extends BaseController
                 $this->auditModel->log_activity(
                     'CREATE_USER',
                     'Users',
-                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$role}, department {$dept_log}, and status " . ($insert_data['status'] ? 'Active' : 'Inactive') . "."
+                    "Created new user account: {$insert_data['username']} ({$display_name}) with role {$role}, department {$dept_log}."
                 );
 
                 session()->setFlashdata('success', 'User account successfully created.');
@@ -210,8 +215,13 @@ class Users extends BaseController
             'department_id' => 'permit_empty|numeric',
             'is_active'     => 'required|in_list[0,1]',
         ];
+        $messages = [
+            'username' => [
+                'is_unique' => 'This username is already taken.',
+            ],
+        ];
 
-        if ($this->validate($rules)) {
+        if ($this->validate($rules, $messages)) {
             $current_admin_id = session()->get('user_id');
             $dept_id = $this->request->getPost('department_id');
             $role = $this->request->getPost('role');
@@ -252,20 +262,20 @@ class Users extends BaseController
             if ($this->userModel->update_user($id, $update_data)) {
                 $changes = array();
                 if ($user['username'] !== $update_data['username']) {
-                    $changes[] = "Username ('{$user['username']}' -> '{$update_data['username']}')";
+                    $changes[] = "Username ('{$user['username']}' to '{$update_data['username']}')";
                 }
                 if ($user['last_name'] !== $update_data['last_name'] || $user['first_name'] !== $update_data['first_name']) {
                     $old_name = "{$user['last_name']}, {$user['first_name']}";
                     $new_name = "{$update_data['last_name']}, {$update_data['first_name']}";
-                    $changes[] = "Name ('{$old_name}' -> '{$new_name}')";
+                    $changes[] = "Name ('{$old_name}' to '{$new_name}')";
                 }
                 if ($user['role'] !== $role) {
-                    $changes[] = "Role ('{$user['role']}' -> '{$role}')";
+                    $changes[] = "Role ('{$user['role']}' to '{$role}')";
                 }
                 if ((int)$user['department_id'] !== (int)$update_data['department_id']) {
                     $old_dept = $this->departmentAuditLabel($user['department_id']);
                     $new_dept = $this->departmentAuditLabel($update_data['department_id']);
-                    $changes[] = "Department ('{$old_dept}' -> '{$new_dept}')";
+                    $changes[] = "Department ('{$old_dept}' to '{$new_dept}')";
                 }
                 if ((int)$user['is_active'] !== $is_active) {
                     $changes[] = "Status (" . ($user['is_active'] ? 'Active' : 'Inactive') . " -> " . ($is_active ? 'Active' : 'Inactive') . ")";

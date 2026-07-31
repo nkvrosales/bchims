@@ -359,7 +359,7 @@
 
                         <!-- Department -->
                         <div class="col-lg-6 col-12">
-                            <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department</label>
+                            <label for="modal_department_id" class="form-label small fw-semibold text-secondary">Department <span class="text-danger">*</span></label>
                             <select class="form-select input-custom" id="modal_department_id" name="department_id" required>
                                 <option value="" disabled selected hidden>Select Department</option>
                                 <option value="0" id="optAdminDept">Administrator</option>
@@ -690,8 +690,6 @@
         if (opt) {
             opt.style.display = administratorRole ? '' : 'none';
         }
-        // Do not retain the hidden Administrator value after changing to an
-        // operational account level. The user must choose a real department.
         if (!administratorRole && departmentSelect && departmentSelect.value === '0') {
             departmentSelect.value = '';
         }

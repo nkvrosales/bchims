@@ -74,6 +74,8 @@ class AuditModel extends Model
 
         if (!is_admin_role()) {
             $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
+        } elseif (strtolower((string) session()->get('role')) === 'admin') {
+            $builder = $builder->where('user.role_id !=', 0);
         }
 
         if (!empty($filters['search'])) {
@@ -110,6 +112,8 @@ class AuditModel extends Model
                         
         if (!is_admin_role()) {
             $builder = $builder->where('audit_log.user_id', session()->get('user_id'));
+        } elseif (strtolower((string) session()->get('role')) === 'admin') {
+            $builder = $builder->where('user.role_id !=', 0);
         }
         return $builder->orderBy('action_date', 'DESC')->findAll($limit);
     }

@@ -66,6 +66,9 @@ class Dashboard extends BaseController
         $userModel = new \App\Models\UserModel();
         $currentUser = $userModel->get_user_by_id(session()->get('user_id'));
         $deptId = $currentUser['department_id'] ?? null;
+        $itemRankings = $this->getItemRankings($db, is_admin_role() ? null : (int) $deptId);
+        $data['top_requested_by_category'] = $itemRankings['requested'];
+        $data['top_consumed_by_category'] = $itemRankings['consumed'];
 
         if (is_admin_role()) {
             // Count pending (1) and partially served (2) requests
@@ -314,6 +317,56 @@ class Dashboard extends BaseController
         return view('templates/header', $data)
              . view('dashboard/dashboard', $data)
              . view('templates/footer');
+    }
+
+    private function getItemRankings(\CodeIgniter\Database\BaseConnection $db, ?int $departmentId): array
+    {
+        $requestedParams = [];
+        $requestedDepartmentClause = '';
+        if ($departmentId !== null) {
+            $requestedDepartmentClause = ' AND ds.department_id = ?';
+            $requestedParams[] = $departmentId;
+        }
+
+        $requested = $db->query(
+            "SELECT COALESCE(i.item_code, cs.item_code) AS item_code, COALESCE(i.item_name, cs.item_name) AS item_name,
+                    COALESCE(s.unit, i.unit, cs.unit) AS unit, SUM(r.quantity_requested) AS total_quantity
+             FROM request r INNER JOIN supply s ON s.request_id = r.request_id
+             INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+             LEFT JOIN inventory i ON i.inventory_id = s.inventory_id LEFT JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
+             WHERE r.status > 0{$requestedDepartmentClause}
+             GROUP BY COALESCE(i.item_code, cs.item_code), COALESCE(i.item_name, cs.item_name), COALESCE(s.unit, i.unit, cs.unit)
+             ORDER BY total_quantity DESC, item_name ASC LIMIT 10",
+            $requestedParams
+        )->getResultArray();
+        foreach ($requested as $index => &$item) $item['rank'] = $index + 1;
+        unset($item);
+
+        $consumedParams = $departmentId === null ? [] : [$departmentId];
+        $consumed = $db->query(
+            "SELECT s.category_id, c.category_code, c.category_name, i.item_code, i.item_name,
+                    COALESCE(i.unit, s.unit) AS unit, SUM(ds.quantity_used) AS total_quantity
+             FROM department_supply ds INNER JOIN supply s ON s.department_supply_id = ds.department_supply_id
+             INNER JOIN inventory i ON i.inventory_id = s.inventory_id LEFT JOIN category c ON c.category_id = s.category_id
+             WHERE ds.quantity_used > 0" . ($departmentId !== null ? ' AND ds.department_id = ?' : '') . "
+             GROUP BY s.category_id, c.category_code, c.category_name, i.item_code, i.item_name, COALESCE(i.unit, s.unit)
+             ORDER BY c.category_name ASC, total_quantity DESC, i.item_name ASC",
+            $consumedParams
+        )->getResultArray();
+
+        $byCategory = [];
+        foreach ($consumed as $item) {
+            $categoryId = (int) ($item['category_id'] ?? 0);
+            if (!isset($byCategory[$categoryId])) {
+                $byCategory[$categoryId] = ['category_code' => $item['category_code'] ?? '', 'category_name' => $item['category_name'] ?? 'Uncategorized', 'items' => []];
+            }
+            if (count($byCategory[$categoryId]['items']) < 10) {
+                $item['rank'] = count($byCategory[$categoryId]['items']) + 1;
+                $byCategory[$categoryId]['items'][] = $item;
+            }
+        }
+
+        return ['requested' => $requested, 'consumed' => array_values($byCategory)];
     }
 
     public function audit_logs()
