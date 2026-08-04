@@ -350,7 +350,7 @@ $(document).ready(function() {
             },
             columnDefs: [
                 { orderable: false, targets: 9 },
-                { className: 'text-center', targets: [1, 3, 4, 5, 6, 7, 8] }
+                { className: 'text-center', targets: [1, 3, 4, 6, 7, 8] }
             ],
             initComplete: function () {
                 var $searchInput = $('#supplyRequestsTable_wrapper .dataTables_filter input');

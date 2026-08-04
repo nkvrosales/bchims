@@ -42,9 +42,9 @@
             <div>
                 <div class="kpi-label text-uppercase text-secondary fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b !important;">Near Expiry</div>
                 <h3 class="kpi-value text-dark fw-bold mt-1"><?php echo $total_near_expiry; ?></h3>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Expired Count -->
     <div class="col-lg-6 col-xl-3 col-12">
@@ -65,6 +65,7 @@
             </div>
         </div>
     </div>
+</div>
 
 <!-- Main Row Content (Stacked Tables layout) -->
 <div class="row g-4 fade-in-up" style="animation-delay: 0.1s;">
@@ -99,8 +100,8 @@
                                     <td class="text-center"><?php echo date('M d, Y', strtotime($req['created_at'])); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($req['reference_no'] ?? ('#' . $req['request_id'])); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($req['requester_name']); ?></td>
-                                    <td class="text-center"><?php echo htmlspecialchars($req['item_name']); ?></td>
-                                    <td class="text-center"><?php echo (int)$req['quantity_requested']; ?></td>
+                                    <td class="text-start"><?php echo htmlspecialchars($req['item_name']); ?></td>
+                                    <td class="text-center"><?php echo number_format((int)$req['quantity_requested']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($req['unit'] ?? 'N/A'); ?></td>
                                     <td class="text-center">
                                         <?php $s = (int)$req['request_status']; ?>
@@ -152,7 +153,7 @@
                         <?php if (!empty($near_expiry_items)): ?>
                             <?php foreach ($near_expiry_items as $item): ?>
                                 <tr>
-                                    <td class="text-center">
+                                    <td class="text-start">
                                         <?php echo htmlspecialchars($item['item_name']); ?>
                                     </td>
                                     <td class="text-center">
@@ -219,10 +220,10 @@
                         <?php if (!empty($expired_items)): ?>
                             <?php foreach ($expired_items as $item): ?>
                                 <tr>
-                                    <td class="text-center"><?php echo htmlspecialchars($item['item_name']); ?></td>
+                                    <td class="text-start"><?php echo htmlspecialchars($item['item_name']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($item['item_code']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($item['inventory_code'] ?? 'N/A'); ?></td>
-                                    <td class="text-center"><?php echo (int)$item['quantity_on_hand']; ?></td>
+                                    <td class="text-center"><?php echo number_format((int)$item['quantity_on_hand']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? 'N/A'); ?></td>
                                     <td class="text-center"><?php echo !empty($item['expiration_date']) ? date('M d, Y', strtotime($item['expiration_date'])) : 'N/A'; ?></td>
                                     <td class="text-center">
@@ -273,10 +274,10 @@
                         <?php if (!empty($no_stock_items)): ?>
                             <?php foreach ($no_stock_items as $item): ?>
                                 <tr>
-                                    <td class="text-center"><?php echo htmlspecialchars($item['item_name']); ?></td>
+                                    <td class="text-start"><?php echo htmlspecialchars($item['item_name']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($item['item_code']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($item['inventory_code'] ?? 'N/A'); ?></td>
-                                    <td class="text-center"><?php echo (int)$item['quantity_on_hand']; ?></td>
+                                    <td class="text-center"><?php echo number_format((int)$item['quantity_on_hand']); ?></td>
                                     <td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? 'N/A'); ?></td>
                                     <td class="text-center"><?php echo !empty($item['expiration_date']) ? date('M d, Y', strtotime($item['expiration_date'])) : 'N/A'; ?></td>
                                     <td class="text-center">
@@ -370,6 +371,28 @@
     </div>
 </div>
 
+<!-- Date Filter Bar for Rankings & Analytics -->
+<form method="GET" action="<?php echo base_url('dashboard'); ?>" id="dashboardFilterForm" class="fade-in-up mt-4 mb-2" style="animation-delay: 0.07s;">
+    <div class="db-search-bar" style="flex-wrap: wrap; gap: 8px;">
+        <div class="db-search-field" style="flex: 0 0 200px;">
+            <input type="date" id="dash_start_date" name="start_date" class="db-search-input" value="<?php echo htmlspecialchars($start_date ?? date('Y-01-01')); ?>" placeholder=" ">
+            <label for="dash_start_date">Start Date</label>
+        </div>
+        <div class="db-search-field" style="flex: 0 0 200px;">
+            <input type="date" id="dash_end_date" name="end_date" class="db-search-input" value="<?php echo htmlspecialchars($end_date ?? date('Y-m-d')); ?>" placeholder=" ">
+            <label for="dash_end_date">End Date</label>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="submit" class="btn-db-search">
+                Search
+            </button>
+            <a href="<?php echo base_url('dashboard'); ?>" class="btn-db-clear">
+                Clear
+            </a>
+        </div>
+    </div>
+</form>
+
 <div class="row g-4 mt-1 fade-in-up" style="animation-delay: 0.08s;">
     <div class="col-12">
         <div class="standard-card">
@@ -380,7 +403,7 @@
                     <tbody>
                         <?php if (!empty($top_requested_by_category)): ?>
                             <?php foreach ($top_requested_by_category as $item): ?>
-                                <tr><td class="text-center"><?php echo (int) $item['rank']; ?></td><td><?php echo htmlspecialchars($item['item_name'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['item_code'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? ''); ?></td><td class="text-center fw-semibold"><?php echo (int) $item['total_quantity']; ?></td></tr>
+                                <tr><td class="text-center"><?php echo (int) $item['rank']; ?></td><td><?php echo htmlspecialchars($item['item_name'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['item_code'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? ''); ?></td><td class="text-center"><?php echo number_format((int) $item['total_quantity']); ?></td></tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr><td colspan="5" class="text-center py-4 text-muted">No requested items found.</td></tr>
@@ -390,6 +413,40 @@
             </div>
         </div>
     </div>
+
+    <?php if (!empty($top_requesting_departments)): ?>
+    <div class="col-12">
+        <div class="standard-card">
+            <div class="card-header-styled">
+                <h5 class="card-title-styled"><span>Top 5 Requesting Departments</span></h5>
+            </div>
+            <div class="table-responsive-custom">
+                <table class="table table-custom table-hover mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width:8%;">Rank</th>
+                            <th>Department Name</th>
+                            <th class="text-center" style="width:14%;">Department Code</th>
+                            <th class="text-center" style="width:14%;">Total Requests</th>
+                            <th class="text-center" style="width:20%;">Quantity Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($top_requesting_departments as $dept): ?>
+                            <tr>
+                                <td class="text-center"><?php echo (int)$dept['rank']; ?></td>
+                                <td><?php echo htmlspecialchars($dept['department_name']); ?></td>
+                                <td class="text-center text-muted"><?php echo htmlspecialchars($dept['department_code'] ?? '—'); ?></td>
+                                <td class="text-center"><?php echo number_format((int)$dept['total_requests']); ?></td>
+                                <td class="text-center"><?php echo number_format((int)$dept['total_requested']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div class="col-12">
         <div class="standard-card">
@@ -406,7 +463,7 @@
                                             <thead><tr><th class="text-center" style="width: 12%;">Rank</th><th class="text-center">Item Name</th><th class="text-center" style="width: 20%;">Item Code</th><th class="text-center" style="width: 14%;">Unit</th><th class="text-center" style="width: 18%;">Total Consumed</th></tr></thead>
                                             <tbody>
                                                 <?php foreach ($category['items'] as $item): ?>
-                                                    <tr><td class="text-center"><?php echo (int) $item['rank']; ?></td><td><?php echo htmlspecialchars($item['item_name'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['item_code'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? ''); ?></td><td class="text-center fw-semibold"><?php echo (int) $item['total_quantity']; ?></td></tr>
+                                                    <tr><td class="text-center"><?php echo (int) $item['rank']; ?></td><td><?php echo htmlspecialchars($item['item_name'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['item_code'] ?? 'N/A'); ?></td><td class="text-center"><?php echo htmlspecialchars($item['unit'] ?? ''); ?></td><td class="text-center"><?php echo number_format((int) $item['total_quantity']); ?></td></tr>
                                                 <?php endforeach; ?>
                                             </tbody>
                                         </table>
@@ -422,3 +479,5 @@
         </div>
     </div>
 </div>
+
+

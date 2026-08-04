@@ -155,13 +155,13 @@ $requestBadgeMap = [
                                 <td>
                                     <span class="text-dark"><?php echo htmlspecialchars($req['department_name'] ?? 'N/A'); ?></span>
                                 </td>
-                                <td>
+                                <td class="text-start">
                                     <div class="text-dark"><?php echo htmlspecialchars($req['item_name']); ?></div>
                                 </td>
-                                <td>
+                                <td data-order="<?php echo (int)($req['quantity_requested'] ?? 0); ?>">
                                     <?php $servedQty = (int)($req['quantity_served'] ?? 0); ?>
                                     <div>
-                                        <span class="text-dark" title="Served Quantity"><?php echo $servedQty; ?></span> / <span class="text-dark" title="Requested Quantity"><?php echo $req['quantity_requested']; ?></span>
+                                        <span class="text-dark" title="Served Quantity"><?php echo number_format($servedQty); ?></span> / <span class="text-dark" title="Requested Quantity"><?php echo number_format((int)$req['quantity_requested']); ?></span>
                                     </div>
                                 </td>
                                 <td>
@@ -294,7 +294,7 @@ $requestBadgeMap = [
                                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                                     <?php echo htmlspecialchars($req['item_name']); ?>
                                                 </div>
-                                                <div class="text-muted small"><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)</div>
+                                                <div class="text-muted small"><?php echo number_format((int)$req['quantity_requested']); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?> (<?php echo htmlspecialchars($req['department_name'] ?? ''); ?>)</div>
                                             </div>
                                         </div>
                                     </div>
@@ -338,7 +338,7 @@ $requestBadgeMap = [
                                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                                     <?php echo htmlspecialchars($req['item_name']); ?>
                                                 </div>
-                                                <div class="text-muted small"><?php echo (int)$req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?></div>
+                                                <div class="text-muted small"><?php echo number_format((int)$req['quantity_requested']); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?> &middot; <?php echo htmlspecialchars($req['requester_full_name']); ?></div>
                                             </div>
                                         </div>
                                     </div>
@@ -408,7 +408,7 @@ $requestBadgeMap = [
                                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                                     <?php echo htmlspecialchars($req['item_name']); ?>
                                                 </div>
-                                                <div class="text-muted small">Requested: <?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?><?php if ((int)$req['quantity_served'] > 0): ?> &middot; Remaining: <?php echo $remaining; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?><?php endif; ?></div>
+                                                <div class="text-muted small">Requested: <?php echo number_format((int)$req['quantity_requested']); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?><?php if ((int)$req['quantity_served'] > 0): ?> &middot; Remaining: <?php echo number_format((int)$remaining); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?><?php endif; ?></div>
                                             </div>
                                         </div>
                                     </div>
@@ -556,11 +556,11 @@ $requestBadgeMap = [
                                 </div>
                                 <div class="col-6">
                                     <label class="small fw-semibold text-secondary d-block">Requested Quantity</label>
-                                    <span class="text-dark fw-bold"><?php echo $req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></span>
+                                    <span class="text-dark fw-bold"><?php echo number_format((int)$req['quantity_requested']); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></span>
                                 </div>
                                 <div class="col-6">
                                     <label class="small fw-semibold text-secondary d-block">Served Quantity</label>
-                                    <span class="text-dark fw-bold"><?php echo $req['quantity_served'] ?? 0; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></span>
+                                    <span class="text-dark fw-bold"><?php echo number_format((int)($req['quantity_served'] ?? 0)); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></span>
                                 </div>
                                 <div class="col-12"><hr class="my-1"></div>
                                 <div class="col-6">
@@ -630,7 +630,7 @@ $requestBadgeMap = [
                                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                                     <?php echo htmlspecialchars($req['item_name']); ?>
                                                 </div>
-                                                <div class="text-muted small"><?php echo (int)$req['quantity_requested']; ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></div>
+                                                <div class="text-muted small"><?php echo number_format((int)$req['quantity_requested']); ?> <?php echo htmlspecialchars($req['item_unit'] ?? 'pcs'); ?></div>
                                             </div>
                                         </div>
                                     </div>

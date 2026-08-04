@@ -352,9 +352,6 @@
                                     <option value="encoder">Encoder</option>
                                     <option value="viewer">Viewer</option>
                                 </select>
-                            <div class="form-text small text-secondary" id="roleSelfInfo" style="display: none;">
-                                <i class="fa-solid fa-circle-info me-1"></i>You cannot demote your active admin session.
-                            </div>
                         </div>
 
                         <!-- Department -->
@@ -519,7 +516,6 @@
         const submitBtn = document.getElementById('btnSubmitUser');
         
         const roleSelect = document.getElementById('modal_role');
-        const roleSelfInfo = document.getElementById('roleSelfInfo');
         
         // Remove existing hidden self-inputs
         form.querySelectorAll('.self-hidden-input').forEach(el => el.remove());
@@ -554,7 +550,6 @@
             document.getElementById('modal_department_id').disabled = false;
             
             roleSelect.disabled = false;
-            if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             document.getElementById('userModalCancelBtn').textContent = 'Close';
             
         } else if (mode === 'edit') {
@@ -585,7 +580,6 @@
             if (isSelf) {
                 roleSelect.value = data.role || '';
                 roleSelect.disabled = true;
-                if (roleSelfInfo) roleSelfInfo.style.display = 'block';
                 
                 // Add hidden inputs since disabled fields are not submitted
                 const hiddenRole = document.createElement('input');
@@ -597,7 +591,6 @@
             } else {
                 roleSelect.value = data.role || '';
                 roleSelect.disabled = false;
-                if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             }
             document.getElementById('userModalCancelBtn').textContent = 'Close';
         } else if (mode === 'view') {
@@ -625,7 +618,6 @@
             document.getElementById('modal_email').disabled = true;
             document.getElementById('modal_department_id').disabled = true;
             
-            if (roleSelfInfo) roleSelfInfo.style.display = 'none';
             document.getElementById('userModalCancelBtn').textContent = 'Close';
         }
 

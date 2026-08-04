@@ -122,9 +122,9 @@
                             <td>
                                 <span class="text-dark"><?php echo htmlspecialchars($item['category_name'] ?? 'N/A'); ?></span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center" data-order="<?php echo (int)$item['quantity_on_hand']; ?>">
                                 <span class="fs-6 text-dark">
-                                    <?php echo (int)$item['quantity_on_hand']; ?>
+                                    <?php echo number_format((int)$item['quantity_on_hand']); ?>
                                 </span>
                             </td>
                             <?php
@@ -360,9 +360,9 @@
                                    class="form-control input-custom"
                                    id="item_inventory_code"
                                    name="inventory_code"
-                                   readonly
-                                   style="background-color: #f3f4f6; cursor: default;"
-                                   value="<?php echo old('inventory_code'); ?>">
+                                   style="text-transform: uppercase;"
+                                   value="<?php echo old('inventory_code'); ?>"
+                                   required>
                         </div>
 
                         <div class="col-lg-4 col-12">
@@ -728,11 +728,11 @@ function _batchManageRenderTable() {
         html += '<tr>';
         html += '<td class="text-start small">' + (b.item_name || 'N/A') + '</td>';
         html += '<td class="text-center small">' + (b.inventory_code || 'N/A') + '</td>';
-        html += '<td class="text-center small">' + bqty + '</td>';
+        html += '<td class="text-center small">' + Number(bqty).toLocaleString('en-US') + '</td>';
         <?php if ($isAdmin): ?>
-        html += '<td class="text-center small">' + (parseInt(b.quantity_served) || 0) + '</td>';
+        html += '<td class="text-center small">' + Number(parseInt(b.quantity_served) || 0).toLocaleString('en-US') + '</td>';
         <?php elseif (strtolower((string) session()->get('role')) === 'encoder'): ?>
-        html += '<td class="text-center small">' + (b.quantity_used || 0) + '</td>';
+        html += '<td class="text-center small">' + Number(b.quantity_used || 0).toLocaleString('en-US') + '</td>';
         <?php endif; ?>
         html += '<td class="text-center small">' + (b.unit || 'N/A') + '</td>';
         html += '<td class="text-center small">' + expDisplay + '</td>';
@@ -1023,7 +1023,7 @@ function generateInventoryCode() {
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.success) {
-            invCodeField.value = data.inventory_code;
+            invCodeField.value = data.inventory_code.toUpperCase();
         }
     });
 }
@@ -1439,7 +1439,7 @@ function showViewBatchModal(b) {
     document.getElementById('bv_inventory_code').textContent = b.inventory_code || 'N/A';
     document.getElementById('bv_item_code').textContent = b.item_code || 'N/A';
     document.getElementById('bv_item_name').textContent = b.item_name || 'N/A';
-    document.getElementById('bv_stock').textContent = b.quantity_on_hand || 0;
+    document.getElementById('bv_stock').textContent = Number(b.quantity_on_hand || 0).toLocaleString('en-US');
     document.getElementById('bv_unit').textContent = b.unit || 'N/A';
     document.getElementById('bv_batch').textContent = b.batch_num || 'N/A';
     document.getElementById('bv_lot').textContent = b.lot_num || 'N/A';

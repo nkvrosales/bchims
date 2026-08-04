@@ -48,33 +48,11 @@ class Reports extends BaseController
         $isAdmin = is_admin_role();
         $deptId = $user['department_id'] ?? null;
 
-        $reportPeriod = strtolower((string) ($this->request->getGet('report_period') ?: 'today'));
+        $reportPeriod = 'custom';
         $today = new \DateTimeImmutable('today');
-
-        switch ($reportPeriod) {
-            case 'weekly':
-                $startDate = $today->modify('monday this week')->format('Y-m-d');
-                $endDate   = $today->modify('sunday this week')->format('Y-m-d');
-                break;
-            case 'monthly':
-                $startDate = $today->modify('first day of this month')->format('Y-m-d');
-                $endDate   = $today->modify('last day of this month')->format('Y-m-d');
-                break;
-            case 'yearly':
-                $startDate = $today->modify('first day of january')->format('Y-m-d');
-                $endDate   = $today->modify('last day of december')->format('Y-m-d');
-                break;
-            case 'custom':
-                $startDate = $this->request->getGet('start_date');
-                $endDate   = $this->request->getGet('end_date');
-                break;
-            case 'today':
-            default:
-                $reportPeriod = 'today';
-                $startDate = $today->format('Y-m-d');
-                $endDate   = $startDate;
-                break;
-        }
+        $startDate = $this->request->getGet('start_date') ?: null;
+        $endDate   = $this->request->getGet('end_date') ?: null;
+        $reportType = $this->request->getGet('report_type') ?: '';
 
         if ($isAdmin) {
             // Near Expiry
@@ -276,13 +254,14 @@ class Reports extends BaseController
             )->getResultArray();
         }
 
-        $itemRankings = $this->getItemRankings($db, $isAdmin ? null : (int) $deptId);
+        $itemRankings = $this->getItemRankings($db, $isAdmin ? null : (int) $deptId, $startDate, $endDate);
 
         $data = [
             'title'             => 'Reports',
             'report_period'     => $reportPeriod,
             'start_date'        => $startDate,
             'end_date'          => $endDate,
+            'report_type'       => $reportType,
             'near_expiry_items' => $nearExpiryItems,
             'low_stock_items'   => $lowStockItems,
             'expired_items'     => $expiredItems,
@@ -293,6 +272,7 @@ class Reports extends BaseController
             'no_stock_count'    => count($noStockItems),
             'top_requested_by_category' => $itemRankings['requested'],
             'top_consumed_by_category'  => $itemRankings['consumed'],
+            'top_requesting_departments' => $isAdmin ? $this->getTopRequestingDepartments($db, $startDate, $endDate) : [],
         ];
 
         return view('templates/header', $data)
@@ -300,38 +280,70 @@ class Reports extends BaseController
              . view('templates/footer');
     }
 
-    private function getItemRankings(\CodeIgniter\Database\BaseConnection $db, ?int $departmentId): array
+    private function getItemRankings(\CodeIgniter\Database\BaseConnection $db, ?int $departmentId, ?string $startDate = null, ?string $endDate = null): array
     {
         $requestedParams = [];
-        $requestedDepartmentClause = '';
+        $requestedWhere = "r.status > 0";
         if ($departmentId !== null) {
-            $requestedDepartmentClause = ' AND ds.department_id = ?';
+            $requestedWhere .= ' AND ds.department_id = ?';
             $requestedParams[] = $departmentId;
+        }
+        if (!empty($startDate) && !empty($endDate)) {
+            $requestedWhere .= ' AND DATE(r.created_at) BETWEEN ? AND ?';
+            $requestedParams[] = $startDate;
+            $requestedParams[] = $endDate;
+        } elseif (!empty($startDate)) {
+            $requestedWhere .= ' AND DATE(r.created_at) >= ?';
+            $requestedParams[] = $startDate;
+        } elseif (!empty($endDate)) {
+            $requestedWhere .= ' AND DATE(r.created_at) <= ?';
+            $requestedParams[] = $endDate;
         }
 
         $requested = $db->query(
-            "SELECT COALESCE(i.item_code, cs.item_code) AS item_code, COALESCE(i.item_name, cs.item_name) AS item_name,
-                    COALESCE(s.unit, i.unit, cs.unit) AS unit, SUM(r.quantity_requested) AS total_quantity
+            "SELECT COALESCE(i.item_code, cs.item_code) AS item_code,
+                    MIN(COALESCE(i.item_name, cs.item_name)) AS item_name,
+                    MIN(COALESCE(s.unit, i.unit, cs.unit)) AS unit,
+                    SUM(r.quantity_requested) AS total_quantity
              FROM request r INNER JOIN supply s ON s.request_id = r.request_id
              INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
              LEFT JOIN inventory i ON i.inventory_id = s.inventory_id LEFT JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
-             WHERE r.status > 0{$requestedDepartmentClause}
-             GROUP BY COALESCE(i.item_code, cs.item_code), COALESCE(i.item_name, cs.item_name), COALESCE(s.unit, i.unit, cs.unit)
+             WHERE {$requestedWhere}
+             GROUP BY COALESCE(i.item_code, cs.item_code)
              ORDER BY total_quantity DESC, item_name ASC LIMIT 10",
             $requestedParams
         )->getResultArray();
         foreach ($requested as $index => &$item) $item['rank'] = $index + 1;
         unset($item);
 
-        $consumedParams = $departmentId === null ? [] : [$departmentId];
+        $consumedParams = [];
+        $consumedWhere = "ds.quantity_used > 0";
+        if ($departmentId !== null) {
+            $consumedWhere .= ' AND ds.department_id = ?';
+            $consumedParams[] = $departmentId;
+        }
+        if (!empty($startDate) && !empty($endDate)) {
+            $consumedWhere .= ' AND DATE(COALESCE(r.created_at, ds.created_at)) BETWEEN ? AND ?';
+            $consumedParams[] = $startDate;
+            $consumedParams[] = $endDate;
+        } elseif (!empty($startDate)) {
+            $consumedWhere .= ' AND DATE(COALESCE(r.created_at, ds.created_at)) >= ?';
+            $consumedParams[] = $startDate;
+        } elseif (!empty($endDate)) {
+            $consumedWhere .= ' AND DATE(COALESCE(r.created_at, ds.created_at)) <= ?';
+            $consumedParams[] = $endDate;
+        }
+
         $consumed = $db->query(
-            "SELECT s.category_id, c.category_code, c.category_name, i.item_code, i.item_name,
-                    COALESCE(i.unit, s.unit) AS unit, SUM(ds.quantity_used) AS total_quantity
+            "SELECT s.category_id, MIN(c.category_code) AS category_code, MIN(c.category_name) AS category_name,
+                    i.item_code, MIN(i.item_name) AS item_name,
+                    MIN(COALESCE(i.unit, s.unit)) AS unit, SUM(ds.quantity_used) AS total_quantity
              FROM department_supply ds INNER JOIN supply s ON s.department_supply_id = ds.department_supply_id
              INNER JOIN inventory i ON i.inventory_id = s.inventory_id LEFT JOIN category c ON c.category_id = s.category_id
-             WHERE ds.quantity_used > 0" . ($departmentId !== null ? ' AND ds.department_id = ?' : '') . "
-             GROUP BY s.category_id, c.category_code, c.category_name, i.item_code, i.item_name, COALESCE(i.unit, s.unit)
-             ORDER BY c.category_name ASC, total_quantity DESC, i.item_name ASC",
+             LEFT JOIN request r ON r.department_supply_id = ds.department_supply_id
+             WHERE {$consumedWhere}
+             GROUP BY s.category_id, i.item_code
+             ORDER BY MIN(c.category_name) ASC, total_quantity DESC, MIN(i.item_name) ASC",
             $consumedParams
         )->getResultArray();
 
@@ -348,5 +360,47 @@ class Reports extends BaseController
         }
 
         return ['requested' => $requested, 'consumed' => array_values($byCategory)];
+    }
+
+    /**
+     * Returns top 5 departments ranked by total quantity requested (admin reports only).
+     */
+    private function getTopRequestingDepartments(\CodeIgniter\Database\BaseConnection $db, ?string $startDate = null, ?string $endDate = null): array
+    {
+        $params = [];
+        $where = "r.status > 0";
+        if (!empty($startDate) && !empty($endDate)) {
+            $where .= ' AND DATE(r.created_at) BETWEEN ? AND ?';
+            $params[] = $startDate;
+            $params[] = $endDate;
+        } elseif (!empty($startDate)) {
+            $where .= ' AND DATE(r.created_at) >= ?';
+            $params[] = $startDate;
+        } elseif (!empty($endDate)) {
+            $where .= ' AND DATE(r.created_at) <= ?';
+            $params[] = $endDate;
+        }
+
+        $rows = $db->query(
+            "SELECT d.department_id, d.department_name, d.department_code,
+                    SUM(r.quantity_requested) AS total_requested,
+                    COUNT(DISTINCT r.request_id) AS total_requests
+             FROM request r
+             INNER JOIN supply s   ON s.request_id = r.request_id
+             INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+             INNER JOIN departments d ON d.department_id = ds.department_id
+             WHERE {$where}
+             GROUP BY d.department_id, d.department_name, d.department_code
+             ORDER BY total_requested DESC
+             LIMIT 5",
+            $params
+        )->getResultArray();
+
+        foreach ($rows as $index => &$row) {
+            $row['rank'] = $index + 1;
+        }
+        unset($row);
+
+        return $rows;
     }
 }

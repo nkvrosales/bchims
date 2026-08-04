@@ -62,13 +62,20 @@ class Dashboard extends BaseController
         $data['recent_logs'] = $this->auditModel->get_recent_logs(5);
         $data['total_users'] = $db->table('user')->countAll();
 
+        $startDate = $this->request->getGet('start_date') ?: date('Y-01-01');
+        $endDate   = $this->request->getGet('end_date') ?: date('Y-m-d');
+
+        $data['start_date'] = $startDate;
+        $data['end_date']   = $endDate;
+
         // Always fetch the real department_id from the DB (session may be stale / not set for old logins)
         $userModel = new \App\Models\UserModel();
         $currentUser = $userModel->get_user_by_id(session()->get('user_id'));
         $deptId = $currentUser['department_id'] ?? null;
-        $itemRankings = $this->getItemRankings($db, is_admin_role() ? null : (int) $deptId);
+        $itemRankings = $this->getItemRankings($db, is_admin_role() ? null : (int) $deptId, $startDate, $endDate);
         $data['top_requested_by_category'] = $itemRankings['requested'];
         $data['top_consumed_by_category'] = $itemRankings['consumed'];
+        $data['top_requesting_departments'] = is_admin_role() ? $this->getTopRequestingDepartments($db, $startDate, $endDate) : [];
 
         if (is_admin_role()) {
             // Count pending (1) and partially served (2) requests
@@ -306,7 +313,7 @@ class Dashboard extends BaseController
                  JOIN user u ON u.user_id = r.user_id
                  JOIN supply s ON s.request_id = r.request_id
                  JOIN inventory i ON i.inventory_id = s.inventory_id
-                 JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+                 JOIN department_supply ds ON ds.department_supply_id = r.department_supply_id
                  WHERE r.request_status IN (1, 2) AND r.status > 0 AND ds.department_id = ?
                  ORDER BY r.created_at DESC
                  LIMIT 5",
@@ -319,38 +326,70 @@ class Dashboard extends BaseController
              . view('templates/footer');
     }
 
-    private function getItemRankings(\CodeIgniter\Database\BaseConnection $db, ?int $departmentId): array
+    private function getItemRankings(\CodeIgniter\Database\BaseConnection $db, ?int $departmentId, ?string $startDate = null, ?string $endDate = null): array
     {
         $requestedParams = [];
-        $requestedDepartmentClause = '';
+        $requestedWhere = "r.status > 0";
         if ($departmentId !== null) {
-            $requestedDepartmentClause = ' AND ds.department_id = ?';
+            $requestedWhere .= ' AND ds.department_id = ?';
             $requestedParams[] = $departmentId;
+        }
+        if (!empty($startDate) && !empty($endDate)) {
+            $requestedWhere .= ' AND DATE(r.created_at) BETWEEN ? AND ?';
+            $requestedParams[] = $startDate;
+            $requestedParams[] = $endDate;
+        } elseif (!empty($startDate)) {
+            $requestedWhere .= ' AND DATE(r.created_at) >= ?';
+            $requestedParams[] = $startDate;
+        } elseif (!empty($endDate)) {
+            $requestedWhere .= ' AND DATE(r.created_at) <= ?';
+            $requestedParams[] = $endDate;
         }
 
         $requested = $db->query(
-            "SELECT COALESCE(i.item_code, cs.item_code) AS item_code, COALESCE(i.item_name, cs.item_name) AS item_name,
-                    COALESCE(s.unit, i.unit, cs.unit) AS unit, SUM(r.quantity_requested) AS total_quantity
+            "SELECT COALESCE(i.item_code, cs.item_code) AS item_code,
+                    MIN(COALESCE(i.item_name, cs.item_name)) AS item_name,
+                    MIN(COALESCE(s.unit, i.unit, cs.unit)) AS unit,
+                    SUM(r.quantity_requested) AS total_quantity
              FROM request r INNER JOIN supply s ON s.request_id = r.request_id
              INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
              LEFT JOIN inventory i ON i.inventory_id = s.inventory_id LEFT JOIN central_supply cs ON cs.central_supply_id = s.central_supply_id
-             WHERE r.status > 0{$requestedDepartmentClause}
-             GROUP BY COALESCE(i.item_code, cs.item_code), COALESCE(i.item_name, cs.item_name), COALESCE(s.unit, i.unit, cs.unit)
+             WHERE {$requestedWhere}
+             GROUP BY COALESCE(i.item_code, cs.item_code)
              ORDER BY total_quantity DESC, item_name ASC LIMIT 10",
             $requestedParams
         )->getResultArray();
         foreach ($requested as $index => &$item) $item['rank'] = $index + 1;
         unset($item);
 
-        $consumedParams = $departmentId === null ? [] : [$departmentId];
+        $consumedParams = [];
+        $consumedWhere = "ds.quantity_used > 0";
+        if ($departmentId !== null) {
+            $consumedWhere .= ' AND ds.department_id = ?';
+            $consumedParams[] = $departmentId;
+        }
+        if (!empty($startDate) && !empty($endDate)) {
+            $consumedWhere .= ' AND DATE(COALESCE(r.created_at, ds.created_at)) BETWEEN ? AND ?';
+            $consumedParams[] = $startDate;
+            $consumedParams[] = $endDate;
+        } elseif (!empty($startDate)) {
+            $consumedWhere .= ' AND DATE(COALESCE(r.created_at, ds.created_at)) >= ?';
+            $consumedParams[] = $startDate;
+        } elseif (!empty($endDate)) {
+            $consumedWhere .= ' AND DATE(COALESCE(r.created_at, ds.created_at)) <= ?';
+            $consumedParams[] = $endDate;
+        }
+
         $consumed = $db->query(
-            "SELECT s.category_id, c.category_code, c.category_name, i.item_code, i.item_name,
-                    COALESCE(i.unit, s.unit) AS unit, SUM(ds.quantity_used) AS total_quantity
+            "SELECT s.category_id, MIN(c.category_code) AS category_code, MIN(c.category_name) AS category_name,
+                    i.item_code, MIN(i.item_name) AS item_name,
+                    MIN(COALESCE(i.unit, s.unit)) AS unit, SUM(ds.quantity_used) AS total_quantity
              FROM department_supply ds INNER JOIN supply s ON s.department_supply_id = ds.department_supply_id
              INNER JOIN inventory i ON i.inventory_id = s.inventory_id LEFT JOIN category c ON c.category_id = s.category_id
-             WHERE ds.quantity_used > 0" . ($departmentId !== null ? ' AND ds.department_id = ?' : '') . "
-             GROUP BY s.category_id, c.category_code, c.category_name, i.item_code, i.item_name, COALESCE(i.unit, s.unit)
-             ORDER BY c.category_name ASC, total_quantity DESC, i.item_name ASC",
+             LEFT JOIN request r ON r.department_supply_id = ds.department_supply_id
+             WHERE {$consumedWhere}
+             GROUP BY s.category_id, i.item_code
+             ORDER BY MIN(c.category_name) ASC, total_quantity DESC, MIN(i.item_name) ASC",
             $consumedParams
         )->getResultArray();
 
@@ -367,6 +406,48 @@ class Dashboard extends BaseController
         }
 
         return ['requested' => $requested, 'consumed' => array_values($byCategory)];
+    }
+
+    /**
+     * Returns top 5 departments ranked by total quantity requested (admin dashboard only).
+     */
+    private function getTopRequestingDepartments(\CodeIgniter\Database\BaseConnection $db, ?string $startDate = null, ?string $endDate = null): array
+    {
+        $params = [];
+        $where = "r.status > 0";
+        if (!empty($startDate) && !empty($endDate)) {
+            $where .= ' AND DATE(r.created_at) BETWEEN ? AND ?';
+            $params[] = $startDate;
+            $params[] = $endDate;
+        } elseif (!empty($startDate)) {
+            $where .= ' AND DATE(r.created_at) >= ?';
+            $params[] = $startDate;
+        } elseif (!empty($endDate)) {
+            $where .= ' AND DATE(r.created_at) <= ?';
+            $params[] = $endDate;
+        }
+
+        $rows = $db->query(
+            "SELECT d.department_id, d.department_name, d.department_code,
+                    SUM(r.quantity_requested) AS total_requested,
+                    COUNT(DISTINCT r.request_id)  AS total_requests
+             FROM request r
+             INNER JOIN supply s   ON s.request_id = r.request_id
+             INNER JOIN department_supply ds ON ds.department_supply_id = s.department_supply_id
+             INNER JOIN departments d ON d.department_id = ds.department_id
+             WHERE {$where}
+             GROUP BY d.department_id, d.department_name, d.department_code
+             ORDER BY total_requested DESC
+             LIMIT 5",
+            $params
+        )->getResultArray();
+
+        foreach ($rows as $index => &$row) {
+            $row['rank'] = $index + 1;
+        }
+        unset($row);
+
+        return $rows;
     }
 
     public function audit_logs()
@@ -534,4 +615,3 @@ class Dashboard extends BaseController
     }
 
 }
-
