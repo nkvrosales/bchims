@@ -48,6 +48,14 @@ class SupplyRequests extends BaseController
             return redirect()->to('auth/login');
         }
 
+        // Enforce single-session login: reject sessions whose token no longer
+        // matches the user's current DB token (terminated by a newer login).
+        if (!validate_session_token($user)) {
+            session()->destroy();
+            setcookie('last_username', '', time() - 3600, '/');
+            return redirect()->to('auth/login?reason=terminated');
+        }
+
         return null;
     }
 

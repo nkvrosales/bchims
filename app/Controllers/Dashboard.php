@@ -44,6 +44,14 @@ class Dashboard extends BaseController
             return redirect()->to('auth/login');
         }
 
+        // Enforce single-session login: reject sessions whose token no longer
+        // matches the user's current DB token (terminated by a newer login).
+        if (!validate_session_token($user)) {
+            session()->destroy();
+            setcookie('last_username', '', time() - 3600, '/');
+            return redirect()->to('auth/login?reason=terminated');
+        }
+
         return null;
     }
 
@@ -486,6 +494,13 @@ class Dashboard extends BaseController
         }
 
         if (!session()->get('logged_in')) {
+            return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        // Enforce single-session login on AJAX endpoints as well
+        $user = (new UserModel())->get_user_by_id(session()->get('user_id'));
+        if (empty($user) || !validate_session_token($user)) {
+            session()->destroy();
             return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
         }
 

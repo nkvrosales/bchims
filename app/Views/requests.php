@@ -966,6 +966,19 @@ $requestBadgeMap = [
             updateRowButtons();
         }
 
+        function clearRowUnit(row) {
+            var unitInput = row.querySelector('.row-unit-search');
+            var clearBtn = row.querySelector('.row-unit-clear');
+            if (unitInput) {
+                unitInput.value = '';
+                unitInput.setAttribute('data-selected-unit', '');
+                unitInput.style.borderColor = '#cbd5e1';
+            }
+            if (clearBtn) {
+                clearBtn.style.display = 'none';
+            }
+        }
+
         function setupRowEvents(row) {
             var catSelect = row.querySelector('.row-category-select');
             var searchInput = row.querySelector('.row-item-search');
@@ -973,16 +986,19 @@ $requestBadgeMap = [
             var clearBtn = row.querySelector('.row-item-clear');
             var dropdown = row.querySelector('.row-item-dropdown');
 
-            // Reset item when category changes
+            // Reset item & unit when category changes
             catSelect.addEventListener('change', function() {
                 hiddenInput.value = '';
                 searchInput.value = '';
                 clearBtn.style.display = 'none';
+                clearRowUnit(row);
                 filterAndRender(row);
             });
 
-            // Filter on input
+            // Filter on input & clear unit if item input changes
             searchInput.addEventListener('input', function() {
+                hiddenInput.value = '';
+                clearRowUnit(row);
                 filterAndRender(row);
             });
 
@@ -997,6 +1013,7 @@ $requestBadgeMap = [
                 searchInput.value = '';
                 clearBtn.style.display = 'none';
                 searchInput.style.borderColor = '#cbd5e1';
+                clearRowUnit(row);
                 searchInput.focus();
                 filterAndRender(row);
             });
@@ -1057,6 +1074,9 @@ $requestBadgeMap = [
                         row.querySelector('.row-item-search').value = name;
                         row.querySelector('.row-item-clear').style.display = 'block';
                         dropdown.style.display = 'none';
+
+                        // Clear selected unit when item is selected or changed
+                        clearRowUnit(row);
                     });
                 });
             }

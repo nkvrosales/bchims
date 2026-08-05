@@ -44,6 +44,14 @@ class Inventory extends BaseController
             return redirect()->to('auth/login');
         }
 
+        // Enforce single-session login: reject sessions whose token no longer
+        // matches the user's current DB token (terminated by a newer login).
+        if (!validate_session_token($user)) {
+            session()->destroy();
+            setcookie('last_username', '', time() - 3600, '/');
+            return redirect()->to('auth/login?reason=terminated');
+        }
+
         return null;
     }
 
@@ -734,6 +742,13 @@ class Inventory extends BaseController
     {
         // Skip auth check for AJAX to avoid redirect issues
         if (!session()->get('logged_in')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Not logged in']);
+        }
+
+        // Enforce single-session login on AJAX endpoints as well
+        $user = $this->userModel->get_user_by_id(session()->get('user_id'));
+        if (empty($user) || !validate_session_token($user)) {
+            session()->destroy();
             return $this->response->setJSON(['success' => false, 'message' => 'Not logged in']);
         }
 
