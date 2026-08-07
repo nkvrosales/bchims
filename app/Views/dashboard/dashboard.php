@@ -414,7 +414,6 @@
         </div>
     </div>
 
-    <?php if (!empty($top_requesting_departments)): ?>
     <div class="col-12">
         <div class="standard-card">
             <div class="card-header-styled">
@@ -432,21 +431,26 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($top_requesting_departments as $dept): ?>
+                        <?php if (!empty($top_requesting_departments)): ?>
+                            <?php foreach ($top_requesting_departments as $dept): ?>
+                                <tr>
+                                    <td class="text-center"><?php echo (int)$dept['rank']; ?></td>
+                                    <td><?php echo htmlspecialchars($dept['department_name']); ?></td>
+                                    <td class="text-center text-muted"><?php echo htmlspecialchars($dept['department_code'] ?? '—'); ?></td>
+                                    <td class="text-center"><?php echo number_format((int)$dept['total_requests']); ?></td>
+                                    <td class="text-center"><?php echo number_format((int)$dept['total_requested']); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
                             <tr>
-                                <td class="text-center"><?php echo (int)$dept['rank']; ?></td>
-                                <td><?php echo htmlspecialchars($dept['department_name']); ?></td>
-                                <td class="text-center text-muted"><?php echo htmlspecialchars($dept['department_code'] ?? '—'); ?></td>
-                                <td class="text-center"><?php echo number_format((int)$dept['total_requests']); ?></td>
-                                <td class="text-center"><?php echo number_format((int)$dept['total_requested']); ?></td>
+                                <td colspan="5" class="text-center text-muted py-4">No requesting data available.</td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <?php endif; ?>
 
     <div class="col-12">
         <div class="standard-card">
