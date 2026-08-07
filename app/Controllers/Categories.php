@@ -64,7 +64,7 @@ class Categories extends BaseController
 
         $categories = $this->categoryModel->search_categories($search, $status_filter);
 
-        $data['title']        = 'Categories';
+        $data['title']        = 'Category Management';
         $data['categories']   = $categories;
         $data['search']       = $search;
         $data['status_filter'] = $status_filter;

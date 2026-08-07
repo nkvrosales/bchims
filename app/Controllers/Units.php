@@ -62,7 +62,7 @@ class Units extends BaseController
         $search        = trim((string) $this->request->getGet('search'));
         $status_filter = trim((string) $this->request->getGet('status_filter'));
 
-        $data['title']         = 'Unit';
+        $data['title']         = 'Unit Management';
         $data['units']         = $this->unitModel->search_units($search, $status_filter);
         $data['search']        = $search;
         $data['status_filter'] = $status_filter;

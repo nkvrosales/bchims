@@ -188,7 +188,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('categories'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Categories', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories" title="Categories">
+                       class="sidebar-link <?php echo (isset($title) && in_array($title, ['Category Management', 'Add Category', 'Edit Category'])) ? 'active' : ''; ?>" id="navCategories" title="Categories">
                         <i class="bi bi-tags"></i>
                         <span>Categories</span>
                     </a>
@@ -196,7 +196,7 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('departments'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Departments') ? 'active' : ''; ?>" id="navDepartments" title="Departments">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Department Management') ? 'active' : ''; ?>" id="navDepartments" title="Departments">
                         <i class="bi bi-building"></i>
                         <span>Departments</span>
                     </a>
@@ -204,15 +204,15 @@
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('unit'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Unit') ? 'active' : ''; ?>" id="navUnit" title="Unit">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Unit Management') ? 'active' : ''; ?>" id="navUnit" title="Units">
                         <i class="fa-solid fa-box"></i>
-                        <span>Unit</span>
+                        <span>Units</span>
                     </a>
                 </li>
 
                 <li class="sidebar-item">
                     <a href="<?php echo base_url('suppliers'); ?>"
-                       class="sidebar-link <?php echo (isset($title) && $title === 'Suppliers') ? 'active' : ''; ?>" id="navSuppliers" title="Suppliers">
+                       class="sidebar-link <?php echo (isset($title) && $title === 'Supplier Management') ? 'active' : ''; ?>" id="navSuppliers" title="Suppliers">
                         <i class="bi bi-truck"></i>
                         <span>Suppliers</span>
                     </a>

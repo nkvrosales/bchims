@@ -65,7 +65,7 @@ class Suppliers extends BaseController
 
         $suppliers = $this->supplierModel->search_suppliers($search, $type_filter, $status_filter);
 
-        $data['title']       = 'Suppliers';
+        $data['title']       = 'Supplier Management';
         $data['suppliers']   = $suppliers;
         $data['search']      = $search;
         $data['type_filter'] = $type_filter;

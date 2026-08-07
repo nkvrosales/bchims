@@ -2,13 +2,13 @@
 <div class="page-breadcrumb">
     <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
     <span class="separator">/</span>
-    <span class="current">Categories</span>
+    <span class="current">Category Management</span>
 </div>
 
 <div class="page-title-section fade-in-up">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="page-title mb-1">Categories</h1>
+            <h1 class="page-title mb-1">Category Management</h1>
         </div>
     </div>
 </div>

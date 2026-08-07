@@ -63,7 +63,7 @@ class Departments extends BaseController
 
         $departments = $this->departmentModel->search_departments($search, $status_filter);
 
-        $data['title']        = 'Departments';
+        $data['title']        = 'Department Management';
         $data['departments']  = $departments;
         $data['search']       = $search;
         $data['status_filter'] = $status_filter;

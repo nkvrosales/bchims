@@ -25,7 +25,7 @@ class Auth extends BaseController
 
         // Show termination notice when a previous session was ended by a newer login.
         if ($this->request->getGet('reason') === 'terminated') {
-            $session->setFlashdata('session_expired', 'Your session has been terminated because your account was accessed from elsewhere+.');
+            $session->setFlashdata('session_expired', 'Your session has been terminated because your account was logged in from elsewhere.');
         }
 
         // If already logged in, redirect straight to dashboard
