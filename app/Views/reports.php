@@ -60,11 +60,11 @@
                                 <option value="low_stock" <?php echo (($report_type ?? '') === 'low_stock') ? 'selected' : ''; ?>>Low Stock Items</option>
                                 <option value="out_of_stock" <?php echo (($report_type ?? '') === 'out_of_stock') ? 'selected' : ''; ?>>Out of Stock Items</option>
                                 <option value="expired" <?php echo (($report_type ?? '') === 'expired') ? 'selected' : ''; ?>>Expired Items</option>
-                                <option value="top_requested" <?php echo (($report_type ?? '') === 'top_requested') ? 'selected' : ''; ?>>Top 10 Requested Items</option>
                                 <?php if (is_admin_role()): ?>
+                                <option value="top_requested" <?php echo (($report_type ?? '') === 'top_requested') ? 'selected' : ''; ?>>Top 10 Requested Items</option>
                                 <option value="top_requesting_depts" <?php echo (($report_type ?? '') === 'top_requesting_depts') ? 'selected' : ''; ?>>Top 5 Requesting Departments</option>
-                                <?php endif; ?>
                                 <option value="top_consumed" <?php echo (($report_type ?? '') === 'top_consumed') ? 'selected' : ''; ?>>Top 10 Consumed Items per Category</option>
+                                <?php endif; ?>
                             </select>
                             <label for="export_report_select">Report Type</label>
                         </div>

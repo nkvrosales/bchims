@@ -262,7 +262,12 @@ class Reports extends BaseController
             )->getResultArray();
         }
 
-        $itemRankings = $this->getItemRankings($db, $isAdmin ? null : (int) $deptId, $startDate, $endDate);
+        // Rankings (Top Requested / Top Consumed) are admin-only report types,
+        // so only compute them for admin/dev roles.
+        $itemRankings = ['requested' => [], 'consumed' => []];
+        if ($isAdmin) {
+            $itemRankings = $this->getItemRankings($db, null, $startDate, $endDate);
+        }
 
         $data = [
             'title'             => 'Reports',

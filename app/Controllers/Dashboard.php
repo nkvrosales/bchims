@@ -76,14 +76,23 @@ class Dashboard extends BaseController
         $data['start_date'] = $startDate;
         $data['end_date']   = $endDate;
 
+        // Rankings & analytics panels are admin-only (hidden for encoder/viewer),
+        // so only compute them for admin/dev roles.
+        $data['top_requested_by_category'] = [];
+        $data['top_consumed_by_category'] = [];
+        $data['top_requesting_departments'] = [];
+
+        if (is_admin_role()) {
+            $itemRankings = $this->getItemRankings($db, null, $startDate, $endDate);
+            $data['top_requested_by_category'] = $itemRankings['requested'];
+            $data['top_consumed_by_category'] = $itemRankings['consumed'];
+            $data['top_requesting_departments'] = $this->getTopRequestingDepartments($db, $startDate, $endDate);
+        }
+
         // Always fetch the real department_id from the DB (session may be stale / not set for old logins)
         $userModel = new \App\Models\UserModel();
         $currentUser = $userModel->get_user_by_id(session()->get('user_id'));
         $deptId = $currentUser['department_id'] ?? null;
-        $itemRankings = $this->getItemRankings($db, is_admin_role() ? null : (int) $deptId, $startDate, $endDate);
-        $data['top_requested_by_category'] = $itemRankings['requested'];
-        $data['top_consumed_by_category'] = $itemRankings['consumed'];
-        $data['top_requesting_departments'] = is_admin_role() ? $this->getTopRequestingDepartments($db, $startDate, $endDate) : [];
 
         if (is_admin_role()) {
             // Count pending (1) and partially served (2) requests

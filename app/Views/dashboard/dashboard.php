@@ -371,7 +371,8 @@
     </div>
 </div>
 
-<!-- Date Filter Bar for Rankings & Analytics -->
+<!-- Date Filter Bar for Rankings & Analytics (admin-only) -->
+<?php if (is_admin_role()): ?>
 <form method="GET" action="<?php echo base_url('dashboard'); ?>" id="dashboardFilterForm" class="fade-in-up mt-4 mb-2" style="animation-delay: 0.07s;">
     <div class="db-search-bar" style="flex-wrap: wrap; gap: 8px;">
         <div class="db-search-field" style="flex: 0 0 200px;">
@@ -392,7 +393,9 @@
         </div>
     </div>
 </form>
+<?php endif; ?>
 
+<?php if (is_admin_role()): ?>
 <div class="row g-4 mt-1 fade-in-up" style="animation-delay: 0.08s;">
     <div class="col-12">
         <div class="standard-card">
@@ -443,7 +446,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">No requesting data available.</td>
+                                <td colspan="5" class="text-center text-muted py-4">No requesting data found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -483,5 +486,6 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 
