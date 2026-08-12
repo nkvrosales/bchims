@@ -1,4 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="<?php echo base_url('assets/vendor/xlsx/xlsx.bundle.js'); ?>"></script>
 
 <div class="page-breadcrumb">
     <a href="<?php echo base_url('dashboard'); ?>">Dashboard</a>
@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var btnClear = document.getElementById('btnClearFilters');
     if (btnClear) {
-        btnClear.addEventListener('mouseover', function() { this.style.background = '#a93226'; });
+        btnClear.addEventListener('mouseover', function() { this.style.background = '#cf5648'; });
         btnClear.addEventListener('mouseout', function() { this.style.background = '#c0392b'; });
     }
 });

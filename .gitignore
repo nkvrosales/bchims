@@ -7,7 +7,7 @@
 env
 
 # Composer dependencies (should be installed via composer install)
-vendor/
+/vendor/
 
 # Temporary Files and Writable Folder Contents
 writable/cache/*
